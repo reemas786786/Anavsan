@@ -52,7 +52,7 @@ const QueryWorkspace: React.FC = () => {
                     <button 
                         onClick={() => setIsComparing(true)}
                         disabled={selectedVersions.size !== 2} 
-                        className="px-4 py-2 text-sm font-semibold text-white bg-primary rounded-lg shadow-sm hover:bg-primary-hover disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        className="px-4 py-2 text-sm font-semibold text-white bg-primary rounded-full shadow-sm hover:bg-primary-hover disabled:bg-gray-300 disabled:cursor-not-allowed"
                     >
                         Compare Versions
                     </button>

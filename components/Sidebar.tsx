@@ -17,13 +17,12 @@ const NavItem: React.FC<{ item: any, activePage: Page, setActivePage: (page: Pag
                 e.preventDefault();
                 setActivePage(item.name);
             }}
-            className={`flex relative items-center py-2.5 text-sm font-semibold rounded-lg transition-colors duration-200 ${isCollapsed ? 'justify-center px-2.5' : 'px-3'} ${
+            className={`flex relative items-center py-2.5 text-sm font-semibold rounded-lg transition-colors duration-200 ${isCollapsed ? 'justify-center px-3' : 'px-3'} ${
                 activePage === item.name
                     ? 'bg-primary/10 text-primary'
                     : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'
             }`}
         >
-            {activePage === item.name && <span className="absolute left-0 top-1 bottom-1 w-1 bg-primary rounded-r-full"></span>}
             <item.icon className="w-5 h-5" />
             {!isCollapsed && <span className="ml-3">{item.name}</span>}
         </a>
@@ -32,7 +31,7 @@ const NavItem: React.FC<{ item: any, activePage: Page, setActivePage: (page: Pag
 
 const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isCollapsed }) => {
   return (
-    <nav className={`bg-surface flex-shrink-0 flex flex-col p-4 transition-all duration-300 border-r border-border-color ${isCollapsed ? 'w-20' : 'w-64'}`}>
+    <nav className={`bg-surface fixed top-16 left-0 h-[calc(100%-4rem)] flex-shrink-0 flex flex-col p-4 transition-all duration-300 ease-in-out border-r border-border-color z-20 ${isCollapsed ? 'w-12' : 'w-64 shadow-xl'}`}>
       <div className="flex-grow">
         <ul>
           {NAV_ITEMS_MAIN.map((item) => (

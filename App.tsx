@@ -17,34 +17,38 @@ import { connectionsData } from './data/dummyData';
 
 const App: React.FC = () => {
   const [activePage, setActivePage] = useState<Page>('Connections');
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   
-  // Simulate first-time user experience
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [isAddingAccount, setIsAddingAccount] = useState(false);
 
   useEffect(() => {
-    // If there are no accounts after an initial check, prompt the user to add one.
-    if (accounts.length === 0) {
-      setIsAddingAccount(true);
-    } else {
-      setIsAddingAccount(false);
+    if (accounts.length === 0 && !isAddingAccount) {
+        // Initially load dummy data if accounts are empty
+        setAccounts(connectionsData);
     }
-  }, [accounts]);
+  }, []);
 
   const handleAddAccount = () => {
-    // In a real app, this would come from the form.
-    // Here, we'll just populate with dummy data.
-    setAccounts(connectionsData);
+    const newAccount: Account = {
+      id: `new-${Date.now()}`,
+      name: `New Account #${accounts.length + 1}`,
+      identifier: `xyz${Math.floor(Math.random() * 1000)}.eu-west-1`,
+      role: 'ANALYST',
+      status: 'Syncing',
+      lastSynced: 'Just now',
+    };
+    setAccounts(prevAccounts => [...prevAccounts, newAccount]);
     setIsAddingAccount(false);
   };
   
+  const handleDeleteAccount = (accountId: string) => {
+    setAccounts(prevAccounts => prevAccounts.filter(acc => acc.id !== accountId));
+  };
+  
   const handleCancelAddAccount = () => {
-    // Only allow canceling if there are existing accounts.
-    if (accounts.length > 0) {
-      setIsAddingAccount(false);
-    }
+    setIsAddingAccount(false);
   };
 
   const handleSelectAccount = (account: Account) => {
@@ -57,17 +61,13 @@ const App: React.FC = () => {
   };
 
   const renderContent = () => {
-    if (selectedAccount) {
-      return <AccountView account={selectedAccount} onBack={handleBackToConnections} />;
-    }
-    
     switch (activePage) {
       case 'Overview':
         return <Overview />;
       case 'Dashboard':
         return <Dashboard />;
       case 'Connections':
-        return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setIsAddingAccount(true)} />;
+        return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setIsAddingAccount(true)} onDeleteAccount={handleDeleteAccount} />;
       case 'AI Agent':
         return <AIAgent />;
       case 'Reports':
@@ -79,9 +79,37 @@ const App: React.FC = () => {
       case 'Support':
         return <Support />;
       default:
-        return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setIsAddingAccount(true)} />;
+        return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setIsAddingAccount(true)} onDeleteAccount={handleDeleteAccount} />;
     }
   };
+
+  if (selectedAccount) {
+    return (
+      <div className="flex flex-col h-screen bg-background font-sans">
+        <Header 
+          isSidebarCollapsed={isSidebarCollapsed}
+          toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          showToggleButton={false}
+        />
+        <AccountView
+            account={selectedAccount}
+            accounts={accounts}
+            onBack={handleBackToConnections}
+            onSwitchAccount={handleSelectAccount}
+        />
+        <SidePanel
+            isOpen={isAddingAccount}
+            onClose={handleCancelAddAccount}
+            title="Connect Snowflake Account"
+        >
+            <AddAccountFlow
+            onCancel={handleCancelAddAccount}
+            onAddAccount={handleAddAccount}
+            />
+        </SidePanel>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen bg-background font-sans">
@@ -95,7 +123,7 @@ const App: React.FC = () => {
           setActivePage={setActivePage}
           isCollapsed={isSidebarCollapsed}
         />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-4">
+        <main className={`flex-1 overflow-x-hidden overflow-y-auto bg-background p-4 transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'ml-12' : 'ml-64'}`}>
           {renderContent()}
         </main>
       </div>

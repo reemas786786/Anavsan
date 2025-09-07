@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconWand, IconMenu } from '../constants';
+import { IconMenu } from '../constants';
 
 const IconSearch: React.FC<{ className?: string }> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -19,6 +19,14 @@ const IconQuestionMark: React.FC<{ className?: string }> = ({ className }) => (
     </svg>
 );
 
+const IconWandFilled: React.FC<{ className?: string }> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+      <path fillRule="evenodd" d="M9.315 7.584C12.195 3.883 16.695 1.5 21.75 1.5a.75.75 0 01.75.75c0 5.056-2.383 9.555-6.084 12.436A6.75 6.75 0 019.75 22.5a.75.75 0 01-.75-.75v-4.131A15.838 15.838 0 016.382 15H2.25a.75.75 0 01-.75-.75 6.75 6.75 0 017.815-6.666zM15 6.75a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z" clipRule="evenodd" />
+      <path d="M5.26 17.242a.75.75 0 10-1.06-1.06l1.5-1.5a.75.75 0 101.06 1.06l-1.5 1.5zm8.25-8.25a.75.75 0 10-1.06-1.06l-1.5 1.5a.75.75 0 101.06 1.06l1.5-1.5zM12 18a.75.75 0 100-1.5.75.75 0 000 1.5z" />
+    </svg>
+);
+
+
 const AnavsanLogo: React.FC<{}> = () => (
     <div className="flex items-center gap-3">
       <div className="bg-primary p-2 rounded-lg flex items-center justify-center">
@@ -36,37 +44,39 @@ const AnavsanLogo: React.FC<{}> = () => (
 interface HeaderProps {
     isSidebarCollapsed: boolean;
     toggleSidebar: () => void;
+    showToggleButton?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed, toggleSidebar }) => {
+const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed, toggleSidebar, showToggleButton = true }) => {
   return (
-    <header className="bg-sidebar-topbar p-4 flex items-center justify-between flex-shrink-0 h-16 z-10">
+    <header className="bg-sidebar-topbar p-4 flex items-center justify-between flex-shrink-0 h-16 z-30">
       <div className="flex items-center">
-        <button onClick={toggleSidebar} className="p-2.5 rounded-lg text-gray-400 hover:bg-white/10 hover:text-white transition-colors mr-4">
-          <IconMenu className="h-6 w-6" />
-        </button>
+        {showToggleButton && (
+          <button onClick={toggleSidebar} className="p-2.5 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors mr-4">
+            <IconMenu className="h-6 w-6" />
+          </button>
+        )}
         <AnavsanLogo />
-        <div className="relative flex-1 max-w-lg ml-10">
+      </div>
+      
+      <div className="flex items-center space-x-2">
+        <div className="relative flex-1 max-w-lg mr-4">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <IconSearch className="h-5 w-5 text-text-muted" />
             </div>
             <input
               type="text"
               placeholder="Search..."
-              className="block w-full bg-white/20 border-0 text-white rounded-lg py-2.5 pl-11 pr-3 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-sidebar-topbar shadow-sm"
+              className="block w-full bg-white/20 border-0 text-white rounded-full py-2.5 pl-11 pr-3 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-sidebar-topbar shadow-sm"
             />
         </div>
-      </div>
-      
-      <div className="flex items-center space-x-2">
-        <button className="bg-primary text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-hover transition-colors shadow-sm text-sm">
-            <IconWand className="h-5 w-5" />
-            AI Agent
+        <button className="p-2.5 rounded-full text-primary hover:bg-primary/10 transition-colors">
+            <IconWandFilled className="h-6 w-6" />
         </button>
-        <button className="p-2.5 rounded-lg text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
+        <button className="p-2.5 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
           <IconBell className="h-6 w-6" />
         </button>
-        <button className="p-2.5 rounded-lg text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
+        <button className="p-2.5 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
           <IconQuestionMark className="h-6 w-6" />
         </button>
         <div className="flex items-center pl-2">

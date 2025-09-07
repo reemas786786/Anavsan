@@ -52,7 +52,7 @@ const SidePanel: React.FC<SidePanelProps> = ({ isOpen, onClose, title, children 
                 <div className="ml-3 flex h-7 items-center">
                   <button
                     type="button"
-                    className="rounded-md bg-background text-text-secondary hover:text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="rounded-full bg-background text-text-secondary hover:text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
                     onClick={onClose}
                   >
                     <span className="sr-only">Close panel</span>
