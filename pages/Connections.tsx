@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Account, ConnectionStatus } from '../types';
-import { IconDotsVertical, IconSearch, IconEye, IconPencil, IconTrash, IconAdd } from '../constants';
+import { IconDotsVertical, IconSearch, IconView, IconEdit, IconDelete, IconAdd } from '../constants';
 
 const StatusBadge: React.FC<{ status: ConnectionStatus }> = ({ status }) => {
     const colorClasses: Record<ConnectionStatus, string> = {
@@ -106,13 +106,13 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
                                             <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
                                                 <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
                                                     <a href="#" onClick={(e) => { e.preventDefault(); onSelectAccount(account); setOpenMenuId(null); }} className="flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                                        <IconEye className="h-4 w-4"/> View
+                                                        <IconView className="h-4 w-4"/> View
                                                     </a>
                                                     <a href="#" onClick={(e) => e.preventDefault()} className="flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                                        <IconPencil className="h-4 w-4"/> Edit
+                                                        <IconEdit className="h-4 w-4"/> Edit
                                                     </a>
                                                     <a href="#" onClick={(e) => { e.preventDefault(); onDeleteAccount(account.id); setOpenMenuId(null); }} className="flex items-center gap-3 px-4 py-2 text-sm text-status-error hover:bg-status-error/10" role="menuitem">
-                                                        <IconTrash className="h-4 w-4"/> Delete
+                                                        <IconDelete className="h-4 w-4"/> Delete
                                                     </a>
                                                 </div>
                                             </div>

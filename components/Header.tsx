@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconMenu, IconArrowPath, IconSparkles, IconLifebuoy, IconUserCircle, IconSearch, IconBell } from '../constants';
+import { IconMenu, IconAIAgent, IconSupport, IconUser, IconSearch, IconBell } from '../constants';
 
 const AnavsanLogo: React.FC<{}> = () => (
     <div className="flex items-center" title="Anavsan">
@@ -18,13 +18,14 @@ const AnavsanLogo: React.FC<{}> = () => (
 interface HeaderProps {
     isSidebarCollapsed: boolean;
     toggleSidebar: () => void;
+    toggleButtonRef: React.RefObject<HTMLButtonElement>;
 }
 
-const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed, toggleSidebar }) => {
+const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed, toggleSidebar, toggleButtonRef }) => {
   return (
     <header className="bg-sidebar-topbar px-4 py-2 flex items-center justify-between flex-shrink-0 h-12 z-30">
       <div className="flex items-center">
-        <button onClick={toggleSidebar} className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors mr-2">
+        <button ref={toggleButtonRef} onClick={toggleSidebar} className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors mr-2">
           <IconMenu className="h-6 w-6" />
         </button>
         <AnavsanLogo />
@@ -42,24 +43,18 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed, toggleSidebar }) =>
             />
         </div>
         <button className="p-2 rounded-full text-primary bg-primary/20 hover:bg-primary/30 transition-colors">
-            <IconSparkles className="h-5 w-5" />
+            <IconAIAgent className="h-5 w-5" />
         </button>
         <button className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
           <IconBell className="h-5 w-5" />
         </button>
         <button className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
-          <IconLifebuoy className="h-5 w-5" />
-        </button>
-
-        <div className="border-l border-white/10 mx-2 h-6"></div>
-        
-        <button className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
-          <IconArrowPath className="h-5 w-5" />
+          <IconSupport className="h-5 w-5" />
         </button>
 
         <div className="flex items-center pl-2">
             <button className="rounded-full text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-sidebar-topbar focus:ring-primary transition-colors">
-                <IconUserCircle className="w-9 h-9" />
+                <IconUser className="w-9 h-9" />
             </button>
         </div>
       </div>

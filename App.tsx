@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
@@ -23,12 +23,35 @@ const App: React.FC = () => {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [isAddingAccount, setIsAddingAccount] = useState(false);
 
+  const sidebarRef = useRef<HTMLElement>(null);
+  const toggleButtonRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
     if (accounts.length === 0 && !isAddingAccount) {
         // Initially load dummy data if accounts are empty
         setAccounts(connectionsData);
     }
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as Node;
+        if (
+            !isSidebarCollapsed &&
+            sidebarRef.current &&
+            !sidebarRef.current.contains(target) &&
+            toggleButtonRef.current &&
+            !toggleButtonRef.current.contains(target)
+        ) {
+            setIsSidebarCollapsed(true);
+        }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isSidebarCollapsed]);
 
   const handleAddAccount = () => {
     const newAccount: Account = {
@@ -88,14 +111,19 @@ const App: React.FC = () => {
       <Header 
         isSidebarCollapsed={isSidebarCollapsed}
         toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        toggleButtonRef={toggleButtonRef}
       />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar 
           activePage={activePage} 
-          setActivePage={setActivePage}
+          setActivePage={(page) => {
+            setActivePage(page);
+            setSelectedAccount(null);
+          }}
           isCollapsed={isSidebarCollapsed}
           isHidden={!!selectedAccount && isSidebarCollapsed}
           collapseSidebar={() => setIsSidebarCollapsed(true)}
+          ref={sidebarRef}
         />
         <main className={`flex-1 overflow-x-hidden overflow-y-auto bg-background transition-all duration-300 ease-in-out ${selectedAccount ? 'ml-0' : 'ml-12'}`}>
           {selectedAccount ? (

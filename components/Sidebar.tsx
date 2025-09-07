@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { NAV_ITEMS_MAIN, NAV_ITEMS_BOTTOM } from '../constants';
 import { Page } from '../types';
 
@@ -40,9 +40,9 @@ const NavItem: React.FC<{
     </li>
 );
 
-const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isCollapsed, isHidden, collapseSidebar }) => {
+const Sidebar = forwardRef<HTMLElement, SidebarProps>(({ activePage, setActivePage, isCollapsed, isHidden, collapseSidebar }, ref) => {
   return (
-    <nav className={`bg-surface fixed top-12 left-0 h-[calc(100%-3rem)] flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out border-r border-border-color z-20 ${isCollapsed ? 'w-12 p-2' : 'w-64 p-4 shadow-xl'} ${isHidden ? 'invisible' : 'visible'}`}>
+    <nav ref={ref} className={`bg-surface fixed top-12 left-0 h-[calc(100%-3rem)] flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out border-r border-border-color z-20 ${isCollapsed ? 'w-12 px-2 pb-2 pt-4' : 'w-64 p-4 shadow-xl'} ${isHidden ? 'invisible' : 'visible'}`}>
       <div className="flex-grow">
         <ul>
           {NAV_ITEMS_MAIN.map((item) => (
@@ -61,6 +61,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isCollapse
       </div>
     </nav>
   );
-};
+});
 
 export default Sidebar;
