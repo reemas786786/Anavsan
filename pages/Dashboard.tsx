@@ -1,11 +1,11 @@
-
+// FIX: Add a default export to make this file a module and resolve the import error.
 import React from 'react';
 
 const Dashboard: React.FC = () => {
   return (
-    <div className="text-white">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
-      <p className="mt-2 text-slate-400">Detailed performance metrics and visualizations will be displayed here.</p>
+    <div className="text-text-primary">
+      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <p className="mt-2 text-text-secondary">Dashboard content will be displayed here.</p>
     </div>
   );
 };

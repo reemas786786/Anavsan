@@ -1,12 +1,45 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Anavsan - Data Warehouse Optimization</title>
+    <title>Navsan - Data Warehouse Optimization</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              'primary': '#6932D5',
+              'primary-hover': '#5A28BE',
+              'accent': '#A78BFA',
+              'background': '#F8F8FC',
+              'sidebar-topbar': '#150A2B',
+              'surface': '#FFFFFF',
+              'surface-hover': '#F3F0FA',
+              'border-color': '#E5E5E0',
+              'text-primary': '#1E1E2D',
+              'text-secondary': '#5A5A72',
+              'text-muted': '#9A9AB2',
+              'link': '#6932D5',
+              'input-bg': '#F4F4F4',
+              'status-success': { DEFAULT: '#16A34A', light: '#D1FAE5', dark: '#065F46' },
+              'status-warning': { DEFAULT: '#F59E0B', light: '#FEF3C7', dark: '#92400E' },
+              'status-error':   { DEFAULT: '#DC2626', light: '#FEE2E2', dark: '#991B1B' },
+              'status-info':    { DEFAULT: '#2563EB', light: '#DBEAFE', dark: '#1E40AF' },
+              'status-paused':  { DEFAULT: '#06B6D4', light: '#CFFAFE', dark: '#0E7490' },
+            }
+          },
+        },
+      }
+    </script>
   <script type="importmap">
 {
   "imports": {
@@ -18,7 +51,7 @@
 }
 </script>
 </head>
-  <body class="bg-slate-900 text-slate-300">
+  <body class="bg-background text-text-primary">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

@@ -1,42 +1,65 @@
 
-import { OverviewStats, CostDataPoint, WarehouseDataPoint, Query, Recommendation } from '../types';
+import { Account, DashboardItem, SQLFile } from '../types';
 
-export const overviewStats: OverviewStats = {
-  connections: 3,
-  warehouses: 12,
-  queries: 1540,
-  anomalies: 4,
-  savings: '$12,430',
-};
-
-export const costData: CostDataPoint[] = [
-  { name: 'Mon', cost: 400 },
-  { name: 'Tue', cost: 300 },
-  { name: 'Wed', cost: 500 },
-  { name: 'Thu', cost: 280 },
-  { name: 'Fri', cost: 450 },
-  { name: 'Sat', cost: 320 },
-  { name: 'Sun', cost: 210 },
+export const connectionsData: Account[] = [
+  { id: '1', name: 'Snowflake Prod', identifier: 'axb123.us-east-1', role: 'SYSADMIN', status: 'Connected', lastSynced: '2 mins ago' },
+  { id: '2', name: 'Marketing Analytics', identifier: 'yza456.us-west-2', role: 'MARKETING_OPS', status: 'Connected', lastSynced: '5 mins ago' },
+  { id: '3', name: 'Development Sandbox', identifier: 'dev789.eu-central-1', role: 'DEVELOPER', status: 'Syncing', lastSynced: '1 hour ago' },
+  { id: '4', name: 'Financial Reporting', identifier: 'fin012.us-east-1', role: 'FINANCE_ADMIN', status: 'Disconnected', lastSynced: '2 days ago' },
+  { id: '5', name: 'Data Science Cluster', identifier: 'ds345.ap-southeast-2', role: 'DATA_SCIENTIST', status: 'Error', lastSynced: '1 day ago' },
 ];
 
-export const warehouseData: WarehouseDataPoint[] = [
-    { name: 'WH_PROD', queries: 2400, cost: 5600 },
-    { name: 'WH_DEV', queries: 1200, cost: 2100 },
-    { name: 'WH_STAGING', queries: 800, cost: 1500 },
-    { name: 'WH_BI', queries: 1800, cost: 3200 },
-    { name: 'WH_ETL', queries: 3200, cost: 7800 },
+export const dashboardsData: DashboardItem[] = [
+    {
+      id: '1',
+      title: 'Cost Dashboard',
+      description: 'Get a consolidated view of current spend, forecast, and trends across all accounts.',
+      createdOn: 'January 14, 2024, 4:45 PM'
+    },
+    {
+      id: '2',
+      title: 'Account Performance',
+      description: 'Track credit usage, query performance, and resource efficiency for a specific Snowflake account.',
+      createdOn: 'January 14, 2024, 4:45 PM'
+    },
+    {
+      id: '3',
+      title: 'Engineering Dashboard',
+      description: 'Analyze query performance, resource bottlenecks, and warehouse workload distribution.',
+      createdOn: 'January 14, 2024, 4:45 PM'
+    }
 ];
 
-export const recentQueries: Query[] = [
-  { id: 'q1', user: 'alice@company.com', sql: 'SELECT * FROM sales_data LIMIT 10;', status: 'Success', duration: '2.1s', cost: '$0.02', timestamp: '2m ago' },
-  { id: 'q2', user: 'bob@company.com', sql: 'SELECT COUNT(*) FROM user_activity WHERE...', status: 'Failed', duration: '30.5s', cost: '$0.15', timestamp: '5m ago' },
-  { id: 'q3', user: 'data_loader', sql: 'COPY INTO raw_logs FROM @s3_stage/...', status: 'Running', duration: '5m 12s', cost: '$1.20', timestamp: '10m ago' },
-  { id: 'q4', user: 'charlie@company.com', sql: 'WITH complex_cte AS (...) SELECT ...', status: 'Success', duration: '15.2s', cost: '$0.08', timestamp: '12m ago' },
-  { id: 'q5', user: 'alice@company.com', sql: 'SELECT * FROM marketing_campaigns;', status: 'Success', duration: '1.5s', cost: '$0.01', timestamp: '15m ago' },
+export const topSpendData = [
+    { name: 'Finance Prod', totalSpend: 260 },
+    { name: 'Account B', totalSpend: 40 },
+    { name: 'Account C', totalSpend: 190 },
+    { name: 'Account D', totalSpend: 60 },
+    { name: 'Account E', totalSpend: 80 },
 ];
 
-export const aiRecommendations: Recommendation[] = [
-  { id: 'rec1', title: 'Optimize Query #4521', description: 'This query can be optimized by adding a clustering key on the `event_timestamp` column, potentially reducing scan size by 80%.', category: 'Performance', impact: 'High' },
-  { id: 'rec2', title: 'Resize WH_DEV Warehouse', description: 'The development warehouse is oversized for its current workload. Consider resizing from M to S to save an estimated $400/month.', category: 'Cost', impact: 'Medium' },
-  { id: 'rec3', title: 'Archive Unused Tables', description: 'Tables `log_archive_2021` and `temp_user_data` have not been accessed in over 180 days. Consider archiving to reduce storage costs.', category: 'Storage', impact: 'Low' },
+export const costBreakdownData = [
+    { name: 'Warehouse Costs', value: 35000, percentage: 55, color: '#8884d8' },
+    { name: 'Storage Costs', value: 12000, percentage: 38, color: '#8884d8' },
+    { name: 'Data Transfer Cost', value: 3000, percentage: 12, color: '#8884d8' },
+];
+
+export const sqlFilesData: SQLFile[] = [
+  {
+    id: 'file1',
+    name: 'monthly_financial_report.sql',
+    versions: [
+      { id: 'v1', version: 3, date: '2023-10-28', tag: 'Production', description: 'Final version for Q3 reporting.' },
+      { id: 'v2', version: 2, date: '2023-10-25', tag: 'Staging', description: 'Added new logic for tax calculation.' },
+      { id: 'v3', version: 1, date: '2023-10-22', tag: 'Archived', description: 'Initial draft.' },
+    ]
+  },
+  {
+    id: 'file2',
+    name: 'user_engagement_weekly.sql',
+    versions: [
+      { id: 'v4', version: 5, date: '2023-11-01', tag: 'Production', description: 'Optimized query for faster execution.' },
+      { id: 'v5', version: 4, date: '2023-10-30', tag: 'Archived', description: 'Previous production version.' },
+    ]
+  }
 ];

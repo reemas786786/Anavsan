@@ -1,84 +1,52 @@
-
 import React from 'react';
-import { NAV_ITEMS, IconCalendar, IconCog, IconSupport, IconSparkles } from '../constants';
+import { NAV_ITEMS_MAIN, NAV_ITEMS_BOTTOM } from '../constants';
 import { Page } from '../types';
 
 interface SidebarProps {
   activePage: Page;
   setActivePage: (page: Page) => void;
+  isCollapsed: boolean;
 }
 
-const AnavsanLogo: React.FC = () => (
-    <div className="flex items-center gap-2 px-4 mb-8">
-        <div className="bg-violet-600 p-2 rounded-lg">
-            <IconSparkles className="w-6 h-6 text-white" />
-        </div>
-        <h1 className="text-xl font-bold text-white">Anavsan</h1>
-    </div>
+const NavItem: React.FC<{ item: any, activePage: Page, setActivePage: (page: Page) => void, isCollapsed: boolean }> = ({ item, activePage, setActivePage, isCollapsed }) => (
+    <li className="mb-1">
+        <a
+            href="#"
+            title={isCollapsed ? item.name : undefined}
+            onClick={(e) => {
+                e.preventDefault();
+                setActivePage(item.name);
+            }}
+            className={`flex relative items-center py-2.5 text-sm font-semibold rounded-lg transition-colors duration-200 ${isCollapsed ? 'justify-center px-2.5' : 'px-3'} ${
+                activePage === item.name
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'
+            }`}
+        >
+            {activePage === item.name && <span className="absolute left-0 top-1 bottom-1 w-1 bg-primary rounded-r-full"></span>}
+            <item.icon className="w-5 h-5" />
+            {!isCollapsed && <span className="ml-3">{item.name}</span>}
+        </a>
+    </li>
 );
 
-const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage }) => {
-  const secondaryNavItems = [
-    { name: 'Settings', icon: IconCog },
-    { name: 'Support', icon: IconSupport },
-  ] as const;
-
+const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isCollapsed }) => {
   return (
-    <nav className="w-64 bg-slate-800 flex-shrink-0 flex flex-col p-4 border-r border-slate-700/50">
-      <AnavsanLogo />
+    <nav className={`bg-surface flex-shrink-0 flex flex-col p-4 transition-all duration-300 border-r border-border-color ${isCollapsed ? 'w-20' : 'w-64'}`}>
       <div className="flex-grow">
-        <h2 className="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Main</h2>
         <ul>
-          {NAV_ITEMS.map((item) => (
-            <li key={item.name} className="mb-1">
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setActivePage(item.name);
-                }}
-                className={`flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
-                  activePage === item.name
-                    ? 'bg-violet-600 text-white'
-                    : 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                }`}
-              >
-                <item.icon className="w-5 h-5 mr-3" />
-                <span>{item.name}</span>
-              </a>
-            </li>
+          {NAV_ITEMS_MAIN.map((item) => (
+            <NavItem key={item.name} item={item} activePage={activePage} setActivePage={setActivePage} isCollapsed={isCollapsed} />
           ))}
         </ul>
       </div>
       
       <div className="flex-shrink-0">
-        <button
-          onClick={() => setActivePage('Book a Demo')}
-          className="w-full flex items-center justify-center bg-violet-600 text-white px-4 py-3 text-sm font-semibold rounded-lg hover:bg-violet-700 transition-colors duration-200 mb-4"
-        >
-          <IconCalendar className="w-5 h-5 mr-2"/>
-          Book a Demo
-        </button>
+         <div className={`border-t border-border-color my-4 ${isCollapsed ? 'mx-2' : 'mx-0'}`}></div>
         <ul>
-          {secondaryNavItems.map((item) => (
-            <li key={item.name}>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setActivePage(item.name);
-                }}
-                className={`flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
-                  activePage === item.name
-                    ? 'bg-slate-700 text-white'
-                    : 'text-slate-400 hover:bg-slate-700 hover:text-white'
-                }`}
-              >
-                <item.icon className="w-5 h-5 mr-3" />
-                <span>{item.name}</span>
-              </a>
-            </li>
-          ))}
+            {NAV_ITEMS_BOTTOM.map((item) => (
+                <NavItem key={item.name} item={item} activePage={activePage} setActivePage={setActivePage} isCollapsed={isCollapsed} />
+            ))}
         </ul>
       </div>
     </nav>

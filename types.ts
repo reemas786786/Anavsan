@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export type Page = 
@@ -11,46 +10,39 @@ export type Page =
   | 'Settings' 
   | 'Support';
 
-export interface OverviewStats {
-  connections: number;
-  warehouses: number;
-  queries: number;
-  anomalies: number;
-  savings: string;
-}
-
-export interface CostDataPoint {
-  name: string;
-  cost: number;
-}
-
-export interface WarehouseDataPoint {
-    name: string;
-    queries: number;
-    cost: number;
-}
-
-export type QueryStatus = 'Success' | 'Failed' | 'Running';
-
-export interface Query {
-  id: string;
-  user: string;
-  sql: string;
-  status: QueryStatus;
-  duration: string;
-  cost: string;
-  timestamp: string;
-}
-
-export interface Recommendation {
-  id: string;
-  title: string;
-  description: string;
-  category: 'Performance' | 'Cost' | 'Storage';
-  impact: 'High' | 'Medium' | 'Low';
-}
-
 export interface NavItem {
     name: Page;
     icon: React.ComponentType<{ className?: string }>;
+}
+
+export type ConnectionStatus = 'Connected' | 'Disconnected' | 'Syncing' | 'Error';
+
+export interface Account {
+  id: string;
+  name: string;
+  identifier: string;
+  role: string;
+  status: ConnectionStatus;
+  lastSynced: string;
+}
+
+export interface DashboardItem {
+  id:string;
+  title: string;
+  createdOn: string;
+  description?: string;
+}
+
+export interface SQLVersion {
+  id: string;
+  version: number;
+  date: string;
+  tag: string;
+  description: string;
+}
+
+export interface SQLFile {
+  id: string;
+  name: string;
+  versions: SQLVersion[];
 }

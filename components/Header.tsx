@@ -1,41 +1,76 @@
-
 import React from 'react';
-import { IconSparkles } from '../constants';
+import { IconWand, IconMenu } from '../constants';
 
-const Header: React.FC = () => {
-  return (
-    <header className="bg-slate-800/50 backdrop-blur-sm border-b border-slate-700/50 p-4 flex items-center justify-between flex-shrink-0">
-      <div className="flex items-center">
-        {/* Hamburger menu icon could go here */}
+const IconSearch: React.FC<{ className?: string }> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+      <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
+    </svg>
+);
+
+const IconBell: React.FC<{ className?: string }> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+    </svg>
+);
+
+const IconQuestionMark: React.FC<{ className?: string }> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+);
+
+const AnavsanLogo: React.FC<{}> = () => (
+    <div className="flex items-center gap-3">
+      <div className="bg-primary p-2 rounded-lg flex items-center justify-center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
+          <path d="M2 7L12 12L22 7" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
+          <path d="M12 22V12" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
+        </svg>
       </div>
-      
-      <div className="flex-1 max-w-xl">
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg className="h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <input
-            type="text"
-            placeholder="Search queries, warehouses, or reports..."
-            className="block w-full bg-slate-700/50 border border-slate-600 rounded-md py-2 pl-10 pr-3 text-sm placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500"
-          />
+      <h1 className="text-xl font-bold text-white tracking-wider">ANAVSAN</h1>
+    </div>
+);
+
+
+interface HeaderProps {
+    isSidebarCollapsed: boolean;
+    toggleSidebar: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed, toggleSidebar }) => {
+  return (
+    <header className="bg-sidebar-topbar p-4 flex items-center justify-between flex-shrink-0 h-16 z-10">
+      <div className="flex items-center">
+        <button onClick={toggleSidebar} className="p-2.5 rounded-lg text-gray-400 hover:bg-white/10 hover:text-white transition-colors mr-4">
+          <IconMenu className="h-6 w-6" />
+        </button>
+        <AnavsanLogo />
+        <div className="relative flex-1 max-w-lg ml-10">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <IconSearch className="h-5 w-5 text-text-muted" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search..."
+              className="block w-full bg-white/20 border-0 text-white rounded-lg py-2.5 pl-11 pr-3 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-sidebar-topbar shadow-sm"
+            />
         </div>
       </div>
       
-      <div className="flex items-center space-x-4">
-        <button className="p-2 rounded-full hover:bg-slate-700 transition-colors">
-          <IconSparkles className="h-5 w-5 text-slate-400" />
+      <div className="flex items-center space-x-2">
+        <button className="bg-primary text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-hover transition-colors shadow-sm text-sm">
+            <IconWand className="h-5 w-5" />
+            AI Agent
         </button>
-        <button className="p-2 rounded-full hover:bg-slate-700 transition-colors relative">
-          <svg className="h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg>
-          <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-slate-800"></span>
+        <button className="p-2.5 rounded-lg text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
+          <IconBell className="h-6 w-6" />
         </button>
-        <div className="flex items-center">
-            <img src="https://picsum.photos/seed/user/40/40" alt="User Avatar" className="w-8 h-8 rounded-full" />
+        <button className="p-2.5 rounded-lg text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
+          <IconQuestionMark className="h-6 w-6" />
+        </button>
+        <div className="flex items-center pl-2">
+            <img src="https://i.pravatar.cc/40?u=a042581f4e29026704d" alt="User Avatar" className="w-9 h-9 rounded-full" />
         </div>
       </div>
     </header>
