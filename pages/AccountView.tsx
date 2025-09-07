@@ -92,26 +92,24 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                 );
         }
     };
-
-    // FIX: Explicitly type `breadcrumbItems` to allow for items with an optional `onClick` property.
-    // This prevents a TypeScript error where `onClick` was inferred as a required property.
+    
     const breadcrumbItems: { label: string; onClick?: () => void }[] = [
         { label: 'Connections', onClick: onBack },
-        { label: account.name, onClick: () => handleNavClick('Overview', 'Overview') },
+        { label: account.name },
     ];
-    if (activeParent !== activeSubPage) {
-        breadcrumbItems.push({ label: activeParent });
+    if (activeSubPage !== 'Overview') {
+       breadcrumbItems.push({ label: activeSubPage });
     }
-    breadcrumbItems.push({ label: activeSubPage });
+
 
     return (
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex h-full">
             {/* Contextual Sub-sidebar */}
             <aside className="w-64 bg-surface flex-shrink-0 p-4 border-r border-border-color flex flex-col">
                 <div className="relative" ref={switcherRef}>
                     <button onClick={() => setIsSwitcherOpen(!isSwitcherOpen)} className="w-full bg-background border border-border-color rounded-lg px-3 py-2 flex items-center justify-between text-left hover:border-primary">
                         <div>
-                            <p className="text-xs text-text-muted">ACCOUNT</p>
+                            <p className="text-xs text-text-muted uppercase tracking-wider">ACCOUNT</p>
                             <h2 className="font-semibold text-text-primary text-sm">{account.name}</h2>
                         </div>
                         <IconChevronDown className={`w-5 h-5 text-text-secondary transition-transform ${isSwitcherOpen ? 'rotate-180' : ''}`} />
@@ -132,27 +130,27 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                 </div>
                 
                 <nav className="mt-4 flex-grow overflow-y-auto -mr-2 pr-2">
-                    <ul>
+                    <ul className="space-y-1">
                         {accountNavItems.map(item => (
-                            <li key={item.name} className="mb-1">
+                            <li key={item.name}>
                                 {item.children.length === 0 ? (
                                     <button 
                                         onClick={() => handleNavClick(item.name, item.name)}
-                                        className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium ${activeSubPage === item.name ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-hover'}`}
+                                        className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeSubPage === item.name ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'}`}
                                     >{item.name}</button>
                                 ) : (
                                     <div>
-                                        <button onClick={() => toggleSection(item.name)} className="w-full flex justify-between items-center text-left px-3 py-2 rounded-lg text-sm font-medium text-text-secondary hover:bg-surface-hover">
+                                        <button onClick={() => toggleSection(item.name)} className="w-full flex justify-between items-center text-left px-3 py-2 rounded-lg text-sm font-medium text-text-secondary hover:bg-surface-hover hover:text-text-primary">
                                             <span>{item.name}</span>
                                             <IconChevronDown className={`w-4 h-4 transition-transform ${openSections.has(item.name) ? 'rotate-180' : ''}`} />
                                         </button>
                                         {openSections.has(item.name) && (
-                                            <ul className="pl-4 mt-1">
+                                            <ul className="pl-3 mt-1 space-y-1">
                                                 {item.children.map(child => (
                                                     <li key={child}>
                                                         <button 
                                                             onClick={() => handleNavClick(child, item.name)}
-                                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm ${activeSubPage === child ? 'text-primary font-medium' : 'text-text-secondary hover:text-text-primary'}`}
+                                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeSubPage === child ? 'text-primary font-semibold' : 'text-text-secondary hover:text-text-primary'}`}
                                                         >{child}</button>
                                                     </li>
                                                 ))}
@@ -167,9 +165,8 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
             </aside>
             
             <main className="flex-1 overflow-y-auto bg-background">
-                <div className="p-8">
+                <div className="p-6">
                     <Breadcrumb items={breadcrumbItems} />
-                    <h1 className="text-2xl font-bold text-text-primary mb-6">{activeSubPage}</h1>
                     {renderSubPage()}
                 </div>
             </main>

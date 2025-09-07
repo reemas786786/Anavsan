@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconMenu } from '../constants';
+import { IconMenu, IconRocketLaunch, IconArrowPath, IconArrowsPointingOut } from '../constants';
 
 const IconSearch: React.FC<{ className?: string }> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -19,24 +19,16 @@ const IconQuestionMark: React.FC<{ className?: string }> = ({ className }) => (
     </svg>
 );
 
-const IconWandFilled: React.FC<{ className?: string }> = ({ className }) => (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-      <path fillRule="evenodd" d="M9.315 7.584C12.195 3.883 16.695 1.5 21.75 1.5a.75.75 0 01.75.75c0 5.056-2.383 9.555-6.084 12.436A6.75 6.75 0 019.75 22.5a.75.75 0 01-.75-.75v-4.131A15.838 15.838 0 016.382 15H2.25a.75.75 0 01-.75-.75 6.75 6.75 0 017.815-6.666zM15 6.75a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z" clipRule="evenodd" />
-      <path d="M5.26 17.242a.75.75 0 10-1.06-1.06l1.5-1.5a.75.75 0 101.06 1.06l-1.5 1.5zm8.25-8.25a.75.75 0 10-1.06-1.06l-1.5 1.5a.75.75 0 101.06 1.06l1.5-1.5zM12 18a.75.75 0 100-1.5.75.75 0 000 1.5z" />
-    </svg>
-);
-
-
 const AnavsanLogo: React.FC<{}> = () => (
-    <div className="flex items-center gap-3">
-      <div className="bg-primary p-2 rounded-lg flex items-center justify-center">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
-          <path d="M2 7L12 12L22 7" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
-          <path d="M12 22V12" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
-        </svg>
-      </div>
-      <h1 className="text-xl font-bold text-white tracking-wider">ANAVSAN</h1>
+    <div className="flex items-center" title="Anavsan">
+        <h1 className="text-xl font-bold flex items-center text-white">
+            <span style={{fontFamily: 'serif', background: 'linear-gradient(to bottom right, #A78BFA, #6932D5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}} className="text-4xl -mr-1">
+                A
+            </span>
+            <span className="tracking-[0.1em]">
+                NAVSAN
+            </span>
+        </h1>
     </div>
 );
 
@@ -44,41 +36,48 @@ const AnavsanLogo: React.FC<{}> = () => (
 interface HeaderProps {
     isSidebarCollapsed: boolean;
     toggleSidebar: () => void;
-    showToggleButton?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed, toggleSidebar, showToggleButton = true }) => {
+const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed, toggleSidebar }) => {
   return (
     <header className="bg-sidebar-topbar p-4 flex items-center justify-between flex-shrink-0 h-16 z-30">
       <div className="flex items-center">
-        {showToggleButton && (
-          <button onClick={toggleSidebar} className="p-2.5 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors mr-4">
-            <IconMenu className="h-6 w-6" />
-          </button>
-        )}
+        <button onClick={toggleSidebar} className="p-2.5 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors mr-4">
+          <IconMenu className="h-6 w-6" />
+        </button>
         <AnavsanLogo />
       </div>
       
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1 max-w-lg mr-4">
+      <div className="flex items-center space-x-1">
+        <div className="relative flex-1 max-w-lg mr-2">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <IconSearch className="h-5 w-5 text-text-muted" />
             </div>
             <input
               type="text"
               placeholder="Search..."
-              className="block w-full bg-white/20 border-0 text-white rounded-full py-2.5 pl-11 pr-3 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-sidebar-topbar shadow-sm"
+              className="block w-full bg-white/10 border-0 text-white rounded-md py-2 pl-11 pr-3 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-sidebar-topbar"
             />
         </div>
-        <button className="p-2.5 rounded-full text-primary hover:bg-primary/10 transition-colors">
-            <IconWandFilled className="h-6 w-6" />
+        <button className="p-2.5 rounded-md text-primary bg-primary/20 hover:bg-primary/30 transition-colors">
+            <IconRocketLaunch className="h-5 w-5" />
         </button>
-        <button className="p-2.5 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
-          <IconBell className="h-6 w-6" />
+        <button className="p-2.5 rounded-md text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
+          <IconBell className="h-5 w-5" />
         </button>
-        <button className="p-2.5 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
-          <IconQuestionMark className="h-6 w-6" />
+        <button className="p-2.5 rounded-md text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
+          <IconQuestionMark className="h-5 w-5" />
         </button>
+
+        <div className="border-l border-white/10 mx-2 h-6"></div>
+        
+        <button className="p-2.5 rounded-md text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
+          <IconArrowPath className="h-5 w-5" />
+        </button>
+        <button className="p-2.5 rounded-md text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
+          <IconArrowsPointingOut className="h-5 w-5" />
+        </button>
+
         <div className="flex items-center pl-2">
             <img src="https://i.pravatar.cc/40?u=a042581f4e29026704d" alt="User Avatar" className="w-9 h-9 rounded-full" />
         </div>

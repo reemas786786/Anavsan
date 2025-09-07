@@ -62,6 +62,27 @@ export const IconChevronDown: React.FC<{ className?: string }> = ({ className })
     </svg>
 );
 
+export const IconRocketLaunch: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+    <path fillRule="evenodd" d="M12.963 2.286a.75.75 0 00-1.071 1.071L12.72 4.18a.75.75 0 001.071-1.07zM5.25 12a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H6a.75.75 0 01-.75-.75zM8.25 8.25a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75zM12 5.25a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H12.75a.75.75 0 01-.75-.75zM10.72 12.72a.75.75 0 00-1.071-1.071L8.82 12.48a.75.75 0 001.071 1.071l.829-.829zm3.82-3.82a.75.75 0 00-1.071-1.071L12.64 8.65a.75.75 0 001.071 1.071l.829-.829zM18.75 12a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75h-.008a.75.75 0 01-.75-.75z" clipRule="evenodd" />
+    <path d="M6.166 18.332a.75.75 0 01-1.06 1.06l-1.5-1.5a.75.75 0 011.06-1.06l1.5 1.5z" />
+    <path d="M18.332 6.166a.75.75 0 011.06-1.06l1.5 1.5a.75.75 0 01-1.06 1.06l-1.5-1.5z" />
+    <path d="M12.462 14.538a.75.75 0 01.53-1.28l4.432-1.23a.75.75 0 01.95 1.183l-3.2 4.41a.75.75 0 01-1.28-.53V15.75a3 3 0 00-3-3H8.25a.75.75 0 010-1.5h1.5a4.5 4.5 0 014.5 4.5v1.232l.24-.33a.75.75 0 011.28.53l-3.2 4.41a.75.75 0 01-.95-1.183l-4.432 1.23a.75.75 0 01-.53-1.28l1.76-4.842a.75.75 0 011.28.53l-1.02 2.805a.75.75 0 00.53 1.28l3.01-1.72z" />
+  </svg>
+);
+
+export const IconArrowPath: React.FC<{ className?: string }> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.667 0l3.181-3.183m-11.667 0a8.25 8.25 0 0111.667 0l3.181 3.183M2.985 19.644l3.181-3.183m0 0l-3.181 3.183m0 0l3.181-3.183" />
+    </svg>
+);
+  
+export const IconArrowsPointingOut: React.FC<{ className?: string }> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M20.25 20.25v-4.5m0 4.5h-4.5m4.5 0L15 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9M3.75 20.25h4.5m-4.5 0v-4.5m0 4.5L9 15" />
+    </svg>
+);
+
 export const NAV_ITEMS_MAIN: NavItem[] = [
     { name: 'Overview', icon: IconBarChart },
     { name: 'Dashboard', icon: IconLayoutGrid },

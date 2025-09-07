@@ -83,34 +83,6 @@ const App: React.FC = () => {
     }
   };
 
-  if (selectedAccount) {
-    return (
-      <div className="flex flex-col h-screen bg-background font-sans">
-        <Header 
-          isSidebarCollapsed={isSidebarCollapsed}
-          toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          showToggleButton={false}
-        />
-        <AccountView
-            account={selectedAccount}
-            accounts={accounts}
-            onBack={handleBackToConnections}
-            onSwitchAccount={handleSelectAccount}
-        />
-        <SidePanel
-            isOpen={isAddingAccount}
-            onClose={handleCancelAddAccount}
-            title="Connect Snowflake Account"
-        >
-            <AddAccountFlow
-            onCancel={handleCancelAddAccount}
-            onAddAccount={handleAddAccount}
-            />
-        </SidePanel>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col h-screen bg-background font-sans">
       <Header 
@@ -122,9 +94,21 @@ const App: React.FC = () => {
           activePage={activePage} 
           setActivePage={setActivePage}
           isCollapsed={isSidebarCollapsed}
+          isHidden={!!selectedAccount && isSidebarCollapsed}
         />
-        <main className={`flex-1 overflow-x-hidden overflow-y-auto bg-background p-4 transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'ml-12' : 'ml-64'}`}>
-          {renderContent()}
+        <main className={`flex-1 overflow-x-hidden overflow-y-auto bg-background transition-all duration-300 ease-in-out ${selectedAccount ? 'ml-0' : 'ml-16'}`}>
+          {selectedAccount ? (
+            <AccountView
+              account={selectedAccount}
+              accounts={accounts}
+              onBack={handleBackToConnections}
+              onSwitchAccount={handleSelectAccount}
+            />
+          ) : (
+             <div className="p-6">
+              {renderContent()}
+            </div>
+          )}
         </main>
       </div>
 
