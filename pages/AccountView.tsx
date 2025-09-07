@@ -20,7 +20,7 @@ const accountNavItems = [
 ];
 
 const Breadcrumb: React.FC<{ items: { label: string; onClick?: () => void }[] }> = ({ items }) => (
-    <nav className="text-sm text-text-secondary mb-4">
+    <nav className="text-sm text-text-secondary">
         {items.map((item, index) => (
             <span key={index}>
                 {index > 0 && <span className="mx-2">/</span>}
@@ -103,73 +103,77 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
 
 
     return (
-        <div className="flex h-full">
-            {/* Contextual Sub-sidebar */}
-            <aside className="w-64 bg-surface flex-shrink-0 p-4 border-r border-border-color flex flex-col">
-                <div className="relative" ref={switcherRef}>
-                    <button onClick={() => setIsSwitcherOpen(!isSwitcherOpen)} className="w-full bg-background border border-border-color rounded-lg px-3 py-2 flex items-center justify-between text-left hover:border-primary">
-                        <div>
-                            <p className="text-xs text-text-muted uppercase tracking-wider">ACCOUNT</p>
+        <div className="flex flex-col h-full bg-background">
+            {/* Full-width Breadcrumb Bar */}
+            <div className="bg-surface w-full py-4 px-6 border-b border-border-color flex-shrink-0">
+                <Breadcrumb items={breadcrumbItems} />
+            </div>
+
+            {/* Container for sidebar and content with 16px margin-top */}
+            <div className="flex flex-1 overflow-hidden mt-4">
+                {/* Contextual Sub-sidebar */}
+                <aside className="w-64 bg-surface flex-shrink-0 p-4 border-r border-border-color flex flex-col">
+                    <div className="relative" ref={switcherRef}>
+                        <button onClick={() => setIsSwitcherOpen(!isSwitcherOpen)} className="w-full bg-background border border-border-color rounded-full px-4 py-3 flex items-center justify-between text-left hover:border-primary">
                             <h2 className="font-semibold text-text-primary text-sm">{account.name}</h2>
-                        </div>
-                        <IconChevronDown className={`w-5 h-5 text-text-secondary transition-transform ${isSwitcherOpen ? 'rotate-180' : ''}`} />
-                    </button>
-                    {isSwitcherOpen && (
-                        <div className="absolute top-full mt-1 w-full bg-surface rounded-lg shadow-lg border border-border-color z-10 max-h-60 overflow-y-auto">
-                            <ul>
-                                {accounts.map(acc => (
-                                    <li key={acc.id}>
-                                        <button onClick={() => { onSwitchAccount(acc); setIsSwitcherOpen(false); }} className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover ${account.id === acc.id ? 'text-primary font-semibold' : 'text-text-secondary'}`}>
-                                            {acc.name}
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-                </div>
+                            <IconChevronDown className={`w-5 h-5 text-text-secondary transition-transform ${isSwitcherOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        {isSwitcherOpen && (
+                            <div className="absolute top-full mt-1 w-full bg-surface rounded-lg shadow-lg border border-border-color z-10 max-h-60 overflow-y-auto">
+                                <ul>
+                                    {accounts.map(acc => (
+                                        <li key={acc.id}>
+                                            <button onClick={() => { onSwitchAccount(acc); setIsSwitcherOpen(false); }} className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover ${account.id === acc.id ? 'text-primary font-semibold' : 'text-text-secondary'}`}>
+                                                {acc.name}
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                    
+                    <nav className="mt-4 flex-grow overflow-y-auto -mr-2 pr-2">
+                        <ul className="space-y-1">
+                            {accountNavItems.map(item => (
+                                <li key={item.name}>
+                                    {item.children.length === 0 ? (
+                                        <button 
+                                            onClick={() => handleNavClick(item.name, item.name)}
+                                            className={`w-full text-left px-3 py-2 rounded-full text-sm font-medium transition-colors ${activeSubPage === item.name ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'}`}
+                                        >{item.name}</button>
+                                    ) : (
+                                        <div>
+                                            <button onClick={() => toggleSection(item.name)} className="w-full flex justify-between items-center text-left px-3 py-2 rounded-full text-sm font-medium text-text-secondary hover:bg-surface-hover hover:text-text-primary">
+                                                <span>{item.name}</span>
+                                                <IconChevronDown className={`w-4 h-4 transition-transform ${openSections.has(item.name) ? 'rotate-180' : ''}`} />
+                                            </button>
+                                            {openSections.has(item.name) && (
+                                                <ul className="pl-3 mt-1 space-y-1">
+                                                    {item.children.map(child => (
+                                                        <li key={child}>
+                                                            <button 
+                                                                onClick={() => handleNavClick(child, item.name)}
+                                                                className={`w-full text-left px-3 py-2 rounded-full text-sm transition-colors ${activeSubPage === child ? 'text-primary font-semibold' : 'text-text-secondary hover:text-text-primary'}`}
+                                                            >{child}</button>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </div>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
+                </aside>
                 
-                <nav className="mt-4 flex-grow overflow-y-auto -mr-2 pr-2">
-                    <ul className="space-y-1">
-                        {accountNavItems.map(item => (
-                            <li key={item.name}>
-                                {item.children.length === 0 ? (
-                                    <button 
-                                        onClick={() => handleNavClick(item.name, item.name)}
-                                        className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeSubPage === item.name ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'}`}
-                                    >{item.name}</button>
-                                ) : (
-                                    <div>
-                                        <button onClick={() => toggleSection(item.name)} className="w-full flex justify-between items-center text-left px-3 py-2 rounded-lg text-sm font-medium text-text-secondary hover:bg-surface-hover hover:text-text-primary">
-                                            <span>{item.name}</span>
-                                            <IconChevronDown className={`w-4 h-4 transition-transform ${openSections.has(item.name) ? 'rotate-180' : ''}`} />
-                                        </button>
-                                        {openSections.has(item.name) && (
-                                            <ul className="pl-3 mt-1 space-y-1">
-                                                {item.children.map(child => (
-                                                    <li key={child}>
-                                                        <button 
-                                                            onClick={() => handleNavClick(child, item.name)}
-                                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeSubPage === child ? 'text-primary font-semibold' : 'text-text-secondary hover:text-text-primary'}`}
-                                                        >{child}</button>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )}
-                                    </div>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                </nav>
-            </aside>
-            
-            <main className="flex-1 overflow-y-auto bg-background">
-                <div className="p-6">
-                    <Breadcrumb items={breadcrumbItems} />
-                    {renderSubPage()}
-                </div>
-            </main>
+                <main className="flex-1 overflow-y-auto bg-background">
+                    <div className="p-6">
+                        {renderSubPage()}
+                    </div>
+                </main>
+            </div>
         </div>
     );
 };

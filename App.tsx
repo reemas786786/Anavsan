@@ -95,8 +95,9 @@ const App: React.FC = () => {
           setActivePage={setActivePage}
           isCollapsed={isSidebarCollapsed}
           isHidden={!!selectedAccount && isSidebarCollapsed}
+          collapseSidebar={() => setIsSidebarCollapsed(true)}
         />
-        <main className={`flex-1 overflow-x-hidden overflow-y-auto bg-background transition-all duration-300 ease-in-out ${selectedAccount ? 'ml-0' : 'ml-16'}`}>
+        <main className={`flex-1 overflow-x-hidden overflow-y-auto bg-background transition-all duration-300 ease-in-out ${selectedAccount ? 'ml-0' : 'ml-12'}`}>
           {selectedAccount ? (
             <AccountView
               account={selectedAccount}
