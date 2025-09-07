@@ -1,5 +1,5 @@
 
-import { Account, DashboardItem, SQLFile } from '../types';
+import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse } from '../types';
 
 export const connectionsData: Account[] = [
   { id: '1', name: 'Snowflake Prod', identifier: 'axb123.us-east-1', role: 'SYSADMIN', status: 'Connected', lastSynced: '2 mins ago' },
@@ -31,17 +31,17 @@ export const dashboardsData: DashboardItem[] = [
 ];
 
 export const topSpendData = [
-    { name: 'Finance Prod', totalSpend: 260 },
-    { name: 'Account B', totalSpend: 40 },
-    { name: 'Account C', totalSpend: 190 },
-    { name: 'Account D', totalSpend: 60 },
-    { name: 'Account E', totalSpend: 80 },
+    { id: '1', name: 'Snowflake Prod', totalSpend: 260 },
+    { id: '2', name: 'Marketing Analytics', totalSpend: 190 },
+    { id: '3', name: 'Development Sandbox', totalSpend: 80 },
+    { id: '4', name: 'Financial Reporting', totalSpend: 60 },
+    { id: '5', name: 'Data Science Cluster', totalSpend: 40 },
 ];
 
 export const costBreakdownData = [
-    { name: 'Warehouse Costs', value: 35000, percentage: 55, color: '#8884d8' },
-    { name: 'Storage Costs', value: 12000, percentage: 38, color: '#8884d8' },
-    { name: 'Data Transfer Cost', value: 3000, percentage: 12, color: '#8884d8' },
+    { name: 'Warehouse Costs', value: 35000, percentage: 55, color: '#6932D5' },
+    { name: 'Storage Costs', value: 12000, percentage: 38, color: '#A78BFA' },
+    { name: 'Data Transfer Cost', value: 3000, percentage: 12, color: '#D6BCFA' },
 ];
 
 export const sqlFilesData: SQLFile[] = [
@@ -62,4 +62,36 @@ export const sqlFilesData: SQLFile[] = [
       { id: 'v5', version: 4, date: '2023-10-30', tag: 'Archived', description: 'Previous production version.' },
     ]
   }
+];
+
+// --- Data for Account Overview Dashboard ---
+export const accountSpend = {
+    monthly: 12450,
+    forecasted: 21500,
+    ytd: 145800,
+};
+
+export const topQueriesData: TopQuery[] = [
+    { id: 'q1', queryText: 'SELECT * FROM sales_q3_2023...', credits: 120.5, user: 'ALICE', duration: '2h 15m' },
+    { id: 'q2', queryText: 'JOIN large_customer_table...', credits: 98.2, user: 'BOB', duration: '1h 45m' },
+    { id: 'q3', queryText: 'AGGREGATE daily_metrics...', credits: 75.1, user: 'ALICE', duration: '55m' },
+    { id: 'q4', queryText: 'WINDOW function over user_sessions...', credits: 50.8, user: 'CHARLIE', duration: '32m' },
+];
+
+export const optimizationOpportunitiesData: OptimizationOpportunity[] = [
+    { id: 'opt1', queryText: 'SELECT DISTINCT user_id FROM events...', potentialSavings: 45.0, recommendation: 'Use APPROX_COUNT_DISTINCT' },
+    { id: 'opt2', queryText: 'CROSS JOIN customer_regions...', potentialSavings: 25.5, recommendation: 'Add explicit JOIN condition' },
+];
+
+export const warehousesData: Warehouse[] = [
+    { id: 'wh1', name: 'ETL_WH', avgUtilization: 85, peakUtilization: 98, status: 'Active' },
+    { id: 'wh2', name: 'BI_WH', avgUtilization: 45, peakUtilization: 75, status: 'Active' },
+    { id: 'wh3', name: 'DATA_SCIENCE_WH', avgUtilization: 5, peakUtilization: 20, status: 'Idle' },
+    { id: 'wh4', name: 'DEV_WH', avgUtilization: 0, peakUtilization: 0, status: 'Suspended' },
+];
+
+export const accountCostBreakdown = [
+    { name: 'Compute', value: 8500, color: '#6932D5' },
+    { name: 'Storage', value: 3500, color: '#A78BFA' },
+    { name: 'Data Transfer', value: 450, color: '#D6BCFA' },
 ];

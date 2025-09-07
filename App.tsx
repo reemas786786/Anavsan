@@ -12,23 +12,28 @@ import Overview from './pages/Overview';
 import AccountView from './pages/AccountView';
 import SidePanel from './components/SidePanel';
 import AddAccountFlow from './components/AddAccountFlow';
-import { Page, Account } from './types';
-import { connectionsData } from './data/dummyData';
+import SaveQueryFlow from './components/SaveQueryFlow';
+import Toast from './components/Toast';
+import { Page, Account, SQLFile } from './types';
+import { connectionsData, sqlFilesData as initialSqlFiles } from './data/dummyData';
 
 const App: React.FC = () => {
-  const [activePage, setActivePage] = useState<Page>('Connections');
+  const [activePage, setActivePage] = useState<Page>('Overview');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [isAddingAccount, setIsAddingAccount] = useState(false);
+  const [isSavingQuery, setIsSavingQuery] = useState(false);
+  const [sqlFiles, setSqlFiles] = useState<SQLFile[]>(initialSqlFiles);
+
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const sidebarRef = useRef<HTMLElement>(null);
   const toggleButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (accounts.length === 0 && !isAddingAccount) {
-        // Initially load dummy data if accounts are empty
         setAccounts(connectionsData);
     }
   }, []);
@@ -53,6 +58,13 @@ const App: React.FC = () => {
     };
   }, [isSidebarCollapsed]);
 
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => {
+        setToastMessage(null);
+    }, 3000);
+  };
+
   const handleAddAccount = () => {
     const newAccount: Account = {
       id: `new-${Date.now()}`,
@@ -64,15 +76,52 @@ const App: React.FC = () => {
     };
     setAccounts(prevAccounts => [...prevAccounts, newAccount]);
     setIsAddingAccount(false);
+    showToast("Account added successfully!");
   };
   
   const handleDeleteAccount = (accountId: string) => {
     setAccounts(prevAccounts => prevAccounts.filter(acc => acc.id !== accountId));
+    showToast("Account deleted successfully.");
   };
   
-  const handleCancelAddAccount = () => {
-    setIsAddingAccount(false);
+  const handleSaveQuery = (data: { saveType: 'new' | 'existing'; fileName: string; fileId?: string; description: string; tag: string; }) => {
+    const { saveType, fileName, fileId, description, tag } = data;
+
+    if (saveType === 'new') {
+        const newFile: SQLFile = {
+            id: `file-${Date.now()}`,
+            name: fileName.endsWith('.sql') ? fileName : `${fileName}.sql`,
+            versions: [{
+                id: `v-${Date.now()}`,
+                version: 1,
+                date: new Date().toISOString().split('T')[0],
+                description,
+                tag
+            }]
+        };
+        setSqlFiles(prev => [...prev, newFile]);
+    } else if (saveType === 'existing' && fileId) {
+        setSqlFiles(prev => prev.map(file => {
+            if (file.id === fileId) {
+                const newVersionNumber = file.versions.reduce((max, v) => Math.max(max, v.version), 0) + 1;
+                const newVersion = {
+                    id: `v-${Date.now()}`,
+                    version: newVersionNumber,
+                    date: new Date().toISOString().split('T')[0],
+                    description,
+                    tag
+                };
+                return { ...file, versions: [newVersion, ...file.versions] };
+            }
+            return file;
+        }));
+    }
+    setIsSavingQuery(false);
+    showToast("Query saved successfully!");
   };
+  
+  const handleCancelAddAccount = () => setIsAddingAccount(false);
+  const handleCancelSaveQuery = () => setIsSavingQuery(false);
 
   const handleSelectAccount = (account: Account) => {
     setSelectedAccount(account);
@@ -86,7 +135,7 @@ const App: React.FC = () => {
   const renderContent = () => {
     switch (activePage) {
       case 'Overview':
-        return <Overview />;
+        return <Overview onSelectAccount={handleSelectAccount} accounts={accounts} />;
       case 'Dashboard':
         return <Dashboard />;
       case 'Connections':
@@ -121,7 +170,7 @@ const App: React.FC = () => {
             setSelectedAccount(null);
           }}
           isCollapsed={isSidebarCollapsed}
-          isHidden={!!selectedAccount && isSidebarCollapsed}
+          isHidden={!!selectedAccount}
           collapseSidebar={() => setIsSidebarCollapsed(true)}
           ref={sidebarRef}
         />
@@ -132,6 +181,8 @@ const App: React.FC = () => {
               accounts={accounts}
               onBack={handleBackToConnections}
               onSwitchAccount={handleSelectAccount}
+              sqlFiles={sqlFiles}
+              onSaveQueryClick={() => setIsSavingQuery(true)}
             />
           ) : (
              <div className="p-6">
@@ -141,6 +192,8 @@ const App: React.FC = () => {
         </main>
       </div>
 
+      <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
+
       <SidePanel
         isOpen={isAddingAccount}
         onClose={handleCancelAddAccount}
@@ -149,6 +202,18 @@ const App: React.FC = () => {
         <AddAccountFlow
           onCancel={handleCancelAddAccount}
           onAddAccount={handleAddAccount}
+        />
+      </SidePanel>
+
+      <SidePanel
+        isOpen={isSavingQuery}
+        onClose={handleCancelSaveQuery}
+        title="Save Query Version"
+      >
+        <SaveQueryFlow 
+          files={sqlFiles}
+          onCancel={handleCancelSaveQuery}
+          onSave={handleSaveQuery}
         />
       </SidePanel>
     </div>

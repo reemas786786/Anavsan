@@ -37,7 +37,7 @@ export interface SQLVersion {
   id: string;
   version: number;
   date: string;
-  tag: string;
+  tag?: string;
   description: string;
 }
 
@@ -45,4 +45,27 @@ export interface SQLFile {
   id: string;
   name: string;
   versions: SQLVersion[];
+}
+
+export interface TopQuery {
+    id: string;
+    queryText: string;
+    credits: number;
+    user: string;
+    duration: string;
+}
+
+export interface OptimizationOpportunity {
+    id: string;
+    queryText: string;
+    potentialSavings: number;
+    recommendation: string;
+}
+
+export interface Warehouse {
+    id: string;
+    name: string;
+    avgUtilization: number;
+    peakUtilization: number;
+    status: 'Active' | 'Idle' | 'Suspended';
 }

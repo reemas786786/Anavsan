@@ -1,8 +1,17 @@
 import React, { useState } from 'react';
-import { sqlFilesData } from '../data/dummyData';
 import { SQLFile } from '../types';
 
-const Tag: React.FC<{ tag: string }> = ({ tag }) => {
+// FIX: Added props interface to accept `sqlFiles` and `onSaveQueryClick` to resolve type error when used in AccountView.
+interface QueryWorkspaceProps {
+    sqlFiles: SQLFile[];
+    onSaveQueryClick: () => void;
+}
+
+// FIX: Updated Tag component to handle optional tag property as per SQLVersion type.
+const Tag: React.FC<{ tag?: string }> = ({ tag }) => {
+    if (!tag) {
+        return null;
+    }
     const baseClasses = "px-2 py-0.5 text-xs rounded-full font-medium";
     let colorClasses = "bg-gray-100 text-gray-800"; // Default for Archived/Staging
     if (tag === 'Production') {
@@ -11,8 +20,9 @@ const Tag: React.FC<{ tag: string }> = ({ tag }) => {
     return <span className={`${baseClasses} ${colorClasses}`}>{tag}</span>
 }
 
-const QueryWorkspace: React.FC = () => {
-    const [selectedFile, setSelectedFile] = useState<SQLFile | null>(sqlFilesData[0]);
+const QueryWorkspace: React.FC<QueryWorkspaceProps> = ({ sqlFiles, onSaveQueryClick }) => {
+    // FIX: Used sqlFiles from props instead of hardcoded dummy data, with a fallback for empty arrays.
+    const [selectedFile, setSelectedFile] = useState<SQLFile | null>(sqlFiles[0] || null);
     const [selectedVersions, setSelectedVersions] = useState<Set<string>>(new Set());
 
     const handleVersionSelect = (versionId: string) => {
@@ -42,7 +52,8 @@ const QueryWorkspace: React.FC = () => {
                 <div className="lg:col-span-1 bg-surface rounded-xl border border-border-color p-4">
                     <h3 className="font-semibold text-text-primary px-2 mb-2 text-sm">Saved Queries</h3>
                     <ul>
-                        {sqlFilesData.map(file => (
+                        {/* FIX: Used `sqlFiles` from props instead of `sqlFilesData`. */}
+                        {sqlFiles.map(file => (
                             <li key={file.id}>
                                 <button 
                                     onClick={() => handleSelectFile(file)}

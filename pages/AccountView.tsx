@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Account } from '../types';
+import { Account, SQLFile } from '../types';
 import QueryWorkspace from './QueryWorkspace';
+import AccountOverviewDashboard from './AccountOverviewDashboard';
 import { IconChevronDown } from '../constants';
 
 interface AccountViewProps {
@@ -8,6 +9,8 @@ interface AccountViewProps {
     accounts: Account[];
     onBack: () => void;
     onSwitchAccount: (account: Account) => void;
+    sqlFiles: SQLFile[];
+    onSaveQueryClick: () => void;
 }
 
 const accountNavItems = [
@@ -34,9 +37,8 @@ const Breadcrumb: React.FC<{ items: { label: string; onClick?: () => void }[] }>
     </nav>
 );
 
-const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, onSwitchAccount }) => {
-    const [activeSubPage, setActiveSubPage] = useState('Query Workspace');
-    const [activeParent, setActiveParent] = useState('Query Workspace');
+const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, onSwitchAccount, sqlFiles, onSaveQueryClick }) => {
+    const [activeSubPage, setActiveSubPage] = useState('Overview');
     
     const [openSections, setOpenSections] = useState<Set<string>>(new Set(['Query Performance', 'Optimization']));
     const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
@@ -54,18 +56,19 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
         });
     };
     
-    const handleNavClick = (pageName: string, parentName: string) => {
+    const handleNavClick = (pageName: string) => {
         setActiveSubPage(pageName);
-        setActiveParent(parentName);
     }
 
     useEffect(() => {
+        // When account changes, reset to its overview page
+        setActiveSubPage('Overview');
+    }, [account]);
+
+    useEffect(() => {
         const parent = accountNavItems.find(item => item.children.includes(activeSubPage) || item.name === activeSubPage);
-        if (parent) {
-            setActiveParent(parent.name);
-            if(parent.children.length > 0) {
-                setOpenSections(prev => new Set(prev).add(parent.name));
-            }
+        if (parent && parent.children.length > 0) {
+            setOpenSections(prev => new Set(prev).add(parent.name));
         }
     }, [activeSubPage]);
 
@@ -81,8 +84,10 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
 
     const renderSubPage = () => {
         switch(activeSubPage) {
+            case 'Overview':
+                return <AccountOverviewDashboard account={account} />;
             case 'Query Workspace':
-                return <QueryWorkspace />;
+                return <QueryWorkspace sqlFiles={sqlFiles} onSaveQueryClick={onSaveQueryClick} />;
             default:
                 return (
                     <div className="p-6 bg-surface rounded-lg border border-border-color">
@@ -101,17 +106,13 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
        breadcrumbItems.push({ label: activeSubPage });
     }
 
-
     return (
         <div className="flex flex-col h-full bg-background">
-            {/* Full-width Breadcrumb Bar */}
             <div className="bg-surface w-full py-4 px-6 border-b border-border-color flex-shrink-0">
                 <Breadcrumb items={breadcrumbItems} />
             </div>
 
-            {/* Container for sidebar and content with 16px margin-top */}
             <div className="flex flex-1 overflow-hidden mt-4">
-                {/* Contextual Sub-sidebar */}
                 <aside className="w-64 bg-surface flex-shrink-0 p-4 border-r border-border-color flex flex-col">
                     <div className="relative" ref={switcherRef}>
                         <button onClick={() => setIsSwitcherOpen(!isSwitcherOpen)} className="w-full bg-background border border-border-color rounded-full px-4 py-3 flex items-center justify-between text-left hover:border-primary">
@@ -139,7 +140,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                                 <li key={item.name}>
                                     {item.children.length === 0 ? (
                                         <button 
-                                            onClick={() => handleNavClick(item.name, item.name)}
+                                            onClick={() => handleNavClick(item.name)}
                                             className={`w-full text-left px-3 py-2 rounded-full text-sm font-medium transition-colors ${activeSubPage === item.name ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'}`}
                                         >{item.name}</button>
                                     ) : (
@@ -153,7 +154,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                                                     {item.children.map(child => (
                                                         <li key={child}>
                                                             <button 
-                                                                onClick={() => handleNavClick(child, item.name)}
+                                                                onClick={() => handleNavClick(child)}
                                                                 className={`w-full text-left px-3 py-2 rounded-full text-sm transition-colors ${activeSubPage === child ? 'text-primary font-semibold' : 'text-text-secondary hover:text-text-primary'}`}
                                                             >{child}</button>
                                                         </li>

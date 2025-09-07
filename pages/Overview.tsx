@@ -2,6 +2,13 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { topSpendData, costBreakdownData } from '../data/dummyData';
+import { Account } from '../types';
+import StatCard from '../components/StatCard';
+
+interface OverviewProps {
+    onSelectAccount: (account: Account) => void;
+    accounts: Account[];
+}
 
 const Card: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className, title }) => (
     <div className={`bg-surface p-6 rounded-xl border border-border-color shadow-sm ${className}`}>
@@ -27,13 +34,6 @@ const CostBreakdownDonut: React.FC<{ percentage: number }> = ({ percentage }) =>
     );
 };
 
-const StatCard: React.FC<{ title: string, value: string }> = ({ title, value }) => (
-    <div className="bg-surface p-4 rounded-xl border border-border-color shadow-sm">
-        <p className="text-sm font-semibold text-text-secondary">{title}</p>
-        <p className="text-2xl font-bold text-text-primary mt-1">{value}</p>
-    </div>
-);
-
 const resourceSummaryData = [
     { title: 'Accounts', value: '5' },
     { title: 'Warehouses', value: '12' },
@@ -42,7 +42,15 @@ const resourceSummaryData = [
 ];
 
 
-const Overview: React.FC = () => {
+const Overview: React.FC<OverviewProps> = ({ onSelectAccount, accounts }) => {
+    
+    const handleBarClick = (data: any) => {
+        const account = accounts.find(acc => acc.id === data.id);
+        if (account) {
+            onSelectAccount(account);
+        }
+    };
+    
     return (
         <div className="space-y-4">
             <h1 className="text-2xl font-bold text-text-primary">Data Cloud Overview</h1>
@@ -65,7 +73,7 @@ const Overview: React.FC = () => {
                     </Card>
                     <Card title="Top Spend by Account">
                         <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={topSpendData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                            <BarChart data={topSpendData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }} onClick={handleBarClick}>
                                 <XAxis dataKey="name" stroke="#5A5A72" fontSize={12} tickLine={false} axisLine={false} />
                                 <YAxis stroke="#5A5A72" fontSize={12} tickLine={false} axisLine={false} />
                                 <Tooltip
