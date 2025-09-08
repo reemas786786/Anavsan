@@ -114,18 +114,11 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
             </div>
 
             <div className="flex flex-1 overflow-hidden">
-                <aside className={`relative bg-surface flex-shrink-0 border-r border-border-color flex flex-col transition-all duration-300 ease-in-out ${isAccountSidebarExpanded ? 'w-64' : 'w-16'}`}>
-                    {isAccountSidebarExpanded ? (
-                        <>
-                            <button
-                                onClick={() => setIsAccountSidebarExpanded(false)}
-                                className="absolute top-6 -right-3 z-10 bg-surface border border-border-color rounded-full p-1.5 hover:bg-surface-hover shadow-md focus:outline-none focus:ring-2 focus:ring-primary"
-                                aria-label="Collapse sidebar"
-                            >
-                                <IconChevronLeft className="h-4 w-4 text-text-secondary" />
-                            </button>
-
-                            <div className="p-4 flex-grow flex flex-col overflow-hidden">
+                <aside className={`bg-surface flex-shrink-0 border-r border-border-color flex flex-col transition-all duration-300 ease-in-out ${isAccountSidebarExpanded ? 'w-64' : 'w-16'}`}>
+                    {/* Main scrollable content area */}
+                    <div className="flex-grow overflow-y-auto">
+                        {isAccountSidebarExpanded && (
+                            <div className="p-4">
                                 <div className="relative" ref={switcherRef}>
                                     <button onClick={() => setIsSwitcherOpen(!isSwitcherOpen)} className="w-full bg-background border border-border-color rounded-full px-4 py-3 flex items-center justify-between text-left hover:border-primary">
                                         <h2 className="font-semibold text-text-primary text-sm truncate">{account.name}</h2>
@@ -146,7 +139,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                                     )}
                                 </div>
                                 
-                                <nav className="mt-4 flex-grow overflow-y-auto -mr-2 pr-2">
+                                <nav className="mt-4">
                                     <ul className="space-y-1">
                                         {accountNavItems.map(item => (
                                             <li key={item.name}>
@@ -180,19 +173,25 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                                     </ul>
                                 </nav>
                             </div>
-                        </>
-                    ) : (
-                        <div
-                            className="flex items-center justify-center h-full cursor-pointer hover:bg-surface-hover"
-                            onClick={() => setIsAccountSidebarExpanded(true)}
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsAccountSidebarExpanded(true); }}
-                            aria-label="Expand sidebar"
-                        >
-                            <IconChevronRight className="h-6 w-6 text-text-secondary" />
+                        )}
+                    </div>
+
+                    {/* Bottom fixed part: Divider and Toggle Button */}
+                    <div className="flex-shrink-0 mt-auto p-2">
+                        <div className={`border-t border-border-light ${isAccountSidebarExpanded ? 'mx-2' : ''}`}></div>
+                        <div className={`flex mt-2 ${isAccountSidebarExpanded ? 'justify-end' : 'justify-center'}`}>
+                            <button
+                                onClick={() => setIsAccountSidebarExpanded(!isAccountSidebarExpanded)}
+                                className="p-1.5 rounded-full hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-primary"
+                                aria-label={isAccountSidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+                            >
+                                {isAccountSidebarExpanded 
+                                    ? <IconChevronLeft className="h-5 w-5 text-text-secondary" /> 
+                                    : <IconChevronRight className="h-5 w-5 text-text-secondary" />
+                                }
+                            </button>
                         </div>
-                    )}
+                    </div>
                 </aside>
                 
                 <main className="flex-1 overflow-y-auto bg-background">
