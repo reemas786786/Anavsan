@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Account, SQLFile } from '../types';
 import QueryWorkspace from './QueryWorkspace';
 import AccountOverviewDashboard from './AccountOverviewDashboard';
-import { IconChevronDown } from '../constants';
+import { IconChevronDown, IconChevronLeft, IconChevronRight } from '../constants';
 
 interface AccountViewProps {
     account: Account;
@@ -42,6 +42,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
     
     const [openSections, setOpenSections] = useState<Set<string>>(new Set(['Query Performance', 'Optimization']));
     const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
+    const [isAccountSidebarExpanded, setIsAccountSidebarExpanded] = useState(true);
     const switcherRef = useRef<HTMLDivElement>(null);
 
     const toggleSection = (sectionName: string) => {
@@ -112,61 +113,86 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                 <Breadcrumb items={breadcrumbItems} />
             </div>
 
-            <div className="flex flex-1 overflow-hidden mt-4">
-                <aside className="w-64 bg-surface flex-shrink-0 p-4 border-r border-border-color flex flex-col">
-                    <div className="relative" ref={switcherRef}>
-                        <button onClick={() => setIsSwitcherOpen(!isSwitcherOpen)} className="w-full bg-background border border-border-color rounded-full px-4 py-3 flex items-center justify-between text-left hover:border-primary">
-                            <h2 className="font-semibold text-text-primary text-sm">{account.name}</h2>
-                            <IconChevronDown className={`w-5 h-5 text-text-secondary transition-transform ${isSwitcherOpen ? 'rotate-180' : ''}`} />
-                        </button>
-                        {isSwitcherOpen && (
-                            <div className="absolute top-full mt-1 w-full bg-surface rounded-lg shadow-lg border border-border-color z-10 max-h-60 overflow-y-auto">
-                                <ul>
-                                    {accounts.map(acc => (
-                                        <li key={acc.id}>
-                                            <button onClick={() => { onSwitchAccount(acc); setIsSwitcherOpen(false); }} className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover ${account.id === acc.id ? 'text-primary font-semibold' : 'text-text-secondary'}`}>
-                                                {acc.name}
-                                            </button>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                    </div>
-                    
-                    <nav className="mt-4 flex-grow overflow-y-auto -mr-2 pr-2">
-                        <ul className="space-y-1">
-                            {accountNavItems.map(item => (
-                                <li key={item.name}>
-                                    {item.children.length === 0 ? (
-                                        <button 
-                                            onClick={() => handleNavClick(item.name)}
-                                            className={`w-full text-left px-3 py-2 rounded-full text-sm font-medium transition-colors ${activeSubPage === item.name ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'}`}
-                                        >{item.name}</button>
-                                    ) : (
-                                        <div>
-                                            <button onClick={() => toggleSection(item.name)} className="w-full flex justify-between items-center text-left px-3 py-2 rounded-full text-sm font-medium text-text-secondary hover:bg-surface-hover hover:text-text-primary">
-                                                <span>{item.name}</span>
-                                                <IconChevronDown className={`w-4 h-4 transition-transform ${openSections.has(item.name) ? 'rotate-180' : ''}`} />
-                                            </button>
-                                            {openSections.has(item.name) && (
-                                                <ul className="pl-3 mt-1 space-y-1">
-                                                    {item.children.map(child => (
-                                                        <li key={child}>
-                                                            <button 
-                                                                onClick={() => handleNavClick(child)}
-                                                                className={`w-full text-left px-3 py-2 rounded-full text-sm transition-colors ${activeSubPage === child ? 'text-primary font-semibold' : 'text-text-secondary hover:text-text-primary'}`}
-                                                            >{child}</button>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            )}
+            <div className="flex flex-1 overflow-hidden">
+                <aside className={`relative bg-surface flex-shrink-0 border-r border-border-color flex flex-col transition-all duration-300 ease-in-out ${isAccountSidebarExpanded ? 'w-64' : 'w-16'}`}>
+                    {isAccountSidebarExpanded ? (
+                        <>
+                            <button
+                                onClick={() => setIsAccountSidebarExpanded(false)}
+                                className="absolute top-6 -right-3 z-10 bg-surface border border-border-color rounded-full p-1.5 hover:bg-surface-hover shadow-md focus:outline-none focus:ring-2 focus:ring-primary"
+                                aria-label="Collapse sidebar"
+                            >
+                                <IconChevronLeft className="h-4 w-4 text-text-secondary" />
+                            </button>
+
+                            <div className="p-4 flex-grow flex flex-col overflow-hidden">
+                                <div className="relative" ref={switcherRef}>
+                                    <button onClick={() => setIsSwitcherOpen(!isSwitcherOpen)} className="w-full bg-background border border-border-color rounded-full px-4 py-3 flex items-center justify-between text-left hover:border-primary">
+                                        <h2 className="font-semibold text-text-primary text-sm truncate">{account.name}</h2>
+                                        <IconChevronDown className={`w-5 h-5 text-text-secondary transition-transform flex-shrink-0 ${isSwitcherOpen ? 'rotate-180' : ''}`} />
+                                    </button>
+                                    {isSwitcherOpen && (
+                                        <div className="absolute top-full mt-1 w-full bg-surface rounded-lg shadow-lg border border-border-color z-10 max-h-60 overflow-y-auto">
+                                            <ul>
+                                                {accounts.map(acc => (
+                                                    <li key={acc.id}>
+                                                        <button onClick={() => { onSwitchAccount(acc); setIsSwitcherOpen(false); }} className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover ${account.id === acc.id ? 'text-primary font-semibold' : 'text-text-secondary'}`}>
+                                                            {acc.name}
+                                                        </button>
+                                                    </li>
+                                                ))}
+                                            </ul>
                                         </div>
                                     )}
-                                </li>
-                            ))}
-                        </ul>
-                    </nav>
+                                </div>
+                                
+                                <nav className="mt-4 flex-grow overflow-y-auto -mr-2 pr-2">
+                                    <ul className="space-y-1">
+                                        {accountNavItems.map(item => (
+                                            <li key={item.name}>
+                                                {item.children.length === 0 ? (
+                                                    <button 
+                                                        onClick={() => handleNavClick(item.name)}
+                                                        className={`w-full text-left px-3 py-2 rounded-full text-sm font-medium transition-colors ${activeSubPage === item.name ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'}`}
+                                                    >{item.name}</button>
+                                                ) : (
+                                                    <div>
+                                                        <button onClick={() => toggleSection(item.name)} className="w-full flex justify-between items-center text-left px-3 py-2 rounded-full text-sm font-medium text-text-secondary hover:bg-surface-hover hover:text-text-primary">
+                                                            <span>{item.name}</span>
+                                                            <IconChevronDown className={`w-4 h-4 transition-transform ${openSections.has(item.name) ? 'rotate-180' : ''}`} />
+                                                        </button>
+                                                        {openSections.has(item.name) && (
+                                                            <ul className="pl-3 mt-1 space-y-1">
+                                                                {item.children.map(child => (
+                                                                    <li key={child}>
+                                                                        <button 
+                                                                            onClick={() => handleNavClick(child)}
+                                                                            className={`w-full text-left px-3 py-2 rounded-full text-sm transition-colors ${activeSubPage === child ? 'text-primary font-semibold' : 'text-text-secondary hover:text-text-primary'}`}
+                                                                        >{child}</button>
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </nav>
+                            </div>
+                        </>
+                    ) : (
+                        <div
+                            className="flex items-center justify-center h-full cursor-pointer hover:bg-surface-hover"
+                            onClick={() => setIsAccountSidebarExpanded(true)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsAccountSidebarExpanded(true); }}
+                            aria-label="Expand sidebar"
+                        >
+                            <IconChevronRight className="h-6 w-6 text-text-secondary" />
+                        </div>
+                    )}
                 </aside>
                 
                 <main className="flex-1 overflow-y-auto bg-background">
