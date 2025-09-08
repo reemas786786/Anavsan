@@ -131,8 +131,8 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
 
 const MetricCard: React.FC<{ title: string, value: string }> = ({ title, value }) => (
     <div className="bg-surface p-4 rounded-xl border border-border-color shadow-sm">
-        <p className="text-sm font-semibold text-text-secondary">{title}</p>
-        <p className="text-2xl font-bold text-text-primary mt-1">{value}</p>
+        <h4 className="text-base font-semibold text-text-strong">{title}</h4>
+        <p className="text-2xl font-bold text-text-primary mt-6">{value}</p>
     </div>
 );
 

@@ -12,7 +12,7 @@ interface OverviewProps {
 
 const Card: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className, title }) => (
     <div className={`bg-surface p-6 rounded-xl border border-border-color shadow-sm ${className}`}>
-        {title && <h2 className="text-sm font-semibold text-text-primary mb-4">{title}</h2>}
+        {title && <h4 className="text-base font-semibold text-text-strong mb-6">{title}</h4>}
         {children}
     </div>
 );
@@ -59,7 +59,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, accounts }) => {
                 {/* Main Cards */}
                 <div className="lg:col-span-2 space-y-4">
                     <Card>
-                        <h3 className="text-sm font-semibold text-text-primary mb-4">Current Month Cost & Forecast</h3>
+                        <h4 className="text-base font-semibold text-text-strong mb-6">Current Month Cost & Forecast</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="bg-background p-4 rounded-lg">
                                 <p className="text-text-secondary text-sm">Current Spend</p>

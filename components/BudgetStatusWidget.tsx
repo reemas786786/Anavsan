@@ -44,8 +44,8 @@ const BudgetStatusWidget: React.FC = () => {
 
     return (
         <Card>
-            <div className="flex items-center text-sm font-semibold text-text-primary mb-4">
-                <h2>Monthly Budget Status</h2>
+            <div className="flex items-center mb-6">
+                <h4 className="text-base font-semibold text-text-strong">Monthly Budget Status</h4>
                 {alertIcon}
             </div>
             <div className="flex flex-col space-y-4">

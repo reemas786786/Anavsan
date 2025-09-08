@@ -50,7 +50,7 @@ const QueryWorkspace: React.FC<QueryWorkspaceProps> = ({ sqlFiles, onSaveQueryCl
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
                 {/* File List */}
                 <div className="lg:col-span-1 bg-surface rounded-xl border border-border-color p-4">
-                    <h3 className="font-semibold text-text-primary px-2 mb-2 text-sm">Saved Queries</h3>
+                    <h4 className="font-semibold text-text-strong px-2 mb-6 text-base">Saved Queries</h4>
                     <ul>
                         {/* FIX: Used `sqlFiles` from props instead of `sqlFilesData`. */}
                         {sqlFiles.map(file => (
@@ -68,9 +68,9 @@ const QueryWorkspace: React.FC<QueryWorkspaceProps> = ({ sqlFiles, onSaveQueryCl
 
                 {/* Version List */}
                 <div className="lg:col-span-2 bg-surface rounded-xl border border-border-color p-6">
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex justify-between items-center mb-6">
                         <div>
-                            <h2 className="text-lg font-semibold text-text-primary">{selectedFile?.name}</h2>
+                            <h4 className="text-base font-semibold text-text-strong">{selectedFile?.name}</h4>
                             <p className="text-sm text-text-secondary">Select up to 2 versions to compare.</p>
                         </div>
                         <button 

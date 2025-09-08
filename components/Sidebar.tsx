@@ -94,9 +94,9 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
             {/* Panel */}
             <aside 
                 ref={sidebarRef}
-                className={`relative flex flex-col h-full bg-surface w-full max-w-xs md:w-72 shadow-xl transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+                className={`relative flex flex-col h-full bg-surface w-full max-w-xs md:w-72 shadow-xl transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} overflow-hidden`}
             >
-                <div className="flex items-center justify-between p-4 border-b border-border-light">
+                <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-border-light">
                     <h2 id="sidebar-title" className="text-lg font-semibold text-text-primary">Menu</h2>
                     <button 
                         ref={closeButtonRef}
@@ -108,31 +108,30 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
                     </button>
                 </div>
                 
-                <div className="flex-grow overflow-y-auto p-4">
-                    <ul className="space-y-1">
-                        {NAV_ITEMS_TOP.map((item) => (
-                            <NavItem 
-                                key={item.name} 
-                                item={item} 
-                                isActive={activePage === item.name}
-                                onClick={() => setActivePage(item.name)}
-                            />
-                        ))}
-                    </ul>
-                </div>
-                
-                <div className="flex-shrink-0 p-4">
-                    <div className="border-t border-border-light mb-2"></div>
-                    <ul className="space-y-1">
-                        {NAV_ITEMS_BOTTOM.map((item) => (
-                            <NavItem 
-                                key={item.name} 
-                                item={item} 
-                                isActive={activePage === item.name}
-                                onClick={() => setActivePage(item.name)}
-                            />
-                        ))}
-                    </ul>
+                <div className="flex-1 overflow-y-auto">
+                    <div className="p-4">
+                        <ul className="space-y-1">
+                            {NAV_ITEMS_TOP.map((item) => (
+                                <NavItem 
+                                    key={item.name} 
+                                    item={item} 
+                                    isActive={activePage === item.name}
+                                    onClick={() => setActivePage(item.name)}
+                                />
+                            ))}
+                        </ul>
+                        <div className="border-t border-border-light my-4"></div>
+                        <ul className="space-y-1">
+                            {NAV_ITEMS_BOTTOM.map((item) => (
+                                <NavItem 
+                                    key={item.name} 
+                                    item={item} 
+                                    isActive={activePage === item.name}
+                                    onClick={() => setActivePage(item.name)}
+                                />
+                            ))}
+                        </ul>
+                    </div>
                 </div>
             </aside>
         </div>

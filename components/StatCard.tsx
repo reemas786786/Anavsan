@@ -13,8 +13,8 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, subValue, trend, clas
     
     return (
         <div className={`bg-surface p-4 rounded-xl border border-border-color shadow-sm ${className}`}>
-            <p className="text-sm font-semibold text-text-secondary">{title}</p>
-            <div className="flex items-baseline gap-2 mt-1">
+            <h4 className="text-base font-semibold text-text-strong">{title}</h4>
+            <div className="flex items-baseline gap-2 mt-6">
                 <p className="text-2xl font-bold text-text-primary">{value}</p>
                 {subValue && <p className="text-sm font-medium text-text-secondary">{subValue}</p>}
             </div>
