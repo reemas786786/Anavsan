@@ -36,6 +36,11 @@ export const IconBookDemo: React.FC<{ className?: string }> = ({ className }) =>
         <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0h18" />
     </svg>
 );
+export const IconDocs: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+    </svg>
+);
 export const IconSettings: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-1.008 1.11-1.227l.128-.052c.635-.25 1.323-.207 1.88.121l.128.071c.542.304 1.008.83 1.227 1.378l.052.128c.25.635.207 1.323-.121 1.88l-.071.128c-.304.542-.83 1.008-1.378 1.227l-.128.052c-.635.25-1.323.207-1.88-.121l-.128-.071a2.25 2.25 0 01-1.227-1.378l-.052-.128a2.25 2.25 0 01.121-1.88l.071-.128z" />
@@ -118,11 +123,15 @@ export const IconCheckCircle: React.FC<{ className?: string }> = ({ className })
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
 );
+export const IconExclamationTriangle: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+    </svg>
+);
 
 
-export const NAV_ITEMS_MAIN: NavItem[] = [
-    { name: 'Overview', icon: IconOverview },
-    { name: 'Dashboard', icon: IconDashboard },
+export const NAV_ITEMS_TOP: NavItem[] = [
+    { name: 'Dashboard', icon: IconOverview },
     { name: 'Connections', icon: IconConnections },
     { name: 'AI Agent', icon: IconAIAgent },
     { name: 'Reports', icon: IconReports },
@@ -130,6 +139,7 @@ export const NAV_ITEMS_MAIN: NavItem[] = [
 
 export const NAV_ITEMS_BOTTOM: NavItem[] = [
     { name: 'Book a Demo', icon: IconBookDemo },
+    { name: 'Docs', icon: IconDocs },
     { name: 'Settings', icon: IconSettings },
     { name: 'Support', icon: IconSupport },
 ];

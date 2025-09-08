@@ -1,11 +1,12 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import Sidebar from './components/Sidebar';
 import Header from './components/Header';
-import Dashboard from './pages/Dashboard';
+import Sidebar from './components/Sidebar';
 import Connections from './pages/Connections';
 import AIAgent from './pages/AIAgent';
 import Reports from './pages/Reports';
 import BookDemo from './pages/BookDemo';
+import Docs from './pages/Docs';
 import Settings from './pages/Settings';
 import Support from './pages/Support';
 import Overview from './pages/Overview';
@@ -18,8 +19,8 @@ import { Page, Account, SQLFile } from './types';
 import { connectionsData, sqlFilesData as initialSqlFiles } from './data/dummyData';
 
 const App: React.FC = () => {
-  const [activePage, setActivePage] = useState<Page>('Overview');
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+  const [activePage, setActivePage] = useState<Page>('Dashboard');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -29,40 +30,27 @@ const App: React.FC = () => {
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const sidebarRef = useRef<HTMLElement>(null);
-  const toggleButtonRef = useRef<HTMLButtonElement>(null);
-
   useEffect(() => {
     if (accounts.length === 0 && !isAddingAccount) {
         setAccounts(connectionsData);
     }
   }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-        const target = event.target as Node;
-        if (
-            !isSidebarCollapsed &&
-            sidebarRef.current &&
-            !sidebarRef.current.contains(target) &&
-            toggleButtonRef.current &&
-            !toggleButtonRef.current.contains(target)
-        ) {
-            setIsSidebarCollapsed(true);
-        }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isSidebarCollapsed]);
-
   const showToast = (message: string) => {
     setToastMessage(message);
     setTimeout(() => {
         setToastMessage(null);
     }, 3000);
+  };
+
+  const handlePageChange = (page: Page) => {
+    setActivePage(page);
+    setSelectedAccount(null);
+    setIsSidebarOpen(false);
+  };
+
+  const handleLogoClick = () => {
+    handlePageChange('Dashboard');
   };
 
   const handleAddAccount = () => {
@@ -107,6 +95,7 @@ const App: React.FC = () => {
                 const newVersion = {
                     id: `v-${Date.now()}`,
                     version: newVersionNumber,
+                    // FIX: Corrected typo `new D ate()` to `new Date()`.
                     date: new Date().toISOString().split('T')[0],
                     description,
                     tag
@@ -134,10 +123,8 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     switch (activePage) {
-      case 'Overview':
-        return <Overview onSelectAccount={handleSelectAccount} accounts={accounts} />;
       case 'Dashboard':
-        return <Dashboard />;
+        return <Overview onSelectAccount={handleSelectAccount} accounts={accounts} />;
       case 'Connections':
         return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setIsAddingAccount(true)} onDeleteAccount={handleDeleteAccount} />;
       case 'AI Agent':
@@ -146,6 +133,8 @@ const App: React.FC = () => {
         return <Reports />;
       case 'Book a Demo':
         return <BookDemo />; 
+      case 'Docs':
+        return <Docs />;
       case 'Settings':
         return <Settings />;
       case 'Support':
@@ -158,23 +147,19 @@ const App: React.FC = () => {
   return (
     <div className="flex flex-col h-screen bg-background font-sans">
       <Header 
-        isSidebarCollapsed={isSidebarCollapsed}
-        toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-        toggleButtonRef={toggleButtonRef}
+        onMenuClick={() => setIsSidebarOpen(true)}
+        onLogoClick={handleLogoClick}
       />
+      
+      <Sidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          activePage={activePage}
+          setActivePage={handlePageChange}
+      />
+
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar 
-          activePage={activePage} 
-          setActivePage={(page) => {
-            setActivePage(page);
-            setSelectedAccount(null);
-          }}
-          isCollapsed={isSidebarCollapsed}
-          isHidden={!!selectedAccount}
-          collapseSidebar={() => setIsSidebarCollapsed(true)}
-          ref={sidebarRef}
-        />
-        <main className={`flex-1 overflow-x-hidden overflow-y-auto bg-background transition-all duration-300 ease-in-out ${selectedAccount ? 'ml-0' : 'ml-12'}`}>
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background">
           {selectedAccount ? (
             <AccountView
               account={selectedAccount}

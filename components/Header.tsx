@@ -1,8 +1,13 @@
 import React from 'react';
 import { IconMenu, IconAIAgent, IconSupport, IconUser, IconSearch, IconBell } from '../constants';
 
+interface HeaderProps {
+    onMenuClick: () => void;
+    onLogoClick: () => void;
+}
+
 const AnavsanLogo: React.FC<{}> = () => (
-    <div className="flex items-center" title="Anavsan">
+    <div className="flex items-center" title="Anavsan - Home">
         <h1 className="text-xl font-bold flex items-center text-white">
             <span style={{fontFamily: 'serif', background: 'linear-gradient(to bottom right, #A78BFA, #6932D5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}} className="text-4xl -mr-1">
                 A
@@ -15,20 +20,16 @@ const AnavsanLogo: React.FC<{}> = () => (
 );
 
 
-interface HeaderProps {
-    isSidebarCollapsed: boolean;
-    toggleSidebar: () => void;
-    toggleButtonRef: React.RefObject<HTMLButtonElement>;
-}
-
-const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed, toggleSidebar, toggleButtonRef }) => {
+const Header: React.FC<HeaderProps> = ({ onMenuClick, onLogoClick }) => {
   return (
     <header className="bg-sidebar-topbar px-4 py-2 flex items-center justify-between flex-shrink-0 h-12 z-30">
-      <div className="flex items-center">
-        <button ref={toggleButtonRef} onClick={toggleSidebar} className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors mr-2">
+      <div className="flex items-center gap-4">
+        <button onClick={onMenuClick} className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors" aria-label="Open navigation menu">
           <IconMenu className="h-6 w-6" />
         </button>
-        <AnavsanLogo />
+        <button onClick={onLogoClick} className="focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1">
+          <AnavsanLogo />
+        </button>
       </div>
       
       <div className="flex items-center space-x-1">

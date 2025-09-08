@@ -3,6 +3,7 @@ import { Account, OptimizationOpportunity, TopQuery, Warehouse } from '../types'
 import { accountSpend, topQueriesData, optimizationOpportunitiesData, warehousesData, accountCostBreakdown } from '../data/dummyData';
 import StatCard from '../components/StatCard';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import BudgetStatusWidget from '../components/BudgetStatusWidget';
 
 const Card: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className, title }) => (
     <div className={`bg-surface p-6 rounded-xl border border-border-color shadow-sm ${className}`}>
@@ -114,6 +115,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
 
                 <div className="lg:col-span-1 space-y-4">
                     <AlertCard title="Active Anomalies" count={1} description="Unusual spike in ETL_WH" />
+                    <BudgetStatusWidget />
                     <Card title="Account Cost Breakdown">
                         <ResponsiveContainer width="100%" height={200}>
                             <PieChart>

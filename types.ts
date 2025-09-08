@@ -1,12 +1,12 @@
 import React from 'react';
 
 export type Page = 
-  | 'Overview' 
   | 'Dashboard' 
   | 'Connections' 
   | 'AI Agent' 
   | 'Reports' 
-  | 'Book a Demo' 
+  | 'Book a Demo'
+  | 'Docs'
   | 'Settings' 
   | 'Support';
 
