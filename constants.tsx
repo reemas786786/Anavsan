@@ -43,10 +43,8 @@ export const IconDocs: React.FC<{ className?: string }> = ({ className }) => (
 );
 export const IconSettings: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-1.008 1.11-1.227l.128-.052c.635-.25 1.323-.207 1.88.121l.128.071c.542.304 1.008.83 1.227 1.378l.052.128c.25.635.207 1.323-.121 1.88l-.071.128c-.304.542-.83 1.008-1.378 1.227l-.128.052c-.635.25-1.323.207-1.88-.121l-.128-.071a2.25 2.25 0 01-1.227-1.378l-.052-.128a2.25 2.25 0 01.121-1.88l.071-.128z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94a2.25 2.25 0 012.336-2.336l.128.052c.635.25 1.323.207 1.88.121l.128-.071c.542-.304 1.008-.83 1.227-1.378l.052-.128c.25-.635.207-1.323-.121-1.88l-.071-.128a2.25 2.25 0 00-1.378-1.227l-.128-.052c-.635-.25-1.323-.207-1.88.121l-.128.071a2.25 2.25 0 00-1.227 1.378l-.052.128a2.25 2.25 0 00.121 1.88l.071.128z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.002 9.002 0 008.38-6.108c.02-.065.034-.13.044-.196a9.002 9.002 0 00-16.808 0c.01.066.024.13.044.196A9.002 9.002 0 0012 21z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 12a3 3 0 100-6 3 3 0 000 6z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.108 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.11v1.093c0 .55-.398 1.02-.94 1.11l-.893.149c-.424.07-.764.383-.93.78-.164.398-.142.854.108 1.204l.527.738c.32.447.27.96-.12 1.45l-.773.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.78.93l-.15.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.02-.398-1.11-.94l-.149-.894c-.07-.424-.384-.764-.78-.93-.398-.164-.855-.142-1.205.108l-.737.527a1.125 1.125 0 01-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.11v-1.094c0 .55.398-1.02.94-1.11l.894-.149c.424-.07.764-.383.93-.78.164-.398.142-.854-.108-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.93l.15-.893z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
 );
 export const IconSupport: React.FC<{ className?: string }> = ({ className }) => (
@@ -146,12 +144,53 @@ export const NAV_ITEMS_TOP: NavItem[] = [
     { name: 'Dashboard', icon: IconOverview },
     { name: 'Connections', icon: IconConnections },
     { name: 'AI Agent', icon: IconAIAgent },
-    { name: 'Reports', icon: IconReports },
+    { 
+        name: 'Reports', 
+        icon: IconReports,
+        subItems: [
+            { name: 'Performance', isHeading: true },
+            { 
+                name: 'Warehouse Utilization',
+                subItems: [
+                    { name: 'Overall' },
+                    { name: 'By Warehouse' },
+                    { name: 'By User' },
+                ]
+            },
+            { 
+                name: 'Query Hotspots',
+                subItems: [
+                    { name: 'Top Queries by Credit' },
+                    { name: 'Slowest Queries' },
+                ]
+            },
+        ]
+    },
 ];
 
 export const NAV_ITEMS_BOTTOM: NavItem[] = [
     { name: 'Book a Demo', icon: IconBookDemo },
     { name: 'Docs', icon: IconDocs },
-    { name: 'Settings', icon: IconSettings },
+    { 
+        name: 'Settings', 
+        icon: IconSettings,
+        subItems: [
+            { name: 'General', isHeading: true },
+            { 
+                name: 'User Management',
+                subItems: [
+                    { name: 'Users' },
+                    { name: 'Roles & Permissions' },
+                ]
+            },
+            { 
+                name: 'Budgets & Alerts',
+                subItems: [
+                    { name: 'Account Budgets' },
+                    { name: 'Anomaly Detection' },
+                ]
+            },
+        ]
+    },
     { name: 'Support', icon: IconSupport },
 ];

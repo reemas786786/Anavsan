@@ -1,42 +1,241 @@
-
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { NAV_ITEMS_TOP, NAV_ITEMS_BOTTOM } from '../constants';
-import { Page, NavItem as NavItemType } from '../types';
-import { IconClose } from '../constants';
+import { Page, NavItem as NavItemType, NavSubItem } from '../types';
+import { IconChevronRight } from '../constants';
 
 interface SidebarProps {
   activePage: Page;
-  setActivePage: (page: Page) => void;
+  setActivePage: (page: Page, subPage?: string) => void;
   isOpen: boolean;
   onClose: () => void;
+  activeSettingsSubPage?: string;
 }
+
+const SubMenuItem: React.FC<{
+    item: NavItemType;
+    subItem: NavSubItem;
+    isActive: boolean;
+    onClick: (page: Page, subPage?: string) => void;
+    activeSettingsSubPage?: string;
+}> = ({ item, subItem, isActive, onClick, activeSettingsSubPage }) => {
+    const [isFlyoutOpen, setIsFlyoutOpen] = useState(false);
+    const itemRef = useRef<HTMLLIElement>(null);
+    const triggerRef = useRef<HTMLAnchorElement>(null);
+    let timer: number;
+
+    const hasSubItems = subItem.subItems && subItem.subItems.length > 0;
+
+    const showFlyout = () => {
+        if (!hasSubItems) return;
+        clearTimeout(timer);
+        setIsFlyoutOpen(true);
+    };
+
+    const hideFlyout = () => {
+        if (!hasSubItems) return;
+        timer = window.setTimeout(() => setIsFlyoutOpen(false), 150);
+    };
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setIsFlyoutOpen(false);
+                triggerRef.current?.focus();
+            }
+        };
+        if (isFlyoutOpen) {
+            document.addEventListener('keydown', handleKeyDown);
+            const firstItem = itemRef.current?.querySelector<HTMLElement>('[role="menu"] [role="menuitem"]');
+            firstItem?.focus();
+        }
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isFlyoutOpen]);
+    
+    const handleFlyoutKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            const items = Array.from(itemRef.current?.querySelectorAll<HTMLElement>('div[role="menu"] [role="menuitem"]') || []);
+            const activeIndex = items.findIndex(item => item === document.activeElement);
+            let nextIndex = activeIndex;
+            if (e.key === 'ArrowDown') {
+                nextIndex = activeIndex === items.length - 1 ? 0 : activeIndex + 1;
+            } else { // ArrowUp
+                nextIndex = activeIndex <= 0 ? items.length - 1 : activeIndex - 1;
+            }
+            items[nextIndex]?.focus();
+        }
+    };
+
+    if (subItem.isHeading) {
+        return (
+            <li className="px-3 pt-3 pb-1 text-xs font-semibold text-text-muted uppercase tracking-wider" role="separator">
+                {subItem.name}
+            </li>
+        );
+    }
+    
+    const isSubItemActive = isActive && (subItem.name === activeSettingsSubPage || subItem.subItems?.some(si => si.name === activeSettingsSubPage));
+
+    return (
+        <li ref={itemRef} onMouseLeave={hideFlyout} className="relative">
+            <a
+                href="#"
+                ref={triggerRef}
+                onMouseEnter={showFlyout}
+                onFocus={showFlyout}
+                onClick={(e) => {
+                    e.preventDefault();
+                    if (!hasSubItems) onClick(item.name, subItem.name);
+                }}
+                className={`flex justify-between items-center relative w-full text-left rounded-md pl-6 pr-3 py-1.5 text-sm font-semibold transition-colors focus:outline-none focus:bg-input-bg focus:text-text-primary ${
+                    isSubItemActive
+                        ? 'text-primary'
+                        : 'text-text-secondary hover:bg-input-bg hover:text-text-primary'
+                }`}
+                role="menuitem"
+                aria-haspopup={hasSubItems}
+                aria-expanded={isFlyoutOpen}
+            >
+                <span className={`absolute left-0 top-1/2 -translate-y-1/2 h-4 w-1 rounded-r-full bg-primary transition-opacity ${isSubItemActive ? 'opacity-100' : 'opacity-0'}`} />
+                <span>{subItem.name}</span>
+                {hasSubItems && <IconChevronRight className="h-4 w-4 text-text-muted" />}
+            </a>
+            
+            {hasSubItems && (
+                <div 
+                    className={`absolute left-full top-0 ml-2 w-60 bg-surface rounded-lg shadow-lg border border-border-color p-2 z-32 transition-all duration-200 ease-in-out ${isFlyoutOpen ? 'opacity-100 translate-x-0 visible' : 'opacity-0 -translate-x-4 invisible'}`}
+                    onMouseEnter={showFlyout}
+                    onMouseLeave={hideFlyout}
+                    aria-hidden={!isFlyoutOpen}
+                    role="menu"
+                    onKeyDown={handleFlyoutKeyDown}
+                >
+                    <ul>
+                        {subItem.subItems?.map(thirdLevelItem => (
+                            <li key={thirdLevelItem.name}>
+                                <a 
+                                    href="#"
+                                    onClick={(e) => { e.preventDefault(); onClick(item.name, thirdLevelItem.name); }}
+                                    className="block w-full text-left rounded-md px-3 py-1.5 text-sm font-semibold text-text-secondary hover:bg-input-bg hover:text-text-primary focus:outline-none focus:bg-input-bg"
+                                    role="menuitem"
+                                >
+                                    {thirdLevelItem.name}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+        </li>
+    );
+};
 
 const NavItem: React.FC<{ 
     item: NavItemType, 
     isActive: boolean,
-    onClick: () => void,
-}> = ({ item, isActive, onClick }) => (
-    <li>
-        <a
-            href="#"
-            onClick={(e) => {
-                e.preventDefault();
-                onClick();
-            }}
-            className={`group relative flex items-center rounded-md text-sm px-3 py-2 transition-colors duration-200
-                ${isActive
-                    ? 'bg-primary/10 text-primary font-semibold'
-                    : 'text-text-strong font-medium hover:bg-input-bg'}
-                focus:outline-none focus:ring-2 focus:ring-primary
-            `}
-            aria-current={isActive ? 'page' : undefined}
-        >
-            <span className={`absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-primary transition-opacity ${isActive ? 'opacity-100' : 'opacity-0'}`} />
-            <item.icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-primary' : 'text-text-strong'}`} />
-            <span className="ml-3">{item.name}</span>
-        </a>
-    </li>
-);
+    onClick: (page: Page, subPage?: string) => void,
+    activeSettingsSubPage?: string,
+}> = ({ item, isActive, onClick, activeSettingsSubPage }) => {
+    const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
+    const itemRef = useRef<HTMLLIElement>(null);
+    const triggerRef = useRef<HTMLButtonElement>(null);
+    let timer: number;
+
+    const hasSubItems = item.subItems && item.subItems.length > 0;
+
+    const showSubMenu = () => {
+        if (!hasSubItems) return;
+        clearTimeout(timer);
+        setIsSubMenuOpen(true);
+    };
+    const hideSubMenu = () => {
+        if (!hasSubItems) return;
+        timer = window.setTimeout(() => {
+            setIsSubMenuOpen(false);
+        }, 150);
+    };
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setIsSubMenuOpen(false);
+                triggerRef.current?.focus();
+            }
+        };
+        if (isSubMenuOpen) {
+            document.addEventListener('keydown', handleKeyDown);
+            const firstItem = itemRef.current?.querySelector<HTMLElement>('[role="menu"] > ul > li > [role="menuitem"]');
+            firstItem?.focus();
+        }
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isSubMenuOpen]);
+
+    const handleSubMenuKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            const items = Array.from(itemRef.current?.querySelectorAll<HTMLElement>('[role="menu"] > ul > li > [role="menuitem"]') || []);
+            const activeIndex = items.findIndex(item => item === document.activeElement);
+            let nextIndex = activeIndex;
+            if (e.key === 'ArrowDown') {
+                nextIndex = activeIndex === items.length - 1 ? 0 : activeIndex + 1;
+            } else { // ArrowUp
+                nextIndex = activeIndex <= 0 ? items.length - 1 : activeIndex - 1;
+            }
+            items[nextIndex]?.focus();
+        }
+    };
+    
+    return (
+        <li ref={itemRef} onMouseLeave={hideSubMenu} className="relative">
+            <button
+                ref={triggerRef}
+                onMouseEnter={showSubMenu}
+                onFocus={showSubMenu}
+                onClick={(e) => {
+                    e.preventDefault();
+                    if (!hasSubItems) onClick(item.name);
+                }}
+                className={`w-full group relative flex items-center justify-between rounded-md text-sm px-3 py-2 transition-colors duration-200
+                    ${isActive
+                        ? 'bg-primary/10 text-primary font-semibold'
+                        : 'text-text-strong font-medium hover:bg-input-bg'}
+                `}
+                aria-haspopup={hasSubItems}
+                aria-expanded={isSubMenuOpen}
+            >
+                <div className="flex items-center">
+                    <span className={`absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-primary transition-opacity ${isActive ? 'opacity-100' : 'opacity-0'}`} />
+                    <item.icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-primary' : 'text-text-strong'}`} />
+                    <span className="ml-3">{item.name}</span>
+                </div>
+                {hasSubItems && <IconChevronRight className={`h-4 w-4 text-text-muted transition-transform ${isSubMenuOpen ? 'rotate-90' : ''}`} />}
+            </button>
+
+            {hasSubItems && (
+                <div 
+                    className={`absolute left-full top-0 ml-2 w-60 bg-surface rounded-lg shadow-lg border border-border-color p-2 z-31 transition-all duration-200 ease-in-out ${isSubMenuOpen ? 'opacity-100 translate-x-0 visible' : 'opacity-0 -translate-x-4 invisible'}`}
+                    onMouseEnter={showSubMenu}
+                    onMouseLeave={hideSubMenu}
+                    aria-hidden={!isSubMenuOpen}
+                >
+                    <ul role="menu" onKeyDown={handleSubMenuKeyDown}>
+                        {item.subItems?.map(subItem => (
+                            <SubMenuItem
+                                key={subItem.name}
+                                item={item}
+                                subItem={subItem}
+                                isActive={isActive}
+                                onClick={onClick}
+                                activeSettingsSubPage={activeSettingsSubPage}
+                            />
+                        ))}
+                    </ul>
+                </div>
+            )}
+        </li>
+    );
+};
+
 
 const CompactNavItem: React.FC<{ 
     item: NavItemType, 
@@ -67,7 +266,7 @@ const CompactNavItem: React.FC<{
 );
 
 
-const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, onClose }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, onClose, activeSettingsSubPage }) => {
     const sidebarRef = useRef<HTMLElement>(null);
 
     useEffect(() => {
@@ -107,8 +306,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
         }
     }, [isOpen]);
 
-    const handleItemClick = (page: Page) => {
-        setActivePage(page);
+    const handleItemClick = (page: Page, subPage?: string) => {
+        setActivePage(page, subPage);
         onClose();
     }
 
@@ -132,9 +331,9 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
                 <aside 
                     ref={sidebarRef}
                     tabIndex={-1}
-                    className={`relative flex flex-col h-full bg-surface w-full max-w-xs md:w-64 shadow-xl transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} overflow-hidden focus:outline-none`}
+                    className={`relative flex flex-col h-full bg-surface w-full max-w-xs md:w-64 shadow-xl transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} focus:outline-none`}
                 >
-                    <div className="flex-1 overflow-y-auto">
+                    <div className="flex-1">
                         <div className="p-4">
                             <ul className="space-y-1">
                                 {NAV_ITEMS_TOP.map((item) => (
@@ -142,7 +341,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
                                         key={item.name} 
                                         item={item} 
                                         isActive={activePage === item.name}
-                                        onClick={() => handleItemClick(item.name)}
+                                        onClick={handleItemClick}
+                                        activeSettingsSubPage={activeSettingsSubPage}
                                     />
                                 ))}
                             </ul>
@@ -153,7 +353,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
                                         key={item.name} 
                                         item={item} 
                                         isActive={activePage === item.name}
-                                        onClick={() => handleItemClick(item.name)}
+                                        onClick={handleItemClick}
+                                        activeSettingsSubPage={activeSettingsSubPage}
                                     />
                                 ))}
                             </ul>

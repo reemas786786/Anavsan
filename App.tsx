@@ -17,6 +17,7 @@ import SaveQueryFlow from './components/SaveQueryFlow';
 import Toast from './components/Toast';
 import { Page, Account, SQLFile } from './types';
 import { connectionsData, sqlFilesData as initialSqlFiles } from './data/dummyData';
+import SettingsPage from './pages/SettingsPage';
 
 const App: React.FC = () => {
   const [activePage, setActivePage] = useState<Page>('Dashboard');
@@ -29,6 +30,9 @@ const App: React.FC = () => {
   const [sqlFiles, setSqlFiles] = useState<SQLFile[]>(initialSqlFiles);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const [isSettingsViewActive, setIsSettingsViewActive] = useState(false);
+  const [activeSettingsSubPage, setActiveSettingsSubPage] = useState('User Management');
 
   useEffect(() => {
     if (accounts.length === 0 && !isAddingAccount) {
@@ -43,14 +47,29 @@ const App: React.FC = () => {
     }, 3000);
   };
 
-  const handlePageChange = (page: Page) => {
+  const handlePageChange = (page: Page, subPage?: string) => {
     setActivePage(page);
     setSelectedAccount(null);
+    
+    if (page === 'Settings') {
+        setIsSettingsViewActive(true);
+        if (subPage) {
+            setActiveSettingsSubPage(subPage);
+        } else {
+            setActiveSettingsSubPage('User Management');
+        }
+    } else {
+        setIsSettingsViewActive(false);
+    }
+
     setIsSidebarOpen(false);
   };
 
   const handleLogoClick = () => {
-    handlePageChange('Dashboard');
+    setActivePage('Dashboard');
+    setSelectedAccount(null);
+    setIsSettingsViewActive(false);
+    setIsSidebarOpen(false);
   };
 
   const handleAddAccount = () => {
@@ -114,6 +133,7 @@ const App: React.FC = () => {
 
   const handleSelectAccount = (account: Account) => {
     setSelectedAccount(account);
+    setIsSettingsViewActive(false);
   };
 
   const handleBackToConnections = () => {
@@ -136,6 +156,8 @@ const App: React.FC = () => {
       case 'Docs':
         return <Docs />;
       case 'Settings':
+         // This case is now handled by the isSettingsViewActive flag, 
+         // but we keep a placeholder for direct navigation logic if needed.
         return <Settings />;
       case 'Support':
         return <Support />;
@@ -154,12 +176,13 @@ const App: React.FC = () => {
         isSidebarOpen={isSidebarOpen}
       />
       <div className="flex flex-1 overflow-hidden">
-        {!isAccountView && (
+        {!isAccountView && !isSettingsViewActive && (
             <Sidebar
                 isOpen={isSidebarOpen}
                 onClose={() => setIsSidebarOpen(false)}
                 activePage={activePage}
                 setActivePage={handlePageChange}
+                activeSettingsSubPage={activeSettingsSubPage}
             />
         )}
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background">
@@ -172,6 +195,15 @@ const App: React.FC = () => {
               sqlFiles={sqlFiles}
               onSaveQueryClick={() => setIsSavingQuery(true)}
               />
+          ) : isSettingsViewActive ? (
+            <SettingsPage
+                activeSubPage={activeSettingsSubPage}
+                onSubPageChange={setActiveSettingsSubPage}
+                onBack={() => {
+                    setIsSettingsViewActive(false);
+                    setActivePage('Dashboard');
+                }}
+            />
           ) : (
               <div className="p-6">
               {renderContent()}

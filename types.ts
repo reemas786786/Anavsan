@@ -10,9 +10,16 @@ export type Page =
   | 'Settings' 
   | 'Support';
 
+export interface NavSubItem {
+    name: string;
+    isHeading?: boolean;
+    subItems?: NavSubItem[];
+}
+
 export interface NavItem {
     name: Page;
     icon: React.ComponentType<{ className?: string }>;
+    subItems?: NavSubItem[];
 }
 
 export type ConnectionStatus = 'Connected' | 'Disconnected' | 'Syncing' | 'Error';
