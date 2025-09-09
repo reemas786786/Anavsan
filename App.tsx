@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -14,9 +13,10 @@ import AccountView from './pages/AccountView';
 import SidePanel from './components/SidePanel';
 import AddAccountFlow from './components/AddAccountFlow';
 import SaveQueryFlow from './components/SaveQueryFlow';
+import InviteUserFlow from './components/InviteUserFlow';
 import Toast from './components/Toast';
-import { Page, Account, SQLFile } from './types';
-import { connectionsData, sqlFilesData as initialSqlFiles } from './data/dummyData';
+import { Page, Account, SQLFile, UserRole, User, UserStatus } from './types';
+import { connectionsData, sqlFilesData as initialSqlFiles, usersData } from './data/dummyData';
 import SettingsPage from './pages/SettingsPage';
 
 const App: React.FC = () => {
@@ -28,11 +28,15 @@ const App: React.FC = () => {
   const [isAddingAccount, setIsAddingAccount] = useState(false);
   const [isSavingQuery, setIsSavingQuery] = useState(false);
   const [sqlFiles, setSqlFiles] = useState<SQLFile[]>(initialSqlFiles);
+  const [users, setUsers] = useState<User[]>(usersData);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const [isSettingsViewActive, setIsSettingsViewActive] = useState(false);
   const [activeSettingsSubPage, setActiveSettingsSubPage] = useState('User Management');
+  
+  const [isInvitingUser, setIsInvitingUser] = useState(false);
+
 
   useEffect(() => {
     if (accounts.length === 0 && !isAddingAccount) {
@@ -140,6 +144,30 @@ const App: React.FC = () => {
     setSelectedAccount(null);
     setActivePage('Connections');
   };
+  
+  const handleSendInvite = (data: { email: string; role: UserRole; }) => {
+    const newUser: User = {
+        id: `user-${Date.now()}`,
+        name: data.email.split('@')[0] || 'New User',
+        email: data.email,
+        role: data.role,
+        status: 'Invited',
+    };
+    
+    setUsers(prevUsers => [newUser, ...prevUsers]);
+    setIsInvitingUser(false);
+    showToast('Invitation sent successfully!');
+
+    // Dummy behavior: auto-activate after 5 seconds
+    setTimeout(() => {
+        setUsers(prevUsers => 
+            prevUsers.map(user => 
+                user.id === newUser.id ? { ...user, status: 'Active' as UserStatus } : user
+            )
+        );
+        showToast(`User ${data.email} is now active.`);
+    }, 5000);
+  };
 
   const renderContent = () => {
     switch (activePage) {
@@ -196,12 +224,14 @@ const App: React.FC = () => {
               />
           ) : isSettingsViewActive ? (
             <SettingsPage
+                users={users}
                 activeSubPage={activeSettingsSubPage}
                 onSubPageChange={setActiveSettingsSubPage}
                 onBack={() => {
                     setIsSettingsViewActive(false);
                     setActivePage('Dashboard');
                 }}
+                onAddUserClick={() => setIsInvitingUser(true)}
             />
           ) : (
               <div className="p-6">
@@ -234,6 +264,17 @@ const App: React.FC = () => {
           files={sqlFiles}
           onCancel={handleCancelSaveQuery}
           onSave={handleSaveQuery}
+        />
+      </SidePanel>
+      
+      <SidePanel
+        isOpen={isInvitingUser}
+        onClose={() => setIsInvitingUser(false)}
+        title="Invite New User"
+      >
+        <InviteUserFlow
+            onCancel={() => setIsInvitingUser(false)}
+            onSendInvite={handleSendInvite}
         />
       </SidePanel>
     </div>

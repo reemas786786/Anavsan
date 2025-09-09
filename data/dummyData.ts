@@ -1,5 +1,4 @@
-
-import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse } from '../types';
+import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User } from '../types';
 
 export const connectionsData: Account[] = [
   { id: '1', name: 'Snowflake Prod', identifier: 'axb123.us-east-1', role: 'SYSADMIN', status: 'Connected', lastSynced: '2 mins ago' },
@@ -40,7 +39,7 @@ export const topSpendData = [
 
 export const costBreakdownData = [
     { name: 'Warehouse Costs', value: 35000, percentage: 55, color: '#6932D5' },
-    { name: 'Storage Costs', value: 12000, percentage: 38, color: '#A78BFA' },
+    { name: 'Storage Costs', value: 12000, percentage: 38, color: '#D6BCFA' },
     { name: 'Data Transfer Cost', value: 3000, percentage: 12, color: '#D6BCFA' },
 ];
 
@@ -94,4 +93,11 @@ export const accountCostBreakdown = [
     { name: 'Compute', value: 8500, color: '#6932D5' },
     { name: 'Storage', value: 3500, color: '#A78BFA' },
     { name: 'Data Transfer', value: 450, color: '#D6BCFA' },
+];
+
+export const usersData: User[] = [
+    { id: 'user1', name: 'Alice Johnson', email: 'alice.j@example.com', role: 'Admin', status: 'Active' },
+    { id: 'user2', name: 'Bob Williams', email: 'bob.w@example.com', role: 'Analyst', status: 'Active' },
+    { id: 'user3', name: 'Charlie Brown', email: 'charlie.b@example.com', role: 'Viewer', status: 'Invited' },
+    { id: 'user4', name: 'Diana Miller', email: 'diana.m@example.com', role: 'Analyst', status: 'Suspended' },
 ];

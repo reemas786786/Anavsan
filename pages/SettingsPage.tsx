@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { IconChevronLeft, IconChevronRight, IconUser, IconBell } from '../constants';
+import UserManagement from './settings/UserManagement';
+import { User } from '../types';
 
 interface SettingsPageProps {
     activeSubPage: string;
     onSubPageChange: (subPage: string) => void;
     onBack: () => void;
+    onAddUserClick: () => void;
+    users: User[];
 }
 
 const settingsNavItems = [
@@ -27,18 +31,13 @@ const Breadcrumb: React.FC<{ items: { label: string; onClick?: () => void }[] }>
     </nav>
 );
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ activeSubPage, onSubPageChange, onBack }) => {
+const SettingsPage: React.FC<SettingsPageProps> = ({ activeSubPage, onSubPageChange, onBack, onAddUserClick, users }) => {
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 
     const renderSubPage = () => {
         switch (activeSubPage) {
             case 'User Management':
-                return (
-                    <div className="p-6 bg-surface rounded-lg border border-border-color">
-                        <h2 className="text-xl font-semibold text-text-primary">User Management</h2>
-                        <p className="mt-2 text-text-secondary">Manage users, roles, and permissions here.</p>
-                    </div>
-                );
+                return <UserManagement users={users} onAddUser={onAddUserClick} />;
             case 'Budgets & Alerts':
                  return (
                     <div className="p-6 bg-surface rounded-lg border border-border-color">

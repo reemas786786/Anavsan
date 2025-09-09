@@ -74,3 +74,15 @@ export interface Warehouse {
     peakUtilization: number;
     status: 'Active' | 'Idle' | 'Suspended';
 }
+
+export type UserRole = 'Admin' | 'Analyst' | 'Viewer';
+export type UserStatus = 'Active' | 'Invited' | 'Suspended';
+
+export interface User {
+    id: string;
+    name: string;
+    email: string;
+    role: UserRole;
+    status: UserStatus;
+    avatarUrl?: string;
+}
