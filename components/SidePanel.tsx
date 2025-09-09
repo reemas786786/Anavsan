@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { IconClose } from '../constants';
 
@@ -29,7 +30,7 @@ const SidePanel: React.FC<SidePanelProps> = ({ isOpen, onClose, title, children 
 
   return (
     <div 
-        className={`fixed inset-0 z-30 overflow-hidden transition-all duration-500 ${isOpen ? 'visible' : 'invisible'}`} 
+        className={`fixed inset-0 z-50 overflow-hidden transition-all duration-500 ${isOpen ? 'visible' : 'invisible'}`} 
         role="dialog" 
         aria-modal="true"
     >

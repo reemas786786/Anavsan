@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { IconMenu, IconAIAgent, IconSupport, IconUser, IconSearch, IconBell } from '../constants';
 
 interface HeaderProps {
     onMenuClick: () => void;
     onLogoClick: () => void;
+    isSidebarOpen: boolean;
 }
 
 const AnavsanLogo: React.FC<{}> = () => (
@@ -20,11 +22,17 @@ const AnavsanLogo: React.FC<{}> = () => (
 );
 
 
-const Header: React.FC<HeaderProps> = ({ onMenuClick, onLogoClick }) => {
+const Header: React.FC<HeaderProps> = ({ onMenuClick, onLogoClick, isSidebarOpen }) => {
   return (
-    <header className="bg-sidebar-topbar px-4 py-2 flex items-center justify-between flex-shrink-0 h-12 z-30">
+    <header className="bg-sidebar-topbar px-4 py-2 flex items-center justify-between flex-shrink-0 h-12 z-40 relative">
       <div className="flex items-center gap-4">
-        <button onClick={onMenuClick} className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors" aria-label="Open navigation menu">
+        <button 
+            onClick={onMenuClick} 
+            className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors" 
+            aria-label="Toggle navigation menu"
+            aria-expanded={isSidebarOpen}
+            aria-controls="sidebar-menu"
+        >
           <IconMenu className="h-6 w-6" />
         </button>
         <button onClick={onLogoClick} className="focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1">

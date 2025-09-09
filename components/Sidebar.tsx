@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import { NAV_ITEMS_TOP, NAV_ITEMS_BOTTOM } from '../constants';
 import { Page, NavItem as NavItemType } from '../types';
@@ -36,6 +37,35 @@ const NavItem: React.FC<{
         </a>
     </li>
 );
+
+const CompactNavItem: React.FC<{ 
+    item: NavItemType, 
+    isActive: boolean,
+    onClick: () => void,
+}> = ({ item, isActive, onClick }) => (
+    <li>
+        <a
+            href="#"
+            onClick={(e) => {
+                e.preventDefault();
+                onClick();
+            }}
+            className={`group relative flex justify-center items-center h-10 w-10 rounded-lg transition-colors
+                ${isActive
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-text-secondary hover:bg-input-bg hover:text-text-primary'}
+                focus:outline-none focus:ring-2 focus:ring-primary
+            `}
+            aria-label={item.name}
+        >
+            <item.icon className="h-5 w-5" />
+            <span className="absolute left-full ml-3 w-auto p-2 min-w-max rounded-md shadow-md text-white bg-gray-900 text-xs font-bold transition-all duration-100 scale-0 origin-left group-hover:scale-100 z-50">
+                {item.name}
+            </span>
+        </a>
+    </li>
+);
+
 
 const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, onClose }) => {
     const sidebarRef = useRef<HTMLElement>(null);
@@ -78,63 +108,98 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
         }
     }, [isOpen]);
 
-    return (
-        <div 
-            className={`fixed inset-0 z-40 transition-all duration-300 ${isOpen ? 'visible' : 'invisible'}`}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="sidebar-title"
-        >
-            {/* Backdrop */}
-            <div 
-                className={`absolute inset-0 bg-black/50 transition-opacity ${isOpen ? 'opacity-100' : 'opacity-0'}`} 
-                onClick={onClose} 
-            />
+    const handleItemClick = (page: Page) => {
+        setActivePage(page);
+        onClose();
+    }
 
-            {/* Panel */}
-            <aside 
-                ref={sidebarRef}
-                className={`relative flex flex-col h-full bg-surface w-full max-w-xs md:w-72 shadow-xl transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} overflow-hidden`}
+    return (
+        <>
+            {/* --- FULL OVERLAY (Mobile & Desktop expanded) --- */}
+            <div 
+                className={`fixed top-12 inset-x-0 bottom-0 z-30 transition-all duration-300 ${isOpen ? 'visible' : 'invisible'}`}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="sidebar-title"
+                id="sidebar-menu"
             >
-                <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-border-light">
-                    <h2 id="sidebar-title" className="text-lg font-semibold text-text-primary">Menu</h2>
-                    <button 
-                        ref={closeButtonRef}
-                        onClick={onClose} 
-                        className="p-2 rounded-full text-text-secondary hover:bg-input-bg hover:text-text-primary"
-                        aria-label="Close navigation menu"
-                    >
-                        <IconClose className="h-5 w-5" />
-                    </button>
-                </div>
-                
-                <div className="flex-1 overflow-y-auto">
-                    <div className="p-4">
-                        <ul className="space-y-1">
-                            {NAV_ITEMS_TOP.map((item) => (
-                                <NavItem 
-                                    key={item.name} 
-                                    item={item} 
-                                    isActive={activePage === item.name}
-                                    onClick={() => setActivePage(item.name)}
-                                />
-                            ))}
-                        </ul>
-                        <div className="border-t border-border-light my-4"></div>
-                        <ul className="space-y-1">
-                            {NAV_ITEMS_BOTTOM.map((item) => (
-                                <NavItem 
-                                    key={item.name} 
-                                    item={item} 
-                                    isActive={activePage === item.name}
-                                    onClick={() => setActivePage(item.name)}
-                                />
-                            ))}
-                        </ul>
+                {/* Backdrop */}
+                <div 
+                    className={`absolute inset-0 bg-black/50 transition-opacity ${isOpen ? 'opacity-100' : 'opacity-0'}`} 
+                    onClick={onClose} 
+                />
+
+                {/* Panel */}
+                <aside 
+                    ref={sidebarRef}
+                    className={`relative flex flex-col h-full bg-surface w-full max-w-xs md:w-64 shadow-xl transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} overflow-hidden`}
+                >
+                    <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-border-light">
+                        <h2 id="sidebar-title" className="text-lg font-semibold text-text-primary">Menu</h2>
+                        <button 
+                            ref={closeButtonRef}
+                            onClick={onClose} 
+                            className="p-2 rounded-full text-text-secondary hover:bg-input-bg hover:text-text-primary"
+                            aria-label="Close navigation menu"
+                        >
+                            <IconClose className="h-5 w-5" />
+                        </button>
                     </div>
-                </div>
+                    
+                    <div className="flex-1 overflow-y-auto">
+                        <div className="p-4">
+                            <ul className="space-y-1">
+                                {NAV_ITEMS_TOP.map((item) => (
+                                    <NavItem 
+                                        key={item.name} 
+                                        item={item} 
+                                        isActive={activePage === item.name}
+                                        onClick={() => handleItemClick(item.name)}
+                                    />
+                                ))}
+                            </ul>
+                            <div className="border-t border-border-light my-4"></div>
+                            <ul className="space-y-1">
+                                {NAV_ITEMS_BOTTOM.map((item) => (
+                                    <NavItem 
+                                        key={item.name} 
+                                        item={item} 
+                                        isActive={activePage === item.name}
+                                        onClick={() => handleItemClick(item.name)}
+                                    />
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+
+            {/* --- COMPACT SIDEBAR (Desktop only) --- */}
+            <aside className="hidden md:flex flex-col w-12 bg-surface border-r border-border-color items-center py-4">
+                <nav className="flex flex-col items-center h-full">
+                    <ul className="list-none space-y-2">
+                        {NAV_ITEMS_TOP.map((item) => (
+                            <CompactNavItem 
+                                key={item.name} 
+                                item={item} 
+                                isActive={activePage === item.name}
+                                onClick={() => setActivePage(item.name)}
+                            />
+                        ))}
+                    </ul>
+                    <ul className="list-none mt-auto space-y-2">
+                        {NAV_ITEMS_BOTTOM.map((item) => (
+                            <CompactNavItem 
+                                key={item.name} 
+                                item={item} 
+                                isActive={activePage === item.name}
+                                onClick={() => setActivePage(item.name)}
+                            />
+                        ))}
+                    </ul>
+                </nav>
             </aside>
-        </div>
+        </>
     );
 };
 

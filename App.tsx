@@ -143,39 +143,43 @@ const App: React.FC = () => {
         return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setIsAddingAccount(true)} onDeleteAccount={handleDeleteAccount} />;
     }
   };
+  
+  const isAccountView = !!selectedAccount;
 
   return (
-    <div className="flex flex-col h-screen bg-background font-sans">
+    <div className="h-screen bg-background font-sans flex flex-col">
       <Header 
-        onMenuClick={() => setIsSidebarOpen(true)}
+        onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
         onLogoClick={handleLogoClick}
+        isSidebarOpen={isSidebarOpen}
       />
-      
-      <Sidebar
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-          activePage={activePage}
-          setActivePage={handlePageChange}
-      />
-
       <div className="flex flex-1 overflow-hidden">
+        {!isAccountView && (
+            <Sidebar
+                isOpen={isSidebarOpen}
+                onClose={() => setIsSidebarOpen(false)}
+                activePage={activePage}
+                setActivePage={handlePageChange}
+            />
+        )}
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background">
           {selectedAccount ? (
-            <AccountView
+              <AccountView
               account={selectedAccount}
               accounts={accounts}
               onBack={handleBackToConnections}
               onSwitchAccount={handleSelectAccount}
               sqlFiles={sqlFiles}
               onSaveQueryClick={() => setIsSavingQuery(true)}
-            />
+              />
           ) : (
-             <div className="p-6">
+              <div className="p-6">
               {renderContent()}
-            </div>
+              </div>
           )}
         </main>
       </div>
+
 
       <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
 
