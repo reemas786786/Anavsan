@@ -13,7 +13,6 @@ export type Page =
 export interface NavSubItem {
     name: string;
     isHeading?: boolean;
-    subItems?: NavSubItem[];
 }
 
 export interface NavItem {

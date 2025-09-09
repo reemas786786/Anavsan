@@ -18,54 +18,7 @@ const SubMenuItem: React.FC<{
     onClick: (page: Page, subPage?: string) => void;
     activeSettingsSubPage?: string;
 }> = ({ item, subItem, isActive, onClick, activeSettingsSubPage }) => {
-    const [isFlyoutOpen, setIsFlyoutOpen] = useState(false);
-    const itemRef = useRef<HTMLLIElement>(null);
-    const triggerRef = useRef<HTMLAnchorElement>(null);
-    let timer: number;
-
-    const hasSubItems = subItem.subItems && subItem.subItems.length > 0;
-
-    const showFlyout = () => {
-        if (!hasSubItems) return;
-        clearTimeout(timer);
-        setIsFlyoutOpen(true);
-    };
-
-    const hideFlyout = () => {
-        if (!hasSubItems) return;
-        timer = window.setTimeout(() => setIsFlyoutOpen(false), 150);
-    };
-
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                setIsFlyoutOpen(false);
-                triggerRef.current?.focus();
-            }
-        };
-        if (isFlyoutOpen) {
-            document.addEventListener('keydown', handleKeyDown);
-            const firstItem = itemRef.current?.querySelector<HTMLElement>('[role="menu"] [role="menuitem"]');
-            firstItem?.focus();
-        }
-        return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [isFlyoutOpen]);
     
-    const handleFlyoutKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-            e.preventDefault();
-            const items = Array.from(itemRef.current?.querySelectorAll<HTMLElement>('div[role="menu"] [role="menuitem"]') || []);
-            const activeIndex = items.findIndex(item => item === document.activeElement);
-            let nextIndex = activeIndex;
-            if (e.key === 'ArrowDown') {
-                nextIndex = activeIndex === items.length - 1 ? 0 : activeIndex + 1;
-            } else { // ArrowUp
-                nextIndex = activeIndex <= 0 ? items.length - 1 : activeIndex - 1;
-            }
-            items[nextIndex]?.focus();
-        }
-    };
-
     if (subItem.isHeading) {
         return (
             <li className="px-3 pt-3 pb-1 text-xs font-semibold text-text-muted uppercase tracking-wider" role="separator">
@@ -74,18 +27,15 @@ const SubMenuItem: React.FC<{
         );
     }
     
-    const isSubItemActive = isActive && (subItem.name === activeSettingsSubPage || subItem.subItems?.some(si => si.name === activeSettingsSubPage));
+    const isSubItemActive = isActive && subItem.name === activeSettingsSubPage;
 
     return (
-        <li ref={itemRef} onMouseLeave={hideFlyout} className="relative">
+        <li className="relative">
             <a
                 href="#"
-                ref={triggerRef}
-                onMouseEnter={showFlyout}
-                onFocus={showFlyout}
                 onClick={(e) => {
                     e.preventDefault();
-                    if (!hasSubItems) onClick(item.name, subItem.name);
+                    onClick(item.name, subItem.name);
                 }}
                 className={`flex justify-between items-center relative w-full text-left rounded-md pl-6 pr-3 py-1.5 text-sm font-semibold transition-colors focus:outline-none focus:bg-input-bg focus:text-text-primary ${
                     isSubItemActive
@@ -93,39 +43,10 @@ const SubMenuItem: React.FC<{
                         : 'text-text-secondary hover:bg-input-bg hover:text-text-primary'
                 }`}
                 role="menuitem"
-                aria-haspopup={hasSubItems}
-                aria-expanded={isFlyoutOpen}
             >
                 <span className={`absolute left-0 top-1/2 -translate-y-1/2 h-4 w-1 rounded-r-full bg-primary transition-opacity ${isSubItemActive ? 'opacity-100' : 'opacity-0'}`} />
                 <span>{subItem.name}</span>
-                {hasSubItems && <IconChevronRight className="h-4 w-4 text-text-muted" />}
             </a>
-            
-            {hasSubItems && (
-                <div 
-                    className={`absolute left-full top-0 ml-2 w-60 bg-surface rounded-lg shadow-lg border border-border-color p-2 z-32 transition-all duration-200 ease-in-out ${isFlyoutOpen ? 'opacity-100 translate-x-0 visible' : 'opacity-0 -translate-x-4 invisible'}`}
-                    onMouseEnter={showFlyout}
-                    onMouseLeave={hideFlyout}
-                    aria-hidden={!isFlyoutOpen}
-                    role="menu"
-                    onKeyDown={handleFlyoutKeyDown}
-                >
-                    <ul>
-                        {subItem.subItems?.map(thirdLevelItem => (
-                            <li key={thirdLevelItem.name}>
-                                <a 
-                                    href="#"
-                                    onClick={(e) => { e.preventDefault(); onClick(item.name, thirdLevelItem.name); }}
-                                    className="block w-full text-left rounded-md px-3 py-1.5 text-sm font-semibold text-text-secondary hover:bg-input-bg hover:text-text-primary focus:outline-none focus:bg-input-bg"
-                                    role="menuitem"
-                                >
-                                    {thirdLevelItem.name}
-                                </a>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
         </li>
     );
 };
@@ -213,7 +134,7 @@ const NavItem: React.FC<{
 
             {hasSubItems && (
                 <div 
-                    className={`absolute left-full top-0 ml-2 w-60 bg-surface rounded-lg shadow-lg border border-border-color p-2 z-31 transition-all duration-200 ease-in-out ${isSubMenuOpen ? 'opacity-100 translate-x-0 visible' : 'opacity-0 -translate-x-4 invisible'}`}
+                    className={`absolute left-full top-0 w-60 bg-surface rounded-lg shadow-lg border border-border-color p-2 z-31 transition-all duration-200 ease-in-out ${isSubMenuOpen ? 'opacity-100 translate-x-0 visible' : 'opacity-0 -translate-x-4 invisible'}`}
                     onMouseEnter={showSubMenu}
                     onMouseLeave={hideSubMenu}
                     aria-hidden={!isSubMenuOpen}

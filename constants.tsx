@@ -149,21 +149,8 @@ export const NAV_ITEMS_TOP: NavItem[] = [
         icon: IconReports,
         subItems: [
             { name: 'Performance', isHeading: true },
-            { 
-                name: 'Warehouse Utilization',
-                subItems: [
-                    { name: 'Overall' },
-                    { name: 'By Warehouse' },
-                    { name: 'By User' },
-                ]
-            },
-            { 
-                name: 'Query Hotspots',
-                subItems: [
-                    { name: 'Top Queries by Credit' },
-                    { name: 'Slowest Queries' },
-                ]
-            },
+            { name: 'Warehouse Utilization' },
+            { name: 'Query Hotspots' },
         ]
     },
 ];
@@ -176,20 +163,8 @@ export const NAV_ITEMS_BOTTOM: NavItem[] = [
         icon: IconSettings,
         subItems: [
             { name: 'General', isHeading: true },
-            { 
-                name: 'User Management',
-                subItems: [
-                    { name: 'Users' },
-                    { name: 'Roles & Permissions' },
-                ]
-            },
-            { 
-                name: 'Budgets & Alerts',
-                subItems: [
-                    { name: 'Account Budgets' },
-                    { name: 'Anomaly Detection' },
-                ]
-            },
+            { name: 'User Management' },
+            { name: 'Budgets & Alerts' },
         ]
     },
     { name: 'Support', icon: IconSupport },
