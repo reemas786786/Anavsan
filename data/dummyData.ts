@@ -1,3 +1,4 @@
+
 import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User } from '../types';
 
 export const connectionsData: Account[] = [
@@ -96,8 +97,8 @@ export const accountCostBreakdown = [
 ];
 
 export const usersData: User[] = [
-    { id: 'user1', name: 'Alice Johnson', email: 'alice.j@example.com', role: 'Admin', status: 'Active' },
-    { id: 'user2', name: 'Bob Williams', email: 'bob.w@example.com', role: 'Analyst', status: 'Active' },
-    { id: 'user3', name: 'Charlie Brown', email: 'charlie.b@example.com', role: 'Viewer', status: 'Invited' },
-    { id: 'user4', name: 'Diana Miller', email: 'diana.m@example.com', role: 'Analyst', status: 'Suspended' },
+    { id: 'user1', name: 'Alice Johnson', email: 'alice.j@example.com', role: 'Admin', status: 'Active', message: 'Welcome to the team!' },
+    { id: 'user2', name: 'Bob Williams', email: 'bob.w@example.com', role: 'Analyst', status: 'Active', message: 'Hey Bob, here is your access.' },
+    { id: 'user3', name: 'Charlie Brown', email: 'charlie.b@example.com', role: 'Viewer', status: 'Invited', message: 'Please join our Anavsan account.' },
+    { id: 'user4', name: 'Diana Miller', email: 'diana.m@example.com', role: 'Analyst', status: 'Suspended', message: 'Access temporarily revoked.' },
 ];

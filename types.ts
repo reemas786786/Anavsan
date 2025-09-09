@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 export type Page = 
@@ -85,4 +86,5 @@ export interface User {
     role: UserRole;
     status: UserStatus;
     avatarUrl?: string;
+    message?: string;
 }

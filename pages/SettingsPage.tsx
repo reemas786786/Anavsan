@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { IconChevronLeft, IconChevronRight, IconUser, IconBell } from '../constants';
 import UserManagement from './settings/UserManagement';
@@ -9,6 +10,10 @@ interface SettingsPageProps {
     onBack: () => void;
     onAddUserClick: () => void;
     users: User[];
+    onEditUserRoleClick: (user: User) => void;
+    onSuspendUserClick: (user: User) => void;
+    onActivateUser: (userId: string) => void;
+    onRemoveUserClick: (user: User) => void;
 }
 
 const settingsNavItems = [
@@ -31,13 +36,32 @@ const Breadcrumb: React.FC<{ items: { label: string; onClick?: () => void }[] }>
     </nav>
 );
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ activeSubPage, onSubPageChange, onBack, onAddUserClick, users }) => {
+const SettingsPage: React.FC<SettingsPageProps> = ({ 
+    activeSubPage, 
+    onSubPageChange, 
+    onBack, 
+    onAddUserClick, 
+    users,
+    onEditUserRoleClick,
+    onSuspendUserClick,
+    onActivateUser,
+    onRemoveUserClick 
+}) => {
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 
     const renderSubPage = () => {
         switch (activeSubPage) {
             case 'User Management':
-                return <UserManagement users={users} onAddUser={onAddUserClick} />;
+                return (
+                    <UserManagement 
+                        users={users} 
+                        onAddUser={onAddUserClick} 
+                        onEditUserRole={onEditUserRoleClick}
+                        onSuspendUser={onSuspendUserClick}
+                        onActivateUser={onActivateUser}
+                        onRemoveUser={onRemoveUserClick}
+                    />
+                );
             case 'Budgets & Alerts':
                  return (
                     <div className="p-6 bg-surface rounded-lg border border-border-color">

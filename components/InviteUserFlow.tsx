@@ -1,21 +1,23 @@
+
 import React, { useState } from 'react';
 import { UserRole } from '../types';
 
 interface InviteUserFlowProps {
     onCancel: () => void;
-    onSendInvite: (data: { email: string; role: UserRole }) => void;
+    onSendInvite: (data: { email: string; role: UserRole; message: string; }) => void;
 }
 
 const InviteUserFlow: React.FC<InviteUserFlowProps> = ({ onCancel, onSendInvite }) => {
     const [email, setEmail] = useState('');
     const [role, setRole] = useState<UserRole>('Analyst');
+    const [message, setMessage] = useState('');
 
     const handleSubmit = () => {
         if (!email) {
             // Add more robust validation as needed
             return;
         }
-        onSendInvite({ email, role });
+        onSendInvite({ email, role, message });
     };
 
     return (
@@ -54,6 +56,20 @@ const InviteUserFlow: React.FC<InviteUserFlowProps> = ({ onCancel, onSendInvite 
                         <option>Analyst</option>
                         <option>Viewer</option>
                     </select>
+                </div>
+
+                <div>
+                    <label htmlFor="message" className="block text-sm font-medium text-text-secondary mb-1">
+                        Message (optional)
+                    </label>
+                    <textarea
+                        id="message"
+                        rows={4}
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        className="w-full border border-border-color rounded-xl px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg placeholder-text-secondary"
+                        placeholder="Add a custom note for the invited user..."
+                    />
                 </div>
             </div>
 

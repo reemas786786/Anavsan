@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -14,6 +15,8 @@ import SidePanel from './components/SidePanel';
 import AddAccountFlow from './components/AddAccountFlow';
 import SaveQueryFlow from './components/SaveQueryFlow';
 import InviteUserFlow from './components/InviteUserFlow';
+import EditUserRoleFlow from './components/EditUserRoleFlow';
+import ConfirmationModal from './components/ConfirmationModal';
 import Toast from './components/Toast';
 import { Page, Account, SQLFile, UserRole, User, UserStatus } from './types';
 import { connectionsData, sqlFilesData as initialSqlFiles, usersData } from './data/dummyData';
@@ -36,6 +39,9 @@ const App: React.FC = () => {
   const [activeSettingsSubPage, setActiveSettingsSubPage] = useState('User Management');
   
   const [isInvitingUser, setIsInvitingUser] = useState(false);
+  const [userToEdit, setUserToEdit] = useState<User | null>(null);
+  const [userToSuspend, setUserToSuspend] = useState<User | null>(null);
+  const [userToRemove, setUserToRemove] = useState<User | null>(null);
 
 
   useEffect(() => {
@@ -145,13 +151,14 @@ const App: React.FC = () => {
     setActivePage('Connections');
   };
   
-  const handleSendInvite = (data: { email: string; role: UserRole; }) => {
+  const handleSendInvite = (data: { email: string; role: UserRole; message: string; }) => {
     const newUser: User = {
         id: `user-${Date.now()}`,
         name: data.email.split('@')[0] || 'New User',
         email: data.email,
         role: data.role,
         status: 'Invited',
+        message: data.message,
     };
     
     setUsers(prevUsers => [newUser, ...prevUsers]);
@@ -168,6 +175,42 @@ const App: React.FC = () => {
         showToast(`User ${data.email} is now active.`);
     }, 5000);
   };
+
+  const handleUpdateUserRole = (userId: string, newRole: UserRole) => {
+    setUsers(prevUsers => 
+        prevUsers.map(user => 
+            user.id === userId ? { ...user, role: newRole } : user
+        )
+    );
+    setUserToEdit(null);
+    showToast('User role updated successfully!');
+  };
+
+  const handleSuspendUser = (userId: string) => {
+      setUsers(prevUsers => 
+          prevUsers.map(user => 
+              user.id === userId ? { ...user, status: 'Suspended' as UserStatus } : user
+          )
+      );
+      setUserToSuspend(null);
+      showToast('User has been suspended.');
+  };
+
+  const handleActivateUser = (userId: string) => {
+      setUsers(prevUsers => 
+          prevUsers.map(user => 
+              user.id === userId ? { ...user, status: 'Active' as UserStatus } : user
+          )
+      );
+      showToast('User has been activated.');
+  };
+
+  const handleRemoveUser = (userId: string) => {
+      setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+      setUserToRemove(null);
+      showToast('User has been removed.');
+  };
+
 
   const renderContent = () => {
     switch (activePage) {
@@ -232,6 +275,10 @@ const App: React.FC = () => {
                     setActivePage('Dashboard');
                 }}
                 onAddUserClick={() => setIsInvitingUser(true)}
+                onEditUserRoleClick={(user) => setUserToEdit(user)}
+                onSuspendUserClick={(user) => setUserToSuspend(user)}
+                onActivateUser={handleActivateUser}
+                onRemoveUserClick={(user) => setUserToRemove(user)}
             />
           ) : (
               <div className="p-6">
@@ -277,6 +324,44 @@ const App: React.FC = () => {
             onSendInvite={handleSendInvite}
         />
       </SidePanel>
+
+      <SidePanel
+        isOpen={!!userToEdit}
+        onClose={() => setUserToEdit(null)}
+        title="Edit User Role"
+      >
+        {userToEdit && (
+            <EditUserRoleFlow
+                user={userToEdit}
+                onCancel={() => setUserToEdit(null)}
+                onSave={handleUpdateUserRole}
+            />
+        )}
+      </SidePanel>
+
+      {userToSuspend && (
+          <ConfirmationModal
+              isOpen={!!userToSuspend}
+              onClose={() => setUserToSuspend(null)}
+              onConfirm={() => handleSuspendUser(userToSuspend.id)}
+              title="Suspend User"
+              message={`Are you sure you want to suspend ${userToSuspend.name}? They will lose access to the platform.`}
+              confirmText="Suspend"
+              confirmVariant="warning"
+          />
+      )}
+
+      {userToRemove && (
+          <ConfirmationModal
+              isOpen={!!userToRemove}
+              onClose={() => setUserToRemove(null)}
+              onConfirm={() => handleRemoveUser(userToRemove.id)}
+              title="Remove User"
+              message={`Are you sure you want to remove ${userToRemove.name}? This action cannot be undone.`}
+              confirmText="Remove"
+              confirmVariant="danger"
+          />
+      )}
     </div>
   );
 };
