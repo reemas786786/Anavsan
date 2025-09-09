@@ -69,7 +69,6 @@ const CompactNavItem: React.FC<{
 
 const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, onClose }) => {
     const sidebarRef = useRef<HTMLElement>(null);
-    const closeButtonRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -83,7 +82,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
 
     useEffect(() => {
         if (isOpen) {
-            closeButtonRef.current?.focus();
+            sidebarRef.current?.focus();
             const focusableElements = sidebarRef.current?.querySelectorAll(
                 'a[href], button, textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select'
             );
@@ -132,20 +131,9 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
                 {/* Panel */}
                 <aside 
                     ref={sidebarRef}
-                    className={`relative flex flex-col h-full bg-surface w-full max-w-xs md:w-64 shadow-xl transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} overflow-hidden`}
+                    tabIndex={-1}
+                    className={`relative flex flex-col h-full bg-surface w-full max-w-xs md:w-64 shadow-xl transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} overflow-hidden focus:outline-none`}
                 >
-                    <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-border-light">
-                        <h2 id="sidebar-title" className="text-lg font-semibold text-text-primary">Menu</h2>
-                        <button 
-                            ref={closeButtonRef}
-                            onClick={onClose} 
-                            className="p-2 rounded-full text-text-secondary hover:bg-input-bg hover:text-text-primary"
-                            aria-label="Close navigation menu"
-                        >
-                            <IconClose className="h-5 w-5" />
-                        </button>
-                    </div>
-                    
                     <div className="flex-1 overflow-y-auto">
                         <div className="p-4">
                             <ul className="space-y-1">

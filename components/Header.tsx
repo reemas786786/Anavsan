@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { IconMenu, IconAIAgent, IconSupport, IconUser, IconSearch, IconBell } from '../constants';
+import { IconMenu, IconAIAgent, IconSupport, IconUser, IconSearch, IconBell, IconClose } from '../constants';
 
 interface HeaderProps {
     onMenuClick: () => void;
@@ -29,11 +29,11 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onLogoClick, isSidebarOpen
         <button 
             onClick={onMenuClick} 
             className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors" 
-            aria-label="Toggle navigation menu"
+            aria-label={isSidebarOpen ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={isSidebarOpen}
             aria-controls="sidebar-menu"
         >
-          <IconMenu className="h-6 w-6" />
+          {isSidebarOpen ? <IconClose className="h-6 w-6" /> : <IconMenu className="h-6 w-6" />}
         </button>
         <button onClick={onLogoClick} className="focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1">
           <AnavsanLogo />
