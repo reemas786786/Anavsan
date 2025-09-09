@@ -176,15 +176,14 @@ const App: React.FC = () => {
         isSidebarOpen={isSidebarOpen}
       />
       <div className="flex flex-1 overflow-hidden">
-        {!isAccountView && !isSettingsViewActive && (
-            <Sidebar
-                isOpen={isSidebarOpen}
-                onClose={() => setIsSidebarOpen(false)}
-                activePage={activePage}
-                setActivePage={handlePageChange}
-                activeSettingsSubPage={activeSettingsSubPage}
-            />
-        )}
+        <Sidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+            activePage={activePage}
+            setActivePage={handlePageChange}
+            activeSettingsSubPage={activeSettingsSubPage}
+            showCompact={!isAccountView && !isSettingsViewActive}
+        />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background">
           {selectedAccount ? (
               <AccountView

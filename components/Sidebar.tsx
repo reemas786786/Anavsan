@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { NAV_ITEMS_TOP, NAV_ITEMS_BOTTOM } from '../constants';
 import { Page, NavItem as NavItemType, NavSubItem } from '../types';
@@ -9,6 +10,7 @@ interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   activeSettingsSubPage?: string;
+  showCompact: boolean;
 }
 
 const SubMenuItem: React.FC<{
@@ -18,14 +20,6 @@ const SubMenuItem: React.FC<{
     onClick: (page: Page, subPage?: string) => void;
     activeSettingsSubPage?: string;
 }> = ({ item, subItem, isActive, onClick, activeSettingsSubPage }) => {
-    
-    if (subItem.isHeading) {
-        return (
-            <li className="px-3 pt-3 pb-1 text-xs font-semibold text-text-muted uppercase tracking-wider" role="separator">
-                {subItem.name}
-            </li>
-        );
-    }
     
     const isSubItemActive = isActive && subItem.name === activeSettingsSubPage;
 
@@ -37,7 +31,7 @@ const SubMenuItem: React.FC<{
                     e.preventDefault();
                     onClick(item.name, subItem.name);
                 }}
-                className={`flex justify-between items-center relative w-full text-left rounded-md pl-6 pr-3 py-1.5 text-sm font-semibold transition-colors focus:outline-none focus:bg-input-bg focus:text-text-primary ${
+                className={`flex justify-between items-center relative w-full text-left rounded-md pl-8 pr-3 py-1.5 text-sm font-semibold transition-colors focus:outline-none focus:bg-input-bg focus:text-text-primary ${
                     isSubItemActive
                         ? 'text-primary'
                         : 'text-text-secondary hover:bg-input-bg hover:text-text-primary'
@@ -63,6 +57,11 @@ const NavItem: React.FC<{
     let timer: number;
 
     const hasSubItems = item.subItems && item.subItems.length > 0;
+
+    const handleSubItemClick = (page: Page, subPage?: string) => {
+        onClick(page, subPage);
+        setIsSubMenuOpen(false);
+    };
 
     const showSubMenu = () => {
         if (!hasSubItems) return;
@@ -116,7 +115,7 @@ const NavItem: React.FC<{
                     e.preventDefault();
                     if (!hasSubItems) onClick(item.name);
                 }}
-                className={`w-full group relative flex items-center justify-between rounded-md text-sm px-3 py-2 transition-colors duration-200
+                className={`w-full group relative flex items-center justify-between rounded-md text-sm px-4 py-2 transition-colors duration-200
                     ${isActive
                         ? 'bg-primary/10 text-primary font-semibold'
                         : 'text-text-strong font-medium hover:bg-input-bg'}
@@ -146,7 +145,7 @@ const NavItem: React.FC<{
                                 item={item}
                                 subItem={subItem}
                                 isActive={isActive}
-                                onClick={onClick}
+                                onClick={handleSubItemClick}
                                 activeSettingsSubPage={activeSettingsSubPage}
                             />
                         ))}
@@ -187,7 +186,7 @@ const CompactNavItem: React.FC<{
 );
 
 
-const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, onClose, activeSettingsSubPage }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, onClose, activeSettingsSubPage, showCompact }) => {
     const sidebarRef = useRef<HTMLElement>(null);
 
     useEffect(() => {
@@ -255,7 +254,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
                     className={`relative flex flex-col h-full bg-surface w-full max-w-xs md:w-64 shadow-xl transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} focus:outline-none`}
                 >
                     <div className="flex-1">
-                        <div className="p-4">
+                        <div className="py-4">
                             <ul className="space-y-1">
                                 {NAV_ITEMS_TOP.map((item) => (
                                     <NavItem 
@@ -267,7 +266,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
                                     />
                                 ))}
                             </ul>
-                            <div className="border-t border-border-light my-4"></div>
+                            <div className="border-t border-border-light my-4 mx-4"></div>
                             <ul className="space-y-1">
                                 {NAV_ITEMS_BOTTOM.map((item) => (
                                     <NavItem 
@@ -285,30 +284,32 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
             </div>
 
             {/* --- COMPACT SIDEBAR (Desktop only) --- */}
-            <aside className="hidden md:flex flex-col w-12 bg-surface border-r border-border-color items-center py-4">
-                <nav className="flex flex-col items-center h-full">
-                    <ul className="list-none space-y-2">
-                        {NAV_ITEMS_TOP.map((item) => (
-                            <CompactNavItem 
-                                key={item.name} 
-                                item={item} 
-                                isActive={activePage === item.name}
-                                onClick={() => setActivePage(item.name)}
-                            />
-                        ))}
-                    </ul>
-                    <ul className="list-none mt-auto space-y-2">
-                        {NAV_ITEMS_BOTTOM.map((item) => (
-                            <CompactNavItem 
-                                key={item.name} 
-                                item={item} 
-                                isActive={activePage === item.name}
-                                onClick={() => setActivePage(item.name)}
-                            />
-                        ))}
-                    </ul>
-                </nav>
-            </aside>
+            {showCompact && (
+                <aside className="hidden md:flex flex-col w-12 bg-surface border-r border-border-color items-center py-4">
+                    <nav className="flex flex-col items-center h-full">
+                        <ul className="list-none space-y-2">
+                            {NAV_ITEMS_TOP.map((item) => (
+                                <CompactNavItem 
+                                    key={item.name} 
+                                    item={item} 
+                                    isActive={activePage === item.name}
+                                    onClick={() => setActivePage(item.name)}
+                                />
+                            ))}
+                        </ul>
+                        <ul className="list-none mt-auto space-y-2">
+                            {NAV_ITEMS_BOTTOM.map((item) => (
+                                <CompactNavItem 
+                                    key={item.name} 
+                                    item={item} 
+                                    isActive={activePage === item.name}
+                                    onClick={() => setActivePage(item.name)}
+                                />
+                            ))}
+                        </ul>
+                    </nav>
+                </aside>
+            )}
         </>
     );
 };

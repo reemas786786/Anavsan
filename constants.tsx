@@ -148,7 +148,6 @@ export const NAV_ITEMS_TOP: NavItem[] = [
         name: 'Reports', 
         icon: IconReports,
         subItems: [
-            { name: 'Performance', isHeading: true },
             { name: 'Warehouse Utilization' },
             { name: 'Query Hotspots' },
         ]
@@ -162,7 +161,6 @@ export const NAV_ITEMS_BOTTOM: NavItem[] = [
         name: 'Settings', 
         icon: IconSettings,
         subItems: [
-            { name: 'General', isHeading: true },
             { name: 'User Management' },
             { name: 'Budgets & Alerts' },
         ]
