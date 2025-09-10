@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export type Page = 
@@ -42,6 +41,9 @@ export interface Widget {
   type: WidgetType;
   description: string;
   dataSource: { type: 'overall' } | { type: 'account', accountId: string };
+  imageUrl?: string;
+  tags?: string[];
+  layout: { w: number; h: number }; // w in columns (1-12), h in units (1 unit = 100px)
 }
 
 export interface DashboardItem {

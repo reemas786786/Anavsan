@@ -1,13 +1,60 @@
-
 import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget } from '../types';
 
 export const availableWidgetsData: Omit<Widget, 'id' | 'dataSource'>[] = [
-    { widgetId: 'w1', title: 'Total Monthly Spend', type: 'StatCard', description: 'Displays the total credit spend for the current month.' },
-    { widgetId: 'w2', title: 'Forecasted Spend', type: 'StatCard', description: 'AI-based forecast of this month\'s total spend.' },
-    { widgetId: 'w3', title: 'Top Queries by Cost', type: 'Table', description: 'A table of the most expensive queries.' },
-    { widgetId: 'w4', title: 'Warehouse Utilization', type: 'BarChart', description: 'Shows average and peak utilization for warehouses.' },
-    { widgetId: 'w5', title: 'Cost Breakdown', type: 'DonutChart', description: 'A donut chart showing spend by category.' },
-    { widgetId: 'w6', title: 'Spend Over Time', type: 'LineChart', description: 'A line chart of daily spend over the last 30 days.' }
+    { 
+      widgetId: 'w1', 
+      title: 'Total Monthly Spend', 
+      type: 'StatCard', 
+      description: 'Displays the total credit spend for the current month.',
+      imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Stat+Card',
+      tags: ['Cost', 'Overall', 'Account Specific'],
+      layout: { w: 3, h: 2 }
+    },
+    { 
+      widgetId: 'w2', 
+      title: 'Forecasted Spend', 
+      type: 'StatCard', 
+      description: 'AI-based forecast of this month\'s total spend.',
+      imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Stat+Card',
+      tags: ['Cost', 'Forecast', 'Overall'],
+      layout: { w: 3, h: 2 }
+    },
+    { 
+      widgetId: 'w3', 
+      title: 'Top Queries by Cost', 
+      type: 'Table', 
+      description: 'A table of the most expensive queries.',
+      imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Table',
+      tags: ['Performance', 'Cost', 'Account Specific'],
+      layout: { w: 6, h: 2 }
+    },
+    { 
+      widgetId: 'w4', 
+      title: 'Warehouse Utilization', 
+      type: 'BarChart', 
+      description: 'Shows average and peak utilization for warehouses.',
+      imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Bar+Chart',
+      tags: ['Performance', 'Account Specific'],
+      layout: { w: 6, h: 2 }
+    },
+    { 
+      widgetId: 'w5', 
+      title: 'Cost Breakdown', 
+      type: 'DonutChart', 
+      description: 'A donut chart showing spend by category.',
+      imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Donut+Chart',
+      tags: ['Cost', 'Overall', 'Account Specific'],
+      layout: { w: 4, h: 2 }
+    },
+    { 
+      widgetId: 'w6', 
+      title: 'Spend Over Time', 
+      type: 'LineChart', 
+      description: 'A line chart of daily spend over the last 30 days.',
+      imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Line+Chart',
+      tags: ['Cost', 'Trend', 'Overall', 'Account Specific'],
+      layout: { w: 8, h: 2 }
+    }
 ];
 
 export const connectionsData: Account[] = [
@@ -25,9 +72,9 @@ export const dashboardsData: DashboardItem[] = [
       description: 'Get a consolidated view of current spend, forecast, and trends across all accounts.',
       createdOn: 'January 14, 2024, 4:45 PM',
       widgets: [
-        { id: 'inst-1', widgetId: 'w1', title: 'Total Monthly Spend', type: 'StatCard', description: 'Displays the total credit spend for the current month.', dataSource: { type: 'overall' } },
-        { id: 'inst-2', widgetId: 'w2', title: 'Forecasted Spend', type: 'StatCard', description: 'AI-based forecast of this month\'s total spend.', dataSource: { type: 'overall' } },
-        { id: 'inst-3', widgetId: 'w5', title: 'Cost Breakdown', type: 'DonutChart', description: 'A donut chart showing spend by category.', dataSource: { type: 'account', accountId: '1' } },
+        { id: 'inst-1', widgetId: 'w1', title: 'Total Monthly Spend', type: 'StatCard', description: 'Displays the total credit spend for the current month.', dataSource: { type: 'overall' }, imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Stat+Card', tags: ['Cost', 'Overall', 'Account Specific'], layout: { w: 3, h: 2 } },
+        { id: 'inst-2', widgetId: 'w2', title: 'Forecasted Spend', type: 'StatCard', description: 'AI-based forecast of this month\'s total spend.', dataSource: { type: 'overall' }, imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Stat+Card', tags: ['Cost', 'Forecast', 'Overall'], layout: { w: 3, h: 2 } },
+        { id: 'inst-3', widgetId: 'w5', title: 'Cost Breakdown', type: 'DonutChart', description: 'A donut chart showing spend by category.', dataSource: { type: 'account', accountId: '1' }, imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Donut+Chart', tags: ['Cost', 'Overall', 'Account Specific'], layout: { w: 6, h: 2 } },
       ]
     },
     {
@@ -36,8 +83,8 @@ export const dashboardsData: DashboardItem[] = [
       description: 'Track credit usage, query performance, and resource efficiency for a specific Snowflake account.',
       createdOn: 'January 14, 2024, 4:45 PM',
       widgets: [
-        { id: 'inst-4', widgetId: 'w3', title: 'Top Queries by Cost', type: 'Table', description: 'A table of the most expensive queries.', dataSource: { type: 'account', accountId: '2' } },
-        { id: 'inst-5', widgetId: 'w4', title: 'Warehouse Utilization', type: 'BarChart', description: 'Shows average and peak utilization for warehouses.', dataSource: { type: 'account', accountId: '2' } },
+        { id: 'inst-4', widgetId: 'w3', title: 'Top Queries by Cost', type: 'Table', description: 'A table of the most expensive queries.', dataSource: { type: 'account', accountId: '2' }, imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Table', tags: ['Performance', 'Cost', 'Account Specific'], layout: { w: 12, h: 2 } },
+        { id: 'inst-5', widgetId: 'w4', title: 'Warehouse Utilization', type: 'BarChart', description: 'Shows average and peak utilization for warehouses.', dataSource: { type: 'account', accountId: '2' }, imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Bar+Chart', tags: ['Performance', 'Account Specific'], layout: { w: 12, h: 2 } },
       ]
     },
     {

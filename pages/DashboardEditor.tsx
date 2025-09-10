@@ -1,17 +1,8 @@
-
-import React, { useState, useMemo } from 'react';
-import { DashboardItem, Widget, WidgetType, Account } from '../types';
+import React, { useState, useMemo, useRef } from 'react';
+import { DashboardItem, Widget, Account } from '../types';
 import { availableWidgetsData } from '../data/dummyData';
-import { IconAdd, IconClose, IconSearch, IconDragHandle } from '../constants';
-
-// Helper component for widget placeholders
-const WidgetPlaceholder: React.FC<{ type: WidgetType }> = ({ type }) => {
-    return (
-        <div className="h-full bg-background rounded-lg flex items-center justify-center border-2 border-dashed border-border-color">
-            <p className="text-text-muted text-sm font-medium">{type} Preview</p>
-        </div>
-    );
-};
+import { IconAdd, IconSearch } from '../constants';
+import WidgetSetupModal from '../components/WidgetSetupModal';
 
 interface DashboardEditorProps {
     dashboard: DashboardItem | null; // null for new dashboard
@@ -32,6 +23,31 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
     );
 
     const [searchTerm, setSearchTerm] = useState('');
+    const [sortOrder, setSortOrder] = useState('asc');
+    const [activeCategory, setActiveCategory] = useState('All');
+
+    const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
+    const [widgetToConfigure, setWidgetToConfigure] = useState<Omit<Widget, 'id' | 'dataSource'> | null>(null);
+    
+    const dragItem = useRef<number | null>(null);
+    const dragOverItem = useRef<number | null>(null);
+    
+    const widgetCategories = useMemo(() => {
+        const categories: Record<string, number> = { All: availableWidgetsData.length };
+        const mainCategories = ['Cost', 'Performance']; // Define what we consider a primary category
+
+        availableWidgetsData.forEach(widget => {
+            widget.tags?.forEach(tag => {
+                if(mainCategories.includes(tag)) {
+                    if (!categories[tag]) {
+                        categories[tag] = 0;
+                    }
+                    categories[tag]++;
+                }
+            });
+        });
+        return categories;
+    }, []);
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setEditedDashboard(prev => ({ ...prev, title: e.target.value }));
@@ -40,17 +56,26 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
     const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setEditedDashboard(prev => ({ ...prev, description: e.target.value || '' }));
     };
+    
+    const handleOpenSetupModal = (widget: Omit<Widget, 'id' | 'dataSource'>) => {
+        setWidgetToConfigure(widget);
+        setIsSetupModalOpen(true);
+    };
+    
+    const handleConfirmAddWidget = (dataSource: Widget['dataSource']) => {
+        if (!widgetToConfigure) return;
 
-    const handleAddWidget = (widgetToAdd: Omit<Widget, 'id' | 'dataSource'>) => {
         const newWidgetInstance: Widget = {
-            ...widgetToAdd,
+            ...widgetToConfigure,
             id: `inst-${Date.now()}-${Math.random()}`,
-            dataSource: { type: 'overall' }, // Default data source
+            dataSource,
         };
         setEditedDashboard(prev => ({
             ...prev,
             widgets: [...prev.widgets, newWidgetInstance],
         }));
+        setIsSetupModalOpen(false);
+        setWidgetToConfigure(null);
     };
 
     const handleRemoveWidget = (widgetId: string) => {
@@ -60,170 +85,154 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
         }));
     };
     
-    const handleMoveWidget = (index: number, direction: 'up' | 'down') => {
-        const newWidgets = [...editedDashboard.widgets];
-        const targetIndex = direction === 'up' ? index - 1 : index + 1;
-
-        if (targetIndex < 0 || targetIndex >= newWidgets.length) return;
-
-        [newWidgets[index], newWidgets[targetIndex]] = [newWidgets[targetIndex], newWidgets[index]]; // Swap
-        
-        setEditedDashboard(prev => ({ ...prev, widgets: newWidgets }));
-    };
-    
-    const handleWidgetDataSourceChange = (widgetId: string, newDataSource: Widget['dataSource']) => {
-        setEditedDashboard(prev => ({
-            ...prev,
-            widgets: prev.widgets.map(w => w.id === widgetId ? { ...w, dataSource: newDataSource } : w)
-        }));
-    };
-    
     const handleSave = () => {
         onSave(editedDashboard);
     };
+    
+    const handleDragSort = () => {
+        if (dragItem.current === null || dragOverItem.current === null) return;
+        
+        const newWidgets = [...editedDashboard.widgets];
+        const draggedItemContent = newWidgets.splice(dragItem.current, 1)[0];
+        newWidgets.splice(dragOverItem.current, 0, draggedItemContent);
+        
+        dragItem.current = null;
+        dragOverItem.current = null;
+        
+        setEditedDashboard(prev => ({ ...prev, widgets: newWidgets }));
+    };
 
     const filteredWidgets = useMemo(() => {
-        return availableWidgetsData.filter(widget =>
-            widget.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            widget.description.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [searchTerm]);
+        let widgets = [...availableWidgetsData];
+        if (searchTerm) {
+            widgets = widgets.filter(widget =>
+                widget.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                widget.description.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+        if (activeCategory !== 'All') {
+            widgets = widgets.filter(widget => widget.tags?.includes(activeCategory));
+        }
+        widgets.sort((a, b) => sortOrder === 'asc' ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title));
+        return widgets;
+    }, [searchTerm, activeCategory, sortOrder]);
 
     const getDataSourceTag = (dataSource: Widget['dataSource']): string => {
-        if (dataSource.type === 'overall') {
-            return 'Overall';
-        }
+        if (dataSource.type === 'overall') return 'Overall';
         const account = accounts.find(acc => acc.id === dataSource.accountId);
         return account ? account.name : 'Unknown Account';
     };
 
     return (
-        <div className="flex flex-col h-screen bg-background">
-            {/* Header */}
-            <header className="bg-surface px-6 py-3 border-b border-border-color flex items-center justify-between flex-shrink-0">
-                <div>
-                    <input
-                        type="text"
-                        value={editedDashboard.title}
-                        onChange={handleTitleChange}
-                        className="text-xl font-bold bg-transparent focus:outline-none focus:ring-1 focus:ring-primary rounded-md -ml-2 px-2 py-1"
-                        placeholder="Dashboard Title"
-                    />
-                     <input
-                        type="text"
-                        value={editedDashboard.description}
-                        onChange={handleDescriptionChange}
-                        className="text-sm text-text-secondary w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-primary rounded-md -ml-2 px-2"
-                        placeholder="Dashboard description (optional)"
-                    />
-                </div>
-                <div className="flex items-center gap-3">
-                    <button onClick={onCancel} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-gray-50">
-                        Cancel
-                    </button>
-                    <button onClick={handleSave} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full">
-                        Save Dashboard
-                    </button>
-                </div>
-            </header>
-            
-            {/* Main Content */}
-            <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 p-6 overflow-hidden">
-                {/* Left Panel: Dashboard Canvas */}
-                <main className="lg:col-span-2 bg-surface rounded-xl border border-border-color p-4 overflow-y-auto">
-                    {editedDashboard.widgets.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {editedDashboard.widgets.map((widget, index) => (
-                                <div key={widget.id} className="bg-white rounded-lg shadow-sm border border-border-light flex flex-col h-auto group">
-                                    <div className="p-2 border-b border-border-light flex items-center justify-between bg-background rounded-t-lg">
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                            <button className="cursor-grab text-text-muted hover:text-text-primary"><IconDragHandle className="h-4 w-4" /></button>
-                                            <h4 className="text-sm font-semibold text-text-strong">{widget.title}</h4>
-                                            <span className="text-xs font-semibold text-text-secondary bg-gray-200 rounded-full px-2 py-0.5">{getDataSourceTag(widget.dataSource)}</span>
-                                        </div>
-                                        <div className="flex items-center">
-                                            <button onClick={() => handleMoveWidget(index, 'up')} disabled={index === 0} className="p-1 rounded-full text-text-muted hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed" aria-label="Move widget up">↑</button>
-                                            <button onClick={() => handleMoveWidget(index, 'down')} disabled={index === editedDashboard.widgets.length - 1} className="p-1 rounded-full text-text-muted hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed" aria-label="Move widget down">↓</button>
-                                            <button onClick={() => handleRemoveWidget(widget.id)} className="ml-1 p-1 rounded-full text-text-muted hover:bg-gray-200 hover:text-status-error" aria-label="Remove widget"><IconClose className="h-4 w-4" /></button>
-                                        </div>
-                                    </div>
-                                    <div className="flex-1 p-2 h-48">
-                                        <WidgetPlaceholder type={widget.type} />
-                                    </div>
-                                     {/* Configuration Area */}
-                                    <div className="p-3 border-t border-border-light bg-background rounded-b-lg">
-                                        <label className="text-xs font-bold text-text-secondary block mb-2">DATA SOURCE</label>
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                                            <div className="flex items-center bg-gray-200 rounded-full p-0.5">
-                                                <button 
-                                                    onClick={() => handleWidgetDataSourceChange(widget.id, { type: 'overall' })}
-                                                    className={`px-3 py-1 text-xs font-semibold rounded-full ${widget.dataSource.type === 'overall' ? 'bg-white shadow-sm' : 'text-text-secondary'}`}
-                                                >
-                                                    Overall
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleWidgetDataSourceChange(widget.id, { type: 'account', accountId: accounts[0]?.id || '' })}
-                                                    className={`px-3 py-1 text-xs font-semibold rounded-full ${widget.dataSource.type === 'account' ? 'bg-white shadow-sm' : 'text-text-secondary'}`}
-                                                >
-                                                    Specific
-                                                </button>
+        <>
+            <div className="flex flex-col h-screen bg-background">
+                {/* Header */}
+                <header className="bg-surface px-6 py-3 border-b border-border-color flex items-center justify-between flex-shrink-0">
+                    <div>
+                        <input type="text" value={editedDashboard.title} onChange={handleTitleChange} className="text-xl font-bold bg-transparent focus:outline-none focus:ring-1 focus:ring-primary rounded-md -ml-2 px-2 py-1" placeholder="Dashboard Title" />
+                        <input type="text" value={editedDashboard.description} onChange={handleDescriptionChange} className="text-sm text-text-secondary w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-primary rounded-md -ml-2 px-2" placeholder="Dashboard description (optional)" />
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button onClick={onCancel} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-gray-50">Cancel</button>
+                        <button onClick={handleSave} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full">Save Dashboard</button>
+                    </div>
+                </header>
+                
+                {/* Main Content */}
+                <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 p-6 overflow-hidden">
+                    {/* Left Panel: Dashboard Canvas */}
+                    <main className="lg:col-span-2 bg-gray-100 rounded-xl border border-border-color p-4 overflow-y-auto">
+                        {editedDashboard.widgets.length > 0 ? (
+                           <div className="grid grid-cols-12 gap-4 auto-rows-[100px]">
+                                {editedDashboard.widgets.map((widget, index) => (
+                                    <div
+                                        key={widget.id}
+                                        className="bg-surface rounded-lg shadow-sm border border-border-light flex flex-col group p-4 relative cursor-move"
+                                        style={{ gridColumn: `span ${widget.layout.w}`, gridRow: `span ${widget.layout.h}` }}
+                                        draggable
+                                        onDragStart={() => (dragItem.current = index)}
+                                        onDragEnter={() => (dragOverItem.current = index)}
+                                        onDragEnd={handleDragSort}
+                                        onDragOver={(e) => e.preventDefault()}
+                                    >
+                                        <div className="flex items-start justify-between">
+                                            <div>
+                                                <h4 className="text-sm font-semibold text-text-strong">{widget.title}</h4>
+                                                <span className="text-xs font-semibold text-text-secondary bg-gray-200 rounded-full px-2 py-0.5">{`[${getDataSourceTag(widget.dataSource)}]`}</span>
                                             </div>
-                                            {widget.dataSource.type === 'account' && (
-                                                <select
-                                                    value={widget.dataSource.accountId}
-                                                    onChange={(e) => handleWidgetDataSourceChange(widget.id, { type: 'account', accountId: e.target.value })}
-                                                    className="w-full sm:w-auto text-xs border-border-color rounded-full px-2 py-1 focus:ring-primary focus:border-primary bg-input-bg flex-1"
-                                                    aria-label="Select specific account"
-                                                >
-                                                    {accounts.map(acc => (
-                                                        <option key={acc.id} value={acc.id}>{acc.name}</option>
-                                                    ))}
-                                                </select>
-                                            )}
+                                            <button onClick={() => handleRemoveWidget(widget.id)} className="p-1 rounded-full text-text-muted hover:bg-gray-200 hover:text-status-error opacity-0 group-hover:opacity-100 transition-opacity z-10" aria-label="Remove widget">
+                                                &times;
+                                            </button>
                                         </div>
+                                    </div>
+                                ))}
+                           </div>
+                        ) : (
+                            <div className="h-full flex flex-col items-center justify-center text-center text-text-secondary border-2 border-dashed border-border-color rounded-lg">
+                                <h3 className="text-lg font-semibold">Empty Dashboard</h3>
+                                <p>Add widgets from the library on the right to build your dashboard.</p>
+                            </div>
+                        )}
+                    </main>
+
+                    {/* Right Panel: Widget Library */}
+                    <aside className="lg:col-span-1 bg-surface rounded-xl border border-border-color p-4 flex flex-col">
+                        <h3 className="text-base font-semibold text-text-strong mb-4">Widget Library</h3>
+                        <div className="relative mb-2">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><IconSearch className="h-5 w-5 text-text-muted" /></div>
+                            <input type="text" placeholder="Search widgets..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-border-color rounded-full text-sm focus:ring-primary focus:border-primary bg-input-bg placeholder-text-secondary" />
+                        </div>
+                        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                            <select
+                                onChange={(e) => setActiveCategory(e.target.value)}
+                                value={activeCategory}
+                                className="text-sm border-border-color rounded-full px-3 py-1.5 focus:ring-primary focus:border-primary bg-input-bg"
+                                aria-label="Filter widgets by category"
+                            >
+                                {Object.entries(widgetCategories).map(([category, count]) => (
+                                    <option key={category} value={category}>
+                                        {category} ({count})
+                                    </option>
+                                ))}
+                            </select>
+                            <select onChange={(e) => setSortOrder(e.target.value)} value={sortOrder} className="text-sm border-border-color rounded-full px-3 py-1.5 focus:ring-primary focus:border-primary bg-input-bg">
+                                <option value="asc">Sort A-Z</option><option value="desc">Sort Z-A</option>
+                            </select>
+                        </div>
+                        <div className="flex-1 overflow-y-auto -mr-2 pr-2 space-y-3">
+                            {filteredWidgets.map(widget => (
+                                <div key={widget.widgetId} className="bg-background p-3 rounded-lg border border-border-light flex flex-col">
+                                    <img src={widget.imageUrl} alt={`${widget.title} preview`} className="w-full h-24 object-cover rounded-md bg-gray-200 mb-3" />
+                                    <div className="flex-grow flex justify-between items-start gap-2">
+                                        <div className="flex-1">
+                                            <h4 className="font-semibold text-sm text-text-strong">{widget.title}</h4>
+                                            <p className="text-xs text-text-secondary mt-1">{widget.description}</p>
+                                        </div>
+                                        <button 
+                                            onClick={() => handleOpenSetupModal(widget)} 
+                                            className="p-1.5 rounded-full text-primary bg-primary/10 hover:bg-primary/20 transition-colors flex-shrink-0" 
+                                            aria-label={`Add ${widget.title} to layout`}
+                                            title={`Add ${widget.title} to layout`}
+                                        >
+                                            <IconAdd className="h-5 w-5" />
+                                        </button>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                    ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-center text-text-secondary border-2 border-dashed border-border-color rounded-lg">
-                            <h3 className="text-lg font-semibold">Empty Dashboard</h3>
-                            <p>Add widgets from the library on the right to build your dashboard.</p>
-                        </div>
-                    )}
-                </main>
-
-                {/* Right Panel: Widget Library */}
-                <aside className="lg:col-span-1 bg-surface rounded-xl border border-border-color p-4 flex flex-col">
-                    <h3 className="text-base font-semibold text-text-strong mb-4">Widget Library</h3>
-                    <div className="relative mb-4">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <IconSearch className="h-5 w-5 text-text-muted" />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Search widgets..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border border-border-color rounded-full text-sm focus:ring-primary focus:border-primary bg-input-bg placeholder-text-secondary"
-                        />
-                    </div>
-                    <div className="flex-1 overflow-y-auto -mr-2 pr-2 space-y-3">
-                        {filteredWidgets.map(widget => (
-                            <div key={widget.widgetId} className="bg-background p-3 rounded-lg flex items-start justify-between">
-                                <div>
-                                    <h4 className="font-semibold text-sm text-text-strong">{widget.title}</h4>
-                                    <p className="text-xs text-text-secondary mt-1">{widget.description}</p>
-                                </div>
-                                <button onClick={() => handleAddWidget(widget)} className="ml-2 mt-1 p-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-full flex-shrink-0" aria-label={`Add ${widget.title} widget`}>
-                                    <IconAdd className="h-4 w-4" />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </aside>
+                    </aside>
+                </div>
             </div>
-        </div>
+            {widgetToConfigure && (
+                <WidgetSetupModal
+                    isOpen={isSetupModalOpen}
+                    onClose={() => setIsSetupModalOpen(false)}
+                    widget={widgetToConfigure}
+                    accounts={accounts}
+                    onConfirm={handleConfirmAddWidget}
+                />
+            )}
+        </>
     );
 };
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -259,9 +258,9 @@ const App: React.FC = () => {
         return editingDashboard ? (
             <DashboardEditor
                 dashboard={editingDashboard === 'new' ? null : editingDashboard}
-                accounts={accounts}
                 onSave={handleSaveDashboard}
                 onCancel={() => setEditingDashboard(null)}
+                accounts={accounts}
             />
         ) : (
             <Dashboards
