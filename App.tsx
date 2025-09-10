@@ -259,6 +259,7 @@ const App: React.FC = () => {
         return editingDashboard ? (
             <DashboardEditor
                 dashboard={editingDashboard === 'new' ? null : editingDashboard}
+                accounts={accounts}
                 onSave={handleSaveDashboard}
                 onCancel={() => setEditingDashboard(null)}
             />

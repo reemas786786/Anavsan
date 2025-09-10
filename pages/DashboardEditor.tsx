@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { DashboardItem, Widget, WidgetType } from '../types';
+import { DashboardItem, Widget, WidgetType, Account } from '../types';
 import { availableWidgetsData } from '../data/dummyData';
 import { IconAdd, IconClose, IconSearch, IconDragHandle } from '../constants';
 
@@ -15,11 +15,12 @@ const WidgetPlaceholder: React.FC<{ type: WidgetType }> = ({ type }) => {
 
 interface DashboardEditorProps {
     dashboard: DashboardItem | null; // null for new dashboard
+    accounts: Account[];
     onSave: (dashboard: DashboardItem) => void;
     onCancel: () => void;
 }
 
-const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, onSave, onCancel }) => {
+const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, onSave, onCancel }) => {
     const [editedDashboard, setEditedDashboard] = useState<DashboardItem>(
         dashboard || {
             id: `temp-${Date.now()}`,
@@ -40,10 +41,11 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, onSave, on
         setEditedDashboard(prev => ({ ...prev, description: e.target.value || '' }));
     };
 
-    const handleAddWidget = (widgetToAdd: Omit<Widget, 'id'>) => {
+    const handleAddWidget = (widgetToAdd: Omit<Widget, 'id' | 'dataSource'>) => {
         const newWidgetInstance: Widget = {
             ...widgetToAdd,
             id: `inst-${Date.now()}-${Math.random()}`,
+            dataSource: { type: 'overall' }, // Default data source
         };
         setEditedDashboard(prev => ({
             ...prev,
@@ -69,6 +71,13 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, onSave, on
         setEditedDashboard(prev => ({ ...prev, widgets: newWidgets }));
     };
     
+    const handleWidgetDataSourceChange = (widgetId: string, newDataSource: Widget['dataSource']) => {
+        setEditedDashboard(prev => ({
+            ...prev,
+            widgets: prev.widgets.map(w => w.id === widgetId ? { ...w, dataSource: newDataSource } : w)
+        }));
+    };
+    
     const handleSave = () => {
         onSave(editedDashboard);
     };
@@ -79,6 +88,14 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, onSave, on
             widget.description.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [searchTerm]);
+
+    const getDataSourceTag = (dataSource: Widget['dataSource']): string => {
+        if (dataSource.type === 'overall') {
+            return 'Overall';
+        }
+        const account = accounts.find(acc => acc.id === dataSource.accountId);
+        return account ? account.name : 'Unknown Account';
+    };
 
     return (
         <div className="flex flex-col h-screen bg-background">
@@ -117,11 +134,12 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, onSave, on
                     {editedDashboard.widgets.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {editedDashboard.widgets.map((widget, index) => (
-                                <div key={widget.id} className="bg-white rounded-lg shadow-sm border border-border-light flex flex-col h-64 group">
+                                <div key={widget.id} className="bg-white rounded-lg shadow-sm border border-border-light flex flex-col h-auto group">
                                     <div className="p-2 border-b border-border-light flex items-center justify-between bg-background rounded-t-lg">
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 flex-wrap">
                                             <button className="cursor-grab text-text-muted hover:text-text-primary"><IconDragHandle className="h-4 w-4" /></button>
                                             <h4 className="text-sm font-semibold text-text-strong">{widget.title}</h4>
+                                            <span className="text-xs font-semibold text-text-secondary bg-gray-200 rounded-full px-2 py-0.5">{getDataSourceTag(widget.dataSource)}</span>
                                         </div>
                                         <div className="flex items-center">
                                             <button onClick={() => handleMoveWidget(index, 'up')} disabled={index === 0} className="p-1 rounded-full text-text-muted hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed" aria-label="Move widget up">↑</button>
@@ -129,8 +147,40 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, onSave, on
                                             <button onClick={() => handleRemoveWidget(widget.id)} className="ml-1 p-1 rounded-full text-text-muted hover:bg-gray-200 hover:text-status-error" aria-label="Remove widget"><IconClose className="h-4 w-4" /></button>
                                         </div>
                                     </div>
-                                    <div className="flex-1 p-2">
+                                    <div className="flex-1 p-2 h-48">
                                         <WidgetPlaceholder type={widget.type} />
+                                    </div>
+                                     {/* Configuration Area */}
+                                    <div className="p-3 border-t border-border-light bg-background rounded-b-lg">
+                                        <label className="text-xs font-bold text-text-secondary block mb-2">DATA SOURCE</label>
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                            <div className="flex items-center bg-gray-200 rounded-full p-0.5">
+                                                <button 
+                                                    onClick={() => handleWidgetDataSourceChange(widget.id, { type: 'overall' })}
+                                                    className={`px-3 py-1 text-xs font-semibold rounded-full ${widget.dataSource.type === 'overall' ? 'bg-white shadow-sm' : 'text-text-secondary'}`}
+                                                >
+                                                    Overall
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleWidgetDataSourceChange(widget.id, { type: 'account', accountId: accounts[0]?.id || '' })}
+                                                    className={`px-3 py-1 text-xs font-semibold rounded-full ${widget.dataSource.type === 'account' ? 'bg-white shadow-sm' : 'text-text-secondary'}`}
+                                                >
+                                                    Specific
+                                                </button>
+                                            </div>
+                                            {widget.dataSource.type === 'account' && (
+                                                <select
+                                                    value={widget.dataSource.accountId}
+                                                    onChange={(e) => handleWidgetDataSourceChange(widget.id, { type: 'account', accountId: e.target.value })}
+                                                    className="w-full sm:w-auto text-xs border-border-color rounded-full px-2 py-1 focus:ring-primary focus:border-primary bg-input-bg flex-1"
+                                                    aria-label="Select specific account"
+                                                >
+                                                    {accounts.map(acc => (
+                                                        <option key={acc.id} value={acc.id}>{acc.name}</option>
+                                                    ))}
+                                                </select>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ))}

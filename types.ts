@@ -41,6 +41,7 @@ export interface Widget {
   title: string;
   type: WidgetType;
   description: string;
+  dataSource: { type: 'overall' } | { type: 'account', accountId: string };
 }
 
 export interface DashboardItem {
