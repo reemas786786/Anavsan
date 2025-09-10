@@ -85,6 +85,7 @@ export interface User {
     email: string;
     role: UserRole;
     status: UserStatus;
+    dateAdded: string;
     avatarUrl?: string;
     message?: string;
 }

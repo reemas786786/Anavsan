@@ -12,7 +12,7 @@ interface SettingsPageProps {
     users: User[];
     onEditUserRoleClick: (user: User) => void;
     onSuspendUserClick: (user: User) => void;
-    onActivateUser: (userId: string) => void;
+    onActivateUserClick: (user: User) => void;
     onRemoveUserClick: (user: User) => void;
 }
 
@@ -44,7 +44,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     users,
     onEditUserRoleClick,
     onSuspendUserClick,
-    onActivateUser,
+    onActivateUserClick,
     onRemoveUserClick 
 }) => {
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
@@ -58,7 +58,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                         onAddUser={onAddUserClick} 
                         onEditUserRole={onEditUserRoleClick}
                         onSuspendUser={onSuspendUserClick}
-                        onActivateUser={onActivateUser}
+                        onActivateUserClick={onActivateUserClick}
                         onRemoveUser={onRemoveUserClick}
                     />
                 );

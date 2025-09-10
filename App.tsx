@@ -18,6 +18,7 @@ import InviteUserFlow from './components/InviteUserFlow';
 import EditUserRoleFlow from './components/EditUserRoleFlow';
 import ConfirmationModal from './components/ConfirmationModal';
 import Toast from './components/Toast';
+import Modal from './components/Modal';
 import { Page, Account, SQLFile, UserRole, User, UserStatus } from './types';
 import { connectionsData, sqlFilesData as initialSqlFiles, usersData } from './data/dummyData';
 import SettingsPage from './pages/SettingsPage';
@@ -42,6 +43,7 @@ const App: React.FC = () => {
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
   const [userToSuspend, setUserToSuspend] = useState<User | null>(null);
   const [userToRemove, setUserToRemove] = useState<User | null>(null);
+  const [userToActivate, setUserToActivate] = useState<User | null>(null);
 
 
   useEffect(() => {
@@ -158,6 +160,7 @@ const App: React.FC = () => {
         email: data.email,
         role: data.role,
         status: 'Invited',
+        dateAdded: new Date().toISOString().split('T')[0],
         message: data.message,
     };
     
@@ -196,12 +199,13 @@ const App: React.FC = () => {
       showToast('User has been suspended.');
   };
 
-  const handleActivateUser = (userId: string) => {
+  const handleConfirmActivateUser = (userId: string) => {
       setUsers(prevUsers => 
           prevUsers.map(user => 
               user.id === userId ? { ...user, status: 'Active' as UserStatus } : user
           )
       );
+      setUserToActivate(null);
       showToast('User has been activated.');
   };
 
@@ -277,7 +281,7 @@ const App: React.FC = () => {
                 onAddUserClick={() => setIsInvitingUser(true)}
                 onEditUserRoleClick={(user) => setUserToEdit(user)}
                 onSuspendUserClick={(user) => setUserToSuspend(user)}
-                onActivateUser={handleActivateUser}
+                onActivateUserClick={(user) => setUserToActivate(user)}
                 onRemoveUserClick={(user) => setUserToRemove(user)}
             />
           ) : (
@@ -315,14 +319,14 @@ const App: React.FC = () => {
       </SidePanel>
       
       <SidePanel
-        isOpen={isInvitingUser}
-        onClose={() => setIsInvitingUser(false)}
-        title="Invite New User"
+          isOpen={isInvitingUser}
+          onClose={() => setIsInvitingUser(false)}
+          title="Add users"
       >
-        <InviteUserFlow
-            onCancel={() => setIsInvitingUser(false)}
-            onSendInvite={handleSendInvite}
-        />
+          <InviteUserFlow
+              onCancel={() => setIsInvitingUser(false)}
+              onSendInvite={handleSendInvite}
+          />
       </SidePanel>
 
       <SidePanel
@@ -338,7 +342,7 @@ const App: React.FC = () => {
             />
         )}
       </SidePanel>
-
+      
       {userToSuspend && (
           <ConfirmationModal
               isOpen={!!userToSuspend}
@@ -360,6 +364,18 @@ const App: React.FC = () => {
               message={`Are you sure you want to remove ${userToRemove.name}? This action cannot be undone.`}
               confirmText="Remove"
               confirmVariant="danger"
+          />
+      )}
+
+      {userToActivate && (
+          <ConfirmationModal
+              isOpen={!!userToActivate}
+              onClose={() => setUserToActivate(null)}
+              onConfirm={() => handleConfirmActivateUser(userToActivate.id)}
+              title="Activate User"
+              message={`Are you sure you want to activate ${userToActivate.name}? They will regain access to the platform.`}
+              confirmText="Activate"
+              confirmVariant="primary"
           />
       )}
     </div>

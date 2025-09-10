@@ -97,8 +97,8 @@ export const accountCostBreakdown = [
 ];
 
 export const usersData: User[] = [
-    { id: 'user1', name: 'Alice Johnson', email: 'alice.j@example.com', role: 'Admin', status: 'Active', message: 'Welcome to the team!' },
-    { id: 'user2', name: 'Bob Williams', email: 'bob.w@example.com', role: 'Analyst', status: 'Active', message: 'Hey Bob, here is your access.' },
-    { id: 'user3', name: 'Charlie Brown', email: 'charlie.b@example.com', role: 'Viewer', status: 'Invited', message: 'Please join our Anavsan account.' },
-    { id: 'user4', name: 'Diana Miller', email: 'diana.m@example.com', role: 'Analyst', status: 'Suspended', message: 'Access temporarily revoked.' },
+    { id: 'user1', name: 'Alice Johnson', email: 'alice.j@example.com', role: 'Admin', status: 'Active', dateAdded: '2024-05-10' },
+    { id: 'user2', name: 'Bob Williams', email: 'bob.w@example.com', role: 'Analyst', status: 'Active', dateAdded: '2024-05-12' },
+    { id: 'user3', name: 'Charlie Brown', email: 'charlie.b@example.com', role: 'Viewer', status: 'Invited', dateAdded: '2024-06-01' },
+    { id: 'user4', name: 'Diana Miller', email: 'diana.m@example.com', role: 'Analyst', status: 'Suspended', dateAdded: '2024-04-20' },
 ];

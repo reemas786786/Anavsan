@@ -57,8 +57,7 @@ const InviteUserFlow: React.FC<InviteUserFlowProps> = ({ onCancel, onSendInvite 
                         <option>Viewer</option>
                     </select>
                 </div>
-
-                <div>
+                 <div>
                     <label htmlFor="message" className="block text-sm font-medium text-text-secondary mb-1">
                         Message (optional)
                     </label>
@@ -68,7 +67,7 @@ const InviteUserFlow: React.FC<InviteUserFlowProps> = ({ onCancel, onSendInvite 
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         className="w-full border border-border-color rounded-xl px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg placeholder-text-secondary"
-                        placeholder="Add a custom note for the invited user..."
+                        placeholder="Add a personal message to the invitation."
                     />
                 </div>
             </div>

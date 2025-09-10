@@ -2,27 +2,29 @@
 import React, { useEffect, useRef } from 'react';
 import { IconClose } from '../constants';
 
-interface ConfirmationModalProps {
+interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
   title: string;
-  message: React.ReactNode;
-  confirmText?: string;
-  confirmVariant?: 'danger' | 'warning' | 'primary';
+  children: React.ReactNode;
 }
 
-const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, onConfirm, title, message, confirmText = 'Confirm', confirmVariant = 'primary' }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   const modalRef = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') {
+        onClose();
+      }
     };
     if (isOpen) {
       document.addEventListener('keydown', handleKeyDown);
+      modalRef.current?.focus();
     }
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen, onClose]);
 
   useEffect(() => {
@@ -61,19 +63,14 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
     }
   }, [isOpen]);
 
+
   if (!isOpen) return null;
 
-  const variantClasses = {
-    primary: 'bg-primary hover:bg-primary-hover focus:ring-primary',
-    warning: 'bg-status-warning hover:bg-status-warning/90 focus:ring-status-warning',
-    danger: 'bg-status-error hover:bg-status-error/90 focus:ring-status-error',
-  };
-  
   return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 ease-in-out" 
-      role="dialog" 
-      aria-modal="true" 
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 ease-in-out"
+      role="dialog"
+      aria-modal="true"
       aria-labelledby="modal-title"
     >
       <div className="fixed inset-0 bg-black/50" onClick={onClose} aria-hidden="true"></div>
@@ -82,45 +79,28 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
         ref={modalRef}
         tabIndex={-1}
         className="relative bg-surface rounded-2xl shadow-xl w-full max-w-lg m-4 transform transition-all duration-300 ease-in-out scale-100 flex flex-col"
+        style={{maxHeight: '90vh'}}
       >
         {/* Header */}
         <div className="p-6 flex items-center justify-between border-b border-border-color flex-shrink-0">
-          <h2 id="modal-title" className="text-xl font-semibold text-text-primary">{title}</h2>
-          <button
-            type="button"
-            className="p-1 rounded-full text-text-secondary hover:bg-surface-hover hover:text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
-            onClick={onClose}
-            aria-label="Close modal"
-          >
-            <IconClose className="h-6 w-6" />
-          </button>
+            <h2 id="modal-title" className="text-xl font-semibold text-text-primary">{title}</h2>
+            <button
+                type="button"
+                className="p-1 rounded-full text-text-secondary hover:bg-surface-hover hover:text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+                onClick={onClose}
+                aria-label="Close modal"
+            >
+                <IconClose className="h-6 w-6" />
+            </button>
         </div>
 
         {/* Content */}
-        <div className="p-8">
-          <p className="text-sm text-text-secondary">{message}</p>
-        </div>
-        
-        {/* Footer */}
-        <div className="p-6 bg-background border-t border-border-color flex justify-end items-center gap-3 flex-shrink-0">
-          <button
-            type="button"
-            onClick={onClose} 
-            className="text-sm font-semibold px-4 py-2 rounded-full bg-surface-hover text-primary hover:bg-primary/20 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm} 
-            className={`px-4 py-2 text-sm font-semibold text-white rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${variantClasses[confirmVariant]}`}
-          >
-            {confirmText}
-          </button>
+        <div className="overflow-y-auto">
+            {children}
         </div>
       </div>
     </div>
   );
 };
 
-export default ConfirmationModal;
+export default Modal;

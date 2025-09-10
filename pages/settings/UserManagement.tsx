@@ -25,7 +25,7 @@ const StatusBadge: React.FC<{ status: UserStatus }> = ({ status }) => {
 const UserAvatar: React.FC<{ name: string; avatarUrl?: string }> = ({ name, avatarUrl }) => {
     const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
     return (
-        <div className="h-8 w-8 rounded-full bg-primary/20 text-primary text-xs font-semibold flex items-center justify-center">
+        <div className="h-8 w-8 rounded-full bg-primary/20 text-primary text-xs font-semibold flex items-center justify-center flex-shrink-0">
             {initials}
         </div>
     );
@@ -37,11 +37,11 @@ interface UserManagementProps {
     onAddUser: () => void;
     onEditUserRole: (user: User) => void;
     onSuspendUser: (user: User) => void;
-    onActivateUser: (userId: string) => void;
+    onActivateUserClick: (user: User) => void;
     onRemoveUser: (user: User) => void;
 }
 
-const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEditUserRole, onSuspendUser, onActivateUser, onRemoveUser }) => {
+const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEditUserRole, onSuspendUser, onActivateUserClick, onRemoveUser }) => {
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -81,25 +81,28 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEdi
                     <table className="w-full text-sm text-left text-text-secondary">
                         <thead className="bg-background text-xs text-text-secondary uppercase font-medium">
                             <tr>
-                                <th scope="col" className="px-6 py-3">Name</th>
-                                <th scope="col" className="px-6 py-3">Email</th>
+                                <th scope="col" className="px-6 py-3">User</th>
                                 <th scope="col" className="px-6 py-3">Role</th>
                                 <th scope="col" className="px-6 py-3">Status</th>
-                                <th scope="col" className="px-6 py-3">Message</th>
+                                <th scope="col" className="px-6 py-3">Date Added</th>
                                 <th scope="col" className="px-6 py-3 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {users.map(user => (
                                 <tr key={user.id} className="border-t border-border-color hover:bg-surface-hover">
-                                    <td className="px-6 py-4 font-medium text-text-primary whitespace-nowrap flex items-center gap-3">
-                                        <UserAvatar name={user.name} />
-                                        {user.name}
+                                    <td className="px-6 py-4 font-medium text-text-primary whitespace-nowrap">
+                                        <div className="flex items-center gap-3">
+                                            <UserAvatar name={user.name} />
+                                            <div>
+                                                <div>{user.name}</div>
+                                                <div className="text-sm text-text-secondary font-normal">{user.email}</div>
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td className="px-6 py-4">{user.email}</td>
                                     <td className="px-6 py-4">{user.role}</td>
                                     <td className="px-6 py-4"><StatusBadge status={user.status} /></td>
-                                    <td className="px-6 py-4 truncate max-w-xs" title={user.message}>{user.message}</td>
+                                    <td className="px-6 py-4">{user.dateAdded}</td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="relative inline-block text-left" ref={openMenuId === user.id ? menuRef : null}>
                                             <button
@@ -118,7 +121,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEdi
                                                     <div className="py-1" role="menu" aria-orientation="vertical">
                                                         <button onClick={() => { onEditUserRole(user); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Edit Role</button>
                                                         {user.status === 'Suspended' ? (
-                                                            <button onClick={() => { onActivateUser(user.id); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Activate User</button>
+                                                            <button onClick={() => { onActivateUserClick(user); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Activate User</button>
                                                         ) : (
                                                             <button onClick={() => { onSuspendUser(user); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Suspend User</button>
                                                         )}
