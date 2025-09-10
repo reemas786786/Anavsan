@@ -61,24 +61,34 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ dashboard, onEditClick, o
     );
 };
 
-const EmptyState: React.FC = () => (
+const EmptyState: React.FC<{ onAddDashboardClick: () => void }> = ({ onAddDashboardClick }) => (
     <div className="text-center py-20 px-6 bg-surface rounded-xl border border-border-color shadow-sm">
         <h2 className="text-xl font-bold text-text-primary">No Dashboards Found</h2>
         <p className="mt-2 text-text-secondary max-w-md mx-auto">It looks like you haven't created any dashboards yet. Get started by clicking the "Create Dashboard" button.</p>
+        <button
+            onClick={onAddDashboardClick}
+            className="mt-6 bg-primary text-white font-semibold px-4 py-2 rounded-full flex items-center gap-2 hover:bg-primary-hover transition-colors whitespace-nowrap shadow-sm mx-auto"
+        >
+            <IconAdd className="h-5 w-5" />
+            Create Dashboard
+        </button>
     </div>
 );
 
 interface DashboardsProps {
     dashboards: DashboardItem[];
     onDeleteDashboardClick: (dashboard: DashboardItem) => void;
+    onAddDashboardClick: () => void;
+    onEditDashboardClick: (dashboard: DashboardItem) => void;
 }
 
-const Dashboards: React.FC<DashboardsProps> = ({ dashboards, onDeleteDashboardClick }) => {
+const Dashboards: React.FC<DashboardsProps> = ({ dashboards, onDeleteDashboardClick, onAddDashboardClick, onEditDashboardClick }) => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-text-primary">Dashboards</h1>
         <button
+            onClick={onAddDashboardClick}
             className="bg-primary text-white font-semibold px-4 py-2 rounded-full flex items-center gap-2 hover:bg-primary-hover transition-colors whitespace-nowrap shadow-sm"
         >
             <IconAdd className="h-5 w-5" />
@@ -93,14 +103,14 @@ const Dashboards: React.FC<DashboardsProps> = ({ dashboards, onDeleteDashboardCl
                 <DashboardCard 
                     key={dashboard.id} 
                     dashboard={dashboard}
-                    onEditClick={() => console.log(`Editing ${dashboard.title}`)}
+                    onEditClick={() => onEditDashboardClick(dashboard)}
                     onShareClick={() => console.log(`Sharing ${dashboard.title}`)}
                     onDeleteClick={() => onDeleteDashboardClick(dashboard)}
                 />
             ))}
         </div>
       ) : (
-        <EmptyState />
+        <EmptyState onAddDashboardClick={onAddDashboardClick} />
       )}
     </div>
   );

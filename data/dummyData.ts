@@ -1,5 +1,14 @@
 
-import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User } from '../types';
+import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget } from '../types';
+
+export const availableWidgetsData: Omit<Widget, 'id'>[] = [
+    { widgetId: 'w1', title: 'Total Monthly Spend', type: 'StatCard', description: 'Displays the total credit spend for the current month.' },
+    { widgetId: 'w2', title: 'Forecasted Spend', type: 'StatCard', description: 'AI-based forecast of this month\'s total spend.' },
+    { widgetId: 'w3', title: 'Top Queries by Cost', type: 'Table', description: 'A table of the most expensive queries.' },
+    { widgetId: 'w4', title: 'Warehouse Utilization', type: 'BarChart', description: 'Shows average and peak utilization for warehouses.' },
+    { widgetId: 'w5', title: 'Cost Breakdown', type: 'DonutChart', description: 'A donut chart showing spend by category.' },
+    { widgetId: 'w6', title: 'Spend Over Time', type: 'LineChart', description: 'A line chart of daily spend over the last 30 days.' }
+];
 
 export const connectionsData: Account[] = [
   { id: '1', name: 'Snowflake Prod', identifier: 'axb123.us-east-1', role: 'SYSADMIN', status: 'Connected', lastSynced: '2 mins ago' },
@@ -14,19 +23,29 @@ export const dashboardsData: DashboardItem[] = [
       id: '1',
       title: 'Cost Dashboard',
       description: 'Get a consolidated view of current spend, forecast, and trends across all accounts.',
-      createdOn: 'January 14, 2024, 4:45 PM'
+      createdOn: 'January 14, 2024, 4:45 PM',
+      widgets: [
+        { id: 'inst-1', widgetId: 'w1', title: 'Total Monthly Spend', type: 'StatCard', description: 'Displays the total credit spend for the current month.' },
+        { id: 'inst-2', widgetId: 'w2', title: 'Forecasted Spend', type: 'StatCard', description: 'AI-based forecast of this month\'s total spend.' },
+        { id: 'inst-3', widgetId: 'w5', title: 'Cost Breakdown', type: 'DonutChart', description: 'A donut chart showing spend by category.' },
+      ]
     },
     {
       id: '2',
       title: 'Account Performance',
       description: 'Track credit usage, query performance, and resource efficiency for a specific Snowflake account.',
-      createdOn: 'January 14, 2024, 4:45 PM'
+      createdOn: 'January 14, 2024, 4:45 PM',
+      widgets: [
+        { id: 'inst-4', widgetId: 'w3', title: 'Top Queries by Cost', type: 'Table', description: 'A table of the most expensive queries.' },
+        { id: 'inst-5', widgetId: 'w4', title: 'Warehouse Utilization', type: 'BarChart', description: 'Shows average and peak utilization for warehouses.' },
+      ]
     },
     {
       id: '3',
       title: 'Engineering Dashboard',
       description: 'Analyze query performance, resource bottlenecks, and warehouse workload distribution.',
-      createdOn: 'January 14, 2024, 4:45 PM'
+      createdOn: 'January 14, 2024, 4:45 PM',
+      widgets: []
     }
 ];
 

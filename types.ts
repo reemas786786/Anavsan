@@ -33,11 +33,22 @@ export interface Account {
   lastSynced: string;
 }
 
+export type WidgetType = 'StatCard' | 'LineChart' | 'BarChart' | 'Table' | 'DonutChart';
+
+export interface Widget {
+  id: string; // Unique ID for the instance on the dashboard
+  widgetId: string; // ID of the widget from the library
+  title: string;
+  type: WidgetType;
+  description: string;
+}
+
 export interface DashboardItem {
   id:string;
   title: string;
   createdOn: string;
   description?: string;
+  widgets: Widget[];
 }
 
 export interface SQLVersion {

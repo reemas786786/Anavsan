@@ -23,6 +23,7 @@ import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem } fro
 import { connectionsData, sqlFilesData as initialSqlFiles, usersData, dashboardsData as initialDashboardsData } from './data/dummyData';
 import SettingsPage from './pages/SettingsPage';
 import Dashboards from './pages/Dashboards';
+import DashboardEditor from './pages/DashboardEditor';
 
 const App: React.FC = () => {
   const [activePage, setActivePage] = useState<Page>('Data Cloud Overview');
@@ -47,6 +48,8 @@ const App: React.FC = () => {
   const [userToRemove, setUserToRemove] = useState<User | null>(null);
   const [userToActivate, setUserToActivate] = useState<User | null>(null);
   const [dashboardToDelete, setDashboardToDelete] = useState<DashboardItem | null>(null);
+  
+  const [editingDashboard, setEditingDashboard] = useState<DashboardItem | 'new' | null>(null);
 
 
   useEffect(() => {
@@ -224,13 +227,49 @@ const App: React.FC = () => {
       showToast('Dashboard deleted successfully.');
   };
 
+  const handleSaveDashboard = (dashboardToSave: DashboardItem) => {
+    if (dashboardToSave.id.startsWith('temp-')) {
+        const newDashboard: DashboardItem = {
+            ...dashboardToSave,
+            id: `dash-${Date.now()}`,
+            createdOn: new Date().toLocaleString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+                hour12: true,
+            }),
+        };
+        setDashboards(prev => [newDashboard, ...prev]);
+        showToast('Dashboard created successfully!');
+    } else {
+        setDashboards(prev => prev.map(d => d.id === dashboardToSave.id ? dashboardToSave : d));
+        showToast('Dashboard updated successfully!');
+    }
+    setEditingDashboard(null);
+  };
+
 
   const renderContent = () => {
     switch (activePage) {
       case 'Data Cloud Overview':
         return <Overview onSelectAccount={handleSelectAccount} accounts={accounts} />;
       case 'Dashboards':
-        return <Dashboards dashboards={dashboards} onDeleteDashboardClick={(dashboard) => setDashboardToDelete(dashboard)} />;
+        return editingDashboard ? (
+            <DashboardEditor
+                dashboard={editingDashboard === 'new' ? null : editingDashboard}
+                onSave={handleSaveDashboard}
+                onCancel={() => setEditingDashboard(null)}
+            />
+        ) : (
+            <Dashboards
+                dashboards={dashboards}
+                onDeleteDashboardClick={(dashboard) => setDashboardToDelete(dashboard)}
+                onAddDashboardClick={() => setEditingDashboard('new')}
+                onEditDashboardClick={(dashboard) => setEditingDashboard(dashboard)}
+            />
+        );
       case 'Connections':
         return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setIsAddingAccount(true)} onDeleteAccount={handleDeleteAccount} />;
       case 'AI Agent':
@@ -296,8 +335,8 @@ const App: React.FC = () => {
                 onRemoveUserClick={(user) => setUserToRemove(user)}
             />
           ) : (
-              <div className="p-6">
-              {renderContent()}
+              <div className={activePage === 'Dashboards' && editingDashboard ? '' : 'p-6'}>
+                {renderContent()}
               </div>
           )}
         </main>
