@@ -19,12 +19,13 @@ import EditUserRoleFlow from './components/EditUserRoleFlow';
 import ConfirmationModal from './components/ConfirmationModal';
 import Toast from './components/Toast';
 import Modal from './components/Modal';
-import { Page, Account, SQLFile, UserRole, User, UserStatus } from './types';
-import { connectionsData, sqlFilesData as initialSqlFiles, usersData } from './data/dummyData';
+import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem } from './types';
+import { connectionsData, sqlFilesData as initialSqlFiles, usersData, dashboardsData as initialDashboardsData } from './data/dummyData';
 import SettingsPage from './pages/SettingsPage';
+import Dashboards from './pages/Dashboards';
 
 const App: React.FC = () => {
-  const [activePage, setActivePage] = useState<Page>('Dashboard');
+  const [activePage, setActivePage] = useState<Page>('Data Cloud Overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   
@@ -33,6 +34,7 @@ const App: React.FC = () => {
   const [isSavingQuery, setIsSavingQuery] = useState(false);
   const [sqlFiles, setSqlFiles] = useState<SQLFile[]>(initialSqlFiles);
   const [users, setUsers] = useState<User[]>(usersData);
+  const [dashboards, setDashboards] = useState<DashboardItem[]>(initialDashboardsData);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -44,6 +46,7 @@ const App: React.FC = () => {
   const [userToSuspend, setUserToSuspend] = useState<User | null>(null);
   const [userToRemove, setUserToRemove] = useState<User | null>(null);
   const [userToActivate, setUserToActivate] = useState<User | null>(null);
+  const [dashboardToDelete, setDashboardToDelete] = useState<DashboardItem | null>(null);
 
 
   useEffect(() => {
@@ -78,7 +81,7 @@ const App: React.FC = () => {
   };
 
   const handleLogoClick = () => {
-    setActivePage('Dashboard');
+    setActivePage('Data Cloud Overview');
     setSelectedAccount(null);
     setIsSettingsViewActive(false);
     setIsSidebarOpen(false);
@@ -214,12 +217,20 @@ const App: React.FC = () => {
       setUserToRemove(null);
       showToast('User has been removed.');
   };
+  
+  const handleDeleteDashboard = (dashboardId: string) => {
+      setDashboards(prevDashboards => prevDashboards.filter(d => d.id !== dashboardId));
+      setDashboardToDelete(null);
+      showToast('Dashboard deleted successfully.');
+  };
 
 
   const renderContent = () => {
     switch (activePage) {
-      case 'Dashboard':
+      case 'Data Cloud Overview':
         return <Overview onSelectAccount={handleSelectAccount} accounts={accounts} />;
+      case 'Dashboards':
+        return <Dashboards dashboards={dashboards} onDeleteDashboardClick={(dashboard) => setDashboardToDelete(dashboard)} />;
       case 'Connections':
         return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setIsAddingAccount(true)} onDeleteAccount={handleDeleteAccount} />;
       case 'AI Agent':
@@ -276,7 +287,7 @@ const App: React.FC = () => {
                 onSubPageChange={setActiveSettingsSubPage}
                 onBack={() => {
                     setIsSettingsViewActive(false);
-                    setActivePage('Dashboard');
+                    setActivePage('Data Cloud Overview');
                 }}
                 onAddUserClick={() => setIsInvitingUser(true)}
                 onEditUserRoleClick={(user) => setUserToEdit(user)}
@@ -376,6 +387,18 @@ const App: React.FC = () => {
               message={`Are you sure you want to activate ${userToActivate.name}? They will regain access to the platform.`}
               confirmText="Activate"
               confirmVariant="primary"
+          />
+      )}
+
+      {dashboardToDelete && (
+          <ConfirmationModal
+              isOpen={!!dashboardToDelete}
+              onClose={() => setDashboardToDelete(null)}
+              onConfirm={() => handleDeleteDashboard(dashboardToDelete.id)}
+              title="Delete Dashboard"
+              message={`Are you sure you want to delete the "${dashboardToDelete.title}" dashboard? This action cannot be undone.`}
+              confirmText="Delete"
+              confirmVariant="danger"
           />
       )}
     </div>

@@ -2,7 +2,8 @@
 import React from 'react';
 
 export type Page = 
-  | 'Dashboard' 
+  | 'Data Cloud Overview'
+  | 'Dashboards'
   | 'Connections' 
   | 'AI Agent' 
   | 'Reports' 
