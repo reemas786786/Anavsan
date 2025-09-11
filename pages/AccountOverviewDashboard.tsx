@@ -4,6 +4,7 @@ import { accountSpend, topQueriesData, optimizationOpportunitiesData, warehouses
 import StatCard from '../components/StatCard';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import BudgetStatusWidget from '../components/BudgetStatusWidget';
+import { IconDotsVertical } from '../constants';
 
 const Card: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className, title }) => (
     <div className={`bg-surface p-4 rounded-3xl border border-border-color shadow-sm ${className}`}>
@@ -37,8 +38,6 @@ interface AccountOverviewDashboardProps {
 const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ account }) => {
     const idleWarehouses = warehousesData.filter(w => w.status === 'Idle').length;
     const suspendedWarehouses = warehousesData.filter(w => w.status === 'Suspended').length;
-
-    const totalAccountSpend = accountCostBreakdown.reduce((sum, item) => sum + item.value, 0);
 
     return (
         <div className="space-y-4">
@@ -119,41 +118,54 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                     <AlertCard title="Active Anomalies" count={1} description="Unusual spike in ETL_WH" />
                     <BudgetStatusWidget />
                     <Card>
-                        <h4 className="text-base font-semibold text-text-strong">Account Cost Breakdown</h4>
-                        <div className="flex justify-around items-center mt-4">
-                            {accountCostBreakdown.map(item => {
-                                const percentage = totalAccountSpend > 0 ? Math.round((item.value / totalAccountSpend) * 100) : 0;
-                                const chartData = [{ value: percentage }, { value: 100 - percentage }];
-                                return (
-                                    <div key={item.name} className="flex flex-col items-center text-center">
-                                        <div className="relative h-[100px] w-[100px]">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <PieChart>
-                                                    <Pie
-                                                        data={chartData}
-                                                        dataKey="value"
-                                                        innerRadius="70%"
-                                                        outerRadius="100%"
-                                                        startAngle={90}
-                                                        endAngle={-270}
-                                                        cy="50%"
-                                                        cx="50%"
-                                                        stroke="none"
-                                                    >
-                                                        <Cell fill={item.color} />
-                                                        <Cell fill="#E5E5E0" />
-                                                    </Pie>
-                                                </PieChart>
-                                            </ResponsiveContainer>
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <span className="text-xl font-bold text-text-primary">{percentage}%</span>
+                        <div className="flex justify-between items-start mb-4">
+                            <h4 className="text-base font-semibold text-text-strong">Spend Breakdown</h4>
+                             <button className="p-1 rounded-full text-text-secondary hover:bg-surface-hover hover:text-primary focus:outline-none" aria-label="Account cost breakdown options">
+                                <IconDotsVertical className="h-5 w-5" />
+                            </button>
+                        </div>
+                        <div className="flex items-center justify-center py-4">
+                            <div className="grid grid-cols-2 gap-8">
+                                {accountCostBreakdown.map(item => {
+                                    const chartData = [{ value: item.percentage }, { value: 100 - item.percentage }];
+                                    const label = item.name.replace(' Costs', '');
+                                    const displayValue = `${item.value.toLocaleString()} credits`;
+                                    return (
+                                        <div key={item.name} className="flex flex-col items-center text-center">
+                                            <div className="relative h-[100px] w-[100px]">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie
+                                                            data={chartData}
+                                                            dataKey="value"
+                                                            innerRadius="70%"
+                                                            outerRadius="100%"
+                                                            startAngle={90}
+                                                            endAngle={-270}
+                                                            cy="50%"
+                                                            cx="50%"
+                                                            stroke="none"
+                                                        >
+                                                            <Cell fill={item.color} />
+                                                            <Cell fill="#E5E5E0" />
+                                                        </Pie>
+                                                    </PieChart>
+                                                </ResponsiveContainer>
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <span className="text-xl font-bold text-text-primary">{item.percentage}%</span>
+                                                </div>
                                             </div>
+                                            <p className="mt-2 text-sm text-text-secondary">
+                                                <span className="font-semibold text-text-strong">{label}</span> — {displayValue}
+                                            </p>
                                         </div>
-                                        <p className="mt-2 text-sm font-semibold text-text-strong">{item.name}</p>
-                                        <p className="text-sm text-text-secondary">{item.value.toLocaleString()} credits</p>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        <div className="text-center mt-4 pt-4 border-t border-border-light">
+                            <span className="text-sm text-text-secondary">Current Spend: </span>
+                            <span className="text-sm font-semibold text-text-primary">{accountSpend.monthly.toLocaleString()} credits</span>
                         </div>
                     </Card>
                     

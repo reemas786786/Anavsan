@@ -96,24 +96,49 @@ export const dashboardsData: DashboardItem[] = [
     }
 ];
 
+export const overviewMetrics = {
+    cost: {
+        current: 22453,
+        forecasted: 42883,
+    },
+    credits: {
+        current: 8981,
+        forecasted: 17153,
+    }
+};
+
 export const topSpendData = [
-    { id: '1', name: 'Snowflake Prod', totalSpend: 260 },
-    { id: '2', name: 'Marketing Analytics', totalSpend: 190 },
-    { id: '3', name: 'Development Sandbox', totalSpend: 80 },
-    { id: '4', name: 'Financial Reporting', totalSpend: 60 },
-    { id: '5', name: 'Data Science Cluster', totalSpend: 40 },
+    { id: '1', name: 'Snowflake Prod', cost: 260, credits: 104 },
+    { id: '2', name: 'Marketing Analytics', cost: 190, credits: 76 },
+    { id: '3', name: 'Development Sandbox', cost: 80, credits: 32 },
+    { id: '4', name: 'Financial Reporting', cost: 60, credits: 24 },
+    { id: '5', name: 'Data Science Cluster', cost: 40, credits: 16 },
+    { id: '6', name: 'ETL Processing', cost: 220, credits: 88 },
+    { id: '7', name: 'BI Warehouse', cost: 150, credits: 60 },
+    { id: '8', name: 'Ad-hoc Analysis', cost: 110, credits: 44 },
+    { id: '9', name: 'Customer 360', cost: 95, credits: 38 },
+    { id: '10', name: 'Logistics & Supply', cost: 75, credits: 30 },
+    { id: '11', name: 'Archival Storage', cost: 25, credits: 10 },
+    { id: '12', name: 'HR Analytics', cost: 50, credits: 20 },
 ];
 
 export const topSpendByUserData = [
-    { name: 'Alice Johnson', spend: 1250.75 },
-    { name: 'Bob Williams', spend: 980.50 },
-    { name: 'Charlie Brown', spend: 760.00 },
-    { name: 'Diana Miller', spend: 450.25 },
+    { name: 'Alice Johnson', cost: 1250.75, credits: 500.30 },
+    { name: 'Bob Williams', cost: 980.50, credits: 392.20 },
+    { name: 'Charlie Brown', cost: 760.00, credits: 304.00 },
+    { name: 'Diana Miller', cost: 450.25, credits: 180.10 },
+    { name: 'Ethan Hunt', cost: 1120.00, credits: 448.00 },
+    { name: 'Fiona Glenanne', cost: 850.50, credits: 340.20 },
+    { name: 'George Mason', cost: 680.00, credits: 272.00 },
+    { name: 'Hannah Abbott', cost: 510.75, credits: 204.30 },
+    { name: 'Ian Gallagher', cost: 390.00, credits: 156.00 },
+    { name: 'Jane Smith', cost: 320.50, credits: 128.20 },
+    { name: 'Kevin Ball', cost: 250.00, credits: 100.00 },
 ];
 
 export const costBreakdownData = [
-    { name: 'Warehouse Costs', value: 13920, color: '#6932D5' },
-    { name: 'Storage Costs', value: 6287, color: '#A78BFA' },
+    { name: 'Warehouse Costs', cost: 35000, credits: 1200, color: '#6932D5', percentage: 55 },
+    { name: 'Storage Costs', cost: 12000, credits: 400, color: '#A78BFA', percentage: 38 },
 ];
 
 export const sqlFilesData: SQLFile[] = [
@@ -163,8 +188,8 @@ export const warehousesData: Warehouse[] = [
 ];
 
 export const accountCostBreakdown = [
-    { name: 'Compute Costs', value: 8500, color: '#6932D5' },
-    { name: 'Storage Costs', value: 3500, color: '#A78BFA' },
+    { name: 'Warehouse Costs', value: 1200, color: '#6932D5', percentage: 55 },
+    { name: 'Storage Costs', value: 400, color: '#A78BFA', percentage: 38 },
 ];
 
 export const usersData: User[] = [
