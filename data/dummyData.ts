@@ -58,11 +58,11 @@ export const availableWidgetsData: Omit<Widget, 'id' | 'dataSource'>[] = [
 ];
 
 export const connectionsData: Account[] = [
-  { id: '1', name: 'Snowflake Prod', identifier: 'axb123.us-east-1', role: 'SYSADMIN', status: 'Connected', lastSynced: '2 mins ago' },
-  { id: '2', name: 'Marketing Analytics', identifier: 'yza456.us-west-2', role: 'MARKETING_OPS', status: 'Connected', lastSynced: '5 mins ago' },
-  { id: '3', name: 'Development Sandbox', identifier: 'dev789.eu-central-1', role: 'DEVELOPER', status: 'Syncing', lastSynced: '1 hour ago' },
-  { id: '4', name: 'Financial Reporting', identifier: 'fin012.us-east-1', role: 'FINANCE_ADMIN', status: 'Disconnected', lastSynced: '2 days ago' },
-  { id: '5', name: 'Data Science Cluster', identifier: 'ds345.ap-southeast-2', role: 'DATA_SCIENTIST', status: 'Error', lastSynced: '1 day ago' },
+  { id: '1', name: 'Snowflake Prod', identifier: 'axb123.us-east-1', role: 'SYSADMIN', status: 'Connected', lastSynced: '2 mins ago', cost: 260, credits: 104 },
+  { id: '2', name: 'Marketing Analytics', identifier: 'yza456.us-west-2', role: 'MARKETING_OPS', status: 'Connected', lastSynced: '5 mins ago', cost: 190, credits: 76 },
+  { id: '3', name: 'Development Sandbox', identifier: 'dev789.eu-central-1', role: 'DEVELOPER', status: 'Syncing', lastSynced: '1 hour ago', cost: 80, credits: 32 },
+  { id: '4', name: 'Financial Reporting', identifier: 'fin012.us-east-1', role: 'FINANCE_ADMIN', status: 'Disconnected', lastSynced: '2 days ago', cost: 60, credits: 24 },
+  { id: '5', name: 'Data Science Cluster', identifier: 'ds345.ap-southeast-2', role: 'DATA_SCIENTIST', status: 'Error', lastSynced: '1 day ago', cost: 40, credits: 16 },
 ];
 
 export const dashboardsData: DashboardItem[] = [
@@ -122,20 +122,6 @@ export const topSpendData = [
     { id: '12', name: 'HR Analytics', cost: 50, credits: 20 },
 ];
 
-export const topSpendByUserData = [
-    { name: 'Alice Johnson', cost: 1250.75, credits: 500.30 },
-    { name: 'Bob Williams', cost: 980.50, credits: 392.20 },
-    { name: 'Charlie Brown', cost: 760.00, credits: 304.00 },
-    { name: 'Diana Miller', cost: 450.25, credits: 180.10 },
-    { name: 'Ethan Hunt', cost: 1120.00, credits: 448.00 },
-    { name: 'Fiona Glenanne', cost: 850.50, credits: 340.20 },
-    { name: 'George Mason', cost: 680.00, credits: 272.00 },
-    { name: 'Hannah Abbott', cost: 510.75, credits: 204.30 },
-    { name: 'Ian Gallagher', cost: 390.00, credits: 156.00 },
-    { name: 'Jane Smith', cost: 320.50, credits: 128.20 },
-    { name: 'Kevin Ball', cost: 250.00, credits: 100.00 },
-];
-
 export const costBreakdownData = [
     { name: 'Warehouse Costs', cost: 35000, credits: 1200, color: '#6932D5', percentage: 55 },
     { name: 'Storage Costs', cost: 12000, credits: 400, color: '#A78BFA', percentage: 38 },
@@ -193,8 +179,15 @@ export const accountCostBreakdown = [
 ];
 
 export const usersData: User[] = [
-    { id: 'user1', name: 'Alice Johnson', email: 'alice.j@example.com', role: 'Admin', status: 'Active', dateAdded: '2024-05-10' },
-    { id: 'user2', name: 'Bob Williams', email: 'bob.w@example.com', role: 'Analyst', status: 'Active', dateAdded: '2024-05-12' },
-    { id: 'user3', name: 'Charlie Brown', email: 'charlie.b@example.com', role: 'Viewer', status: 'Invited', dateAdded: '2024-06-01' },
-    { id: 'user4', name: 'Diana Miller', email: 'diana.m@example.com', role: 'Analyst', status: 'Suspended', dateAdded: '2024-04-20' },
+    { id: 'user1', name: 'Alice Johnson', email: 'alice.j@example.com', role: 'Admin', status: 'Active', dateAdded: '2024-05-10', cost: 1250.75, credits: 500.30 },
+    { id: 'user2', name: 'Bob Williams', email: 'bob.w@example.com', role: 'Analyst', status: 'Active', dateAdded: '2024-05-12', cost: 980.50, credits: 392.20 },
+    { id: 'user3', name: 'Charlie Brown', email: 'charlie.b@example.com', role: 'Viewer', status: 'Active', dateAdded: '2024-06-01', cost: 760.00, credits: 304.00 },
+    { id: 'user4', name: 'Diana Miller', email: 'diana.m@example.com', role: 'Analyst', status: 'Suspended', dateAdded: '2024-04-20', cost: 450.25, credits: 180.10 },
+    { id: 'user5', name: 'Ethan Hunt', email: 'ethan.h@example.com', role: 'Analyst', status: 'Active', dateAdded: '2024-05-15', cost: 1120.00, credits: 448.00 },
+    { id: 'user6', name: 'Fiona Glenanne', email: 'fiona.g@example.com', role: 'Analyst', status: 'Active', dateAdded: '2024-05-18', cost: 850.50, credits: 340.20 },
+    { id: 'user7', name: 'George Mason', email: 'george.m@example.com', role: 'Viewer', status: 'Active', dateAdded: '2024-05-20', cost: 680.00, credits: 272.00 },
+    { id: 'user8', name: 'Hannah Abbott', email: 'hannah.a@example.com', role: 'Admin', status: 'Invited', dateAdded: '2024-06-02', cost: 510.75, credits: 204.30 },
+    { id: 'user9', name: 'Ian Gallagher', email: 'ian.g@example.com', role: 'Viewer', status: 'Active', dateAdded: '2024-04-25', cost: 390.00, credits: 156.00 },
+    { id: 'user10', name: 'Jane Smith', email: 'jane.s@example.com', role: 'Analyst', status: 'Active', dateAdded: '2024-04-28', cost: 320.50, credits: 128.20 },
+    { id: 'user11', name: 'Kevin Ball', email: 'kevin.b@example.com', role: 'Analyst', status: 'Active', dateAdded: '2024-05-01', cost: 250.00, credits: 100.00 },
 ];

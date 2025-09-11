@@ -30,6 +30,8 @@ export interface Account {
   role: string;
   status: ConnectionStatus;
   lastSynced: string;
+  cost: number;
+  credits: number;
 }
 
 export type WidgetType = 'StatCard' | 'LineChart' | 'BarChart' | 'Table' | 'DonutChart';
@@ -103,4 +105,6 @@ export interface User {
     dateAdded: string;
     avatarUrl?: string;
     message?: string;
+    cost: number;
+    credits: number;
 }

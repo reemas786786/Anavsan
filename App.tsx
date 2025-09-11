@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -10,6 +11,7 @@ import Settings from './pages/Settings';
 import Support from './pages/Support';
 import Overview from './pages/Overview';
 import AccountView from './pages/AccountView';
+import UserView from './pages/UserView';
 import SidePanel from './components/SidePanel';
 import AddAccountFlow from './components/AddAccountFlow';
 import SaveQueryFlow from './components/SaveQueryFlow';
@@ -28,6 +30,7 @@ const App: React.FC = () => {
   const [activePage, setActivePage] = useState<Page>('Data Cloud Overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [isAddingAccount, setIsAddingAccount] = useState(false);
@@ -41,7 +44,7 @@ const App: React.FC = () => {
   const [isSettingsViewActive, setIsSettingsViewActive] = useState(false);
   const [activeSettingsSubPage, setActiveSettingsSubPage] = useState('User Management');
   
-  const [isInvitingUser, setIsInvitingUser] = useState(false);
+  const [isAddingUser, setIsAddingUser] = useState(false);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
   const [userToSuspend, setUserToSuspend] = useState<User | null>(null);
   const [userToRemove, setUserToRemove] = useState<User | null>(null);
@@ -67,6 +70,7 @@ const App: React.FC = () => {
   const handlePageChange = (page: Page, subPage?: string) => {
     setActivePage(page);
     setSelectedAccount(null);
+    setSelectedUser(null);
     
     if (page === 'Settings') {
         setIsSettingsViewActive(true);
@@ -85,22 +89,26 @@ const App: React.FC = () => {
   const handleLogoClick = () => {
     setActivePage('Data Cloud Overview');
     setSelectedAccount(null);
+    setSelectedUser(null);
     setIsSettingsViewActive(false);
     setIsSidebarOpen(false);
   };
 
-  const handleAddAccount = () => {
+  const handleAddAccount = (data: { name: string }) => {
+    const newCost = Math.floor(Math.random() * 500) + 50;
     const newAccount: Account = {
       id: `new-${Date.now()}`,
-      name: `New Account #${accounts.length + 1}`,
+      name: data.name || `New Account #${accounts.length + 1}`,
       identifier: `xyz${Math.floor(Math.random() * 1000)}.eu-west-1`,
       role: 'ANALYST',
       status: 'Syncing',
       lastSynced: 'Just now',
+      cost: newCost,
+      credits: parseFloat((newCost * 0.4).toFixed(2)),
     };
     setAccounts(prevAccounts => [...prevAccounts, newAccount]);
     setIsAddingAccount(false);
-    showToast("Account added successfully!");
+    showToast("Account added (mock data)");
   };
   
   const handleDeleteAccount = (accountId: string) => {
@@ -150,7 +158,15 @@ const App: React.FC = () => {
 
   const handleSelectAccount = (account: Account) => {
     setSelectedAccount(account);
+    setSelectedUser(null);
     setIsSettingsViewActive(false);
+    setActivePage('Connections');
+  };
+
+  const handleSelectUser = (user: User) => {
+      setSelectedUser(user);
+      setSelectedAccount(null);
+      setIsSettingsViewActive(false);
   };
 
   const handleBackToConnections = () => {
@@ -158,30 +174,22 @@ const App: React.FC = () => {
     setActivePage('Connections');
   };
   
-  const handleSendInvite = (data: { email: string; role: UserRole; message: string; }) => {
+  const handleAddUser = (data: { name: string; role: UserRole; }) => {
+    const newCost = Math.floor(Math.random() * 3000);
     const newUser: User = {
         id: `user-${Date.now()}`,
-        name: data.email.split('@')[0] || 'New User',
-        email: data.email,
+        name: data.name,
+        email: `${data.name.toLowerCase().replace(/\s+/g, '.')}@example.com`,
         role: data.role,
-        status: 'Invited',
+        status: 'Active',
         dateAdded: new Date().toISOString().split('T')[0],
-        message: data.message,
+        cost: newCost,
+        credits: parseFloat((newCost * 0.4).toFixed(2)),
     };
     
     setUsers(prevUsers => [newUser, ...prevUsers]);
-    setIsInvitingUser(false);
-    showToast('Invitation sent successfully!');
-
-    // Dummy behavior: auto-activate after 5 seconds
-    setTimeout(() => {
-        setUsers(prevUsers => 
-            prevUsers.map(user => 
-                user.id === newUser.id ? { ...user, status: 'Active' as UserStatus } : user
-            )
-        );
-        showToast(`User ${data.email} is now active.`);
-    }, 5000);
+    setIsAddingUser(false);
+    showToast('User added (mock data)');
   };
 
   const handleUpdateUserRole = (userId: string, newRole: UserRole) => {
@@ -253,7 +261,7 @@ const App: React.FC = () => {
   const renderContent = () => {
     switch (activePage) {
       case 'Data Cloud Overview':
-        return <Overview onSelectAccount={handleSelectAccount} accounts={accounts} />;
+        return <Overview onSelectAccount={handleSelectAccount} onSelectUser={handleSelectUser} accounts={accounts} users={users} />;
       case 'Dashboards':
         return editingDashboard ? (
             <DashboardEditor
@@ -291,7 +299,7 @@ const App: React.FC = () => {
     }
   };
   
-  const isAccountView = !!selectedAccount;
+  const isAccountView = !!selectedAccount || !!selectedUser;
 
   return (
     <div className="h-screen bg-background font-sans flex flex-col">
@@ -319,6 +327,8 @@ const App: React.FC = () => {
               sqlFiles={sqlFiles}
               onSaveQueryClick={() => setIsSavingQuery(true)}
               />
+          ) : selectedUser ? (
+              <UserView user={selectedUser} onBack={() => setSelectedUser(null)} />
           ) : isSettingsViewActive ? (
             <SettingsPage
                 users={users}
@@ -328,7 +338,7 @@ const App: React.FC = () => {
                     setIsSettingsViewActive(false);
                     setActivePage('Data Cloud Overview');
                 }}
-                onAddUserClick={() => setIsInvitingUser(true)}
+                onAddUserClick={() => setIsAddingUser(true)}
                 onEditUserRoleClick={(user) => setUserToEdit(user)}
                 onSuspendUserClick={(user) => setUserToSuspend(user)}
                 onActivateUserClick={(user) => setUserToActivate(user)}
@@ -369,13 +379,13 @@ const App: React.FC = () => {
       </SidePanel>
       
       <SidePanel
-          isOpen={isInvitingUser}
-          onClose={() => setIsInvitingUser(false)}
-          title="Add users"
+          isOpen={isAddingUser}
+          onClose={() => setIsAddingUser(false)}
+          title="Add User"
       >
           <InviteUserFlow
-              onCancel={() => setIsInvitingUser(false)}
-              onSendInvite={handleSendInvite}
+              onCancel={() => setIsAddingUser(false)}
+              onAddUser={handleAddUser}
           />
       </SidePanel>
 

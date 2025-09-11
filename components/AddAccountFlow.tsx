@@ -2,14 +2,21 @@ import React, { useState } from 'react';
 
 interface AddAccountFlowProps {
     onCancel: () => void;
-    onAddAccount: () => void;
+    onAddAccount: (data: { name: string }) => void;
 }
 
-const Step1 = () => (
+const Step1 = ({ accountName, setAccountName }: { accountName: string; setAccountName: (name: string) => void; }) => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="col-span-2">
             <label htmlFor="accountName" className="block text-sm font-medium text-text-secondary mb-1">Friendly Account Name</label>
-            <input type="text" id="accountName" className="w-full border border-border-color rounded-full px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg placeholder-text-secondary" placeholder="e.g., Production Environment" />
+            <input 
+                type="text" 
+                id="accountName" 
+                className="w-full border border-border-color rounded-full px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg placeholder-text-secondary" 
+                placeholder="e.g., Production Environment"
+                value={accountName}
+                onChange={(e) => setAccountName(e.target.value)}
+            />
         </div>
         <div>
             <label htmlFor="identifier" className="block text-sm font-medium text-text-secondary mb-1">Account Identifier</label>
@@ -55,9 +62,17 @@ const Step2 = () => (
 
 const AddAccountFlow: React.FC<AddAccountFlowProps> = ({ onCancel, onAddAccount }) => {
     const [step, setStep] = useState(1);
+    const [accountName, setAccountName] = useState('');
 
     const handleNext = () => setStep(step + 1);
     const handleBack = () => setStep(step - 1);
+
+    const handleAdd = () => {
+        if (!accountName.trim()) {
+            return;
+        }
+        onAddAccount({ name: accountName });
+    };
 
     return (
         <div className="flex flex-col h-full">
@@ -67,7 +82,7 @@ const AddAccountFlow: React.FC<AddAccountFlowProps> = ({ onCancel, onAddAccount 
                         ? "Provide your account details to establish a connection." 
                         : "Configure connection settings for Anavsan."}
                 </p>
-                {step === 1 && <Step1 />}
+                {step === 1 && <Step1 accountName={accountName} setAccountName={setAccountName} />}
                 {step === 2 && <Step2 />}
             </div>
 
@@ -78,7 +93,7 @@ const AddAccountFlow: React.FC<AddAccountFlowProps> = ({ onCancel, onAddAccount 
                 <div className="flex items-center gap-3">
                     {step > 1 && <button onClick={handleBack} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-gray-50">Back</button>}
                     {step === 1 && <button onClick={handleNext} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full">Next</button>}
-                    {step === 2 && <button onClick={onAddAccount} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full">Add Account</button>}
+                    {step === 2 && <button onClick={handleAdd} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full">Add Account</button>}
                 </div>
             </div>
         </div>

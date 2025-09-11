@@ -4,40 +4,39 @@ import { UserRole } from '../types';
 
 interface InviteUserFlowProps {
     onCancel: () => void;
-    onSendInvite: (data: { email: string; role: UserRole; message: string; }) => void;
+    onAddUser: (data: { name: string; role: UserRole; }) => void;
 }
 
-const InviteUserFlow: React.FC<InviteUserFlowProps> = ({ onCancel, onSendInvite }) => {
-    const [email, setEmail] = useState('');
+const InviteUserFlow: React.FC<InviteUserFlowProps> = ({ onCancel, onAddUser }) => {
+    const [name, setName] = useState('');
     const [role, setRole] = useState<UserRole>('Analyst');
-    const [message, setMessage] = useState('');
 
     const handleSubmit = () => {
-        if (!email) {
+        if (!name.trim()) {
             // Add more robust validation as needed
             return;
         }
-        onSendInvite({ email, role, message });
+        onAddUser({ name, role });
     };
 
     return (
         <div className="flex flex-col h-full">
             <div className="p-8 space-y-6 flex-grow">
                 <p className="text-sm text-text-secondary">
-                    Enter the details of the user you'd like to invite to your Anavsan account.
+                    Add a new user to your Anavsan account and assign them a role.
                 </p>
                 
                 <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-text-secondary mb-1">
-                        Email ID
+                    <label htmlFor="name" className="block text-sm font-medium text-text-secondary mb-1">
+                        User Name
                     </label>
                     <input
-                        type="email"
-                        id="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        type="text"
+                        id="name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
                         className="w-full border border-border-color rounded-full px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg placeholder-text-secondary"
-                        placeholder="e.g., jane.doe@example.com"
+                        placeholder="e.g., Jane Doe"
                         aria-required="true"
                     />
                 </div>
@@ -57,35 +56,22 @@ const InviteUserFlow: React.FC<InviteUserFlowProps> = ({ onCancel, onSendInvite 
                         <option>Viewer</option>
                     </select>
                 </div>
-                 <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-text-secondary mb-1">
-                        Message (optional)
-                    </label>
-                    <textarea
-                        id="message"
-                        rows={4}
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        className="w-full border border-border-color rounded-3xl px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg placeholder-text-secondary"
-                        placeholder="Add a personal message to the invitation."
-                    />
-                </div>
             </div>
 
             <div className="p-6 bg-background border-t border-border-color flex justify-end items-center gap-3 flex-shrink-0">
                 <button
                     onClick={onCancel}
                     className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-gray-50"
-                    aria-label="Cancel invitation"
+                    aria-label="Cancel adding user"
                 >
                     Cancel
                 </button>
                 <button
                     onClick={handleSubmit}
                     className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full"
-                    aria-label="Send user invitation"
+                    aria-label="Save new user"
                 >
-                    Send Invite
+                    Save
                 </button>
             </div>
         </div>

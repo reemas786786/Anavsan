@@ -1,12 +1,15 @@
+
 import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
-import { topSpendData, costBreakdownData, topSpendByUserData, overviewMetrics } from '../data/dummyData';
-import { Account } from '../types';
+import { costBreakdownData, overviewMetrics } from '../data/dummyData';
+import { Account, User } from '../types';
 import { IconDotsVertical } from '../constants';
 
 interface OverviewProps {
     onSelectAccount: (account: Account) => void;
+    onSelectUser: (user: User) => void;
     accounts: Account[];
+    users: User[];
 }
 
 const Card: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className, title }) => (
@@ -18,16 +21,48 @@ const Card: React.FC<{ children: React.ReactNode, className?: string, title?: st
 
 const resourceSummaryData = [
     { title: 'Snowflake account', value: '5' },
-    { title: 'Warehouses', value: '12' },
-    { title: 'Queries', value: '2,847' },
-    { title: 'Storage (GB)', value: '2,085' },
+    { title: 'Warehouses Monitored', value: '12' },
+    { title: 'Executed Queries (Month)', value: '2,847' },
+    { title: 'Storage Used (GB, Month)', value: '2,085' },
 ];
 
+const AccessibleBar = (props: any) => {
+    const { x, y, width, height, fill, payload, onBarClick, ariaLabelGenerator } = props;
 
-const Overview: React.FC<OverviewProps> = ({ onSelectAccount, accounts }) => {
+    if (!payload || width <= 0) return null;
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onBarClick(payload);
+        }
+    };
+
+    return (
+        <g
+            tabIndex={0}
+            onClick={() => onBarClick(payload)}
+            onKeyDown={handleKeyDown}
+            aria-label={ariaLabelGenerator(payload)}
+            role="button"
+            style={{ cursor: 'pointer', outline: 'none' }}
+            onFocus={(e) => {
+                const rect = e.currentTarget.querySelector('rect');
+                if(rect) rect.style.fill = '#5A28BE'; // primary-hover color
+            }}
+            onBlur={(e) => {
+                const rect = e.currentTarget.querySelector('rect');
+                if(rect) rect.style.fill = fill;
+            }}
+        >
+            <rect x={x} y={y} width={width} height={height} fill={fill} />
+        </g>
+    );
+};
+
+
+const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, accounts, users }) => {
     const [displayMode, setDisplayMode] = useState<'cost' | 'credits'>('cost');
-    const [showAllAccounts, setShowAllAccounts] = useState(false);
-    const [showAllUsers, setShowAllUsers] = useState(false);
     
     const handleBarClick = (data: any) => {
         const account = accounts.find(acc => acc.id === data.id);
@@ -36,50 +71,25 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, accounts }) => {
         }
     };
 
-    const sortedTopSpendData = [...topSpendData].sort((a, b) => {
+    const sortedTopSpendData = [...accounts].sort((a, b) => {
         const key = displayMode === 'cost' ? 'cost' : 'credits';
         return b[key] - a[key];
-    });
+    }).slice(0, 10);
 
-    const sortedTopSpendByUserData = [...topSpendByUserData].sort((a, b) => {
+    const topUsers = [...users].sort((a, b) => {
         const key = displayMode === 'cost' ? 'cost' : 'credits';
         return b[key] - a[key];
-    });
+    }).slice(0, 10);
 
     const handleUserBarClick = (data: any) => {
-        if (data && data.activeLabel) {
-            // In a real application, this would navigate to a detailed view for the user.
-            console.log(`Drill down to user: ${data.activeLabel}`);
+        const user = users.find(u => u.id === data.id);
+        if (user) {
+            onSelectUser(user);
         }
     };
     
     const currentSpend = displayMode === 'cost' ? overviewMetrics.cost.current : overviewMetrics.credits.current;
     const forecastedSpend = displayMode === 'cost' ? overviewMetrics.cost.forecasted : overviewMetrics.credits.forecasted;
-
-    // --- Custom Components for Condensed Charts ---
-    const CustomShapeBar = (props: any) => {
-        const { fill, x, y, width, height, index, isExpanded } = props;
-        const isCondensed = !isExpanded && index >= 10;
-    
-        const barHeight = isCondensed ? height * 0.5 : height * 0.8; 
-        const yPos = y + (height - barHeight) / 2;
-    
-        return <rect x={x} y={yPos} width={width} height={barHeight} fill={fill} />;
-    };
-
-    const CustomYAxisTick = (props: any) => {
-        const { x, y, payload, index, isExpanded } = props;
-        const isCondensed = !isExpanded && index >= 10;
-        const fontSize = isCondensed ? 10 : 12;
-
-        return (
-            <g transform={`translate(${x},${y})`}>
-                <text x={0} y={0} dy={4} textAnchor="end" fill="#5A5A72" fontSize={fontSize}>
-                    {payload.value}
-                </text>
-            </g>
-        );
-    };
 
     return (
         <div className="space-y-4">
@@ -199,14 +209,12 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, accounts }) => {
                 </Card>
 
                 <Card title="Top Spend by Account">
-                    <div style={{ height: 400, overflowY: 'auto' }} aria-live="polite">
-                        <ResponsiveContainer width="100%" height={sortedTopSpendData.length * 35 + 40}>
+                    <div style={{ height: 400 }} aria-live="polite">
+                        <ResponsiveContainer width="100%" height="100%">
                             <BarChart
                                 layout="vertical"
                                 data={sortedTopSpendData}
                                 margin={{ top: 5, right: 30, left: 100, bottom: 20 }}
-                                // FIX: Explicitly typing `data` as `any` to resolve issue with Recharts type definitions where `activePayload` is not recognized.
-                                onClick={(data: any) => data?.activePayload?.[0] && handleBarClick(data.activePayload[0].payload)}
                                 barCategoryGap="10%"
                             >
                                 <XAxis
@@ -225,7 +233,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, accounts }) => {
                                     axisLine={false}
                                     interval={0}
                                     width={100}
-                                    tick={<CustomYAxisTick isExpanded={showAllAccounts} />}
+                                    tick={{ fill: '#5A5A72', fontSize: 12 }}
                                 />
                                 <Tooltip
                                     cursor={{ fill: 'rgba(105, 50, 213, 0.1)' }}
@@ -236,31 +244,30 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, accounts }) => {
                                         displayMode === 'cost' ? 'Spend' : 'Credits'
                                     ]}
                                 />
-                                <Bar dataKey={displayMode === 'cost' ? 'cost' : 'credits'} fill="#6932D5" shape={<CustomShapeBar isExpanded={showAllAccounts} />} />
+                                <Bar 
+                                    dataKey={displayMode === 'cost' ? 'cost' : 'credits'} 
+                                    fill="#6932D5" 
+                                    barSize={20}
+                                    shape={
+                                        <AccessibleBar 
+                                            onBarClick={handleBarClick} 
+                                            ariaLabelGenerator={(p: any) => `Navigate to Account Overview for ${p.name}`}
+                                        />
+                                    } 
+                                />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
-                    {sortedTopSpendData.length > 10 && (
-                        <div className="text-center mt-2 border-t border-border-light pt-2">
-                            <button
-                                onClick={() => setShowAllAccounts(!showAllAccounts)}
-                                className="text-sm font-semibold text-link hover:underline focus:outline-none"
-                                aria-expanded={showAllAccounts}
-                            >
-                                {showAllAccounts ? 'Show Less' : `Show ${sortedTopSpendData.length - 10} More`}
-                            </button>
-                        </div>
-                    )}
                 </Card>
 
                 <Card title="Top Spend by User">
-                    <div style={{ height: 400, overflowY: 'auto' }} aria-live="polite">
-                        <ResponsiveContainer width="100%" height={sortedTopSpendByUserData.length * 35 + 40}>
+                    <div style={{ height: 400 }} aria-live="polite">
+                        <ResponsiveContainer width="100%" height="100%">
                             <BarChart
                                 layout="vertical"
-                                data={sortedTopSpendByUserData}
+                                data={topUsers}
                                 margin={{ top: 5, right: 30, left: 100, bottom: 20 }}
-                                onClick={handleUserBarClick}
+                                barCategoryGap="20%"
                             >
                                 <XAxis
                                     type="number"
@@ -278,7 +285,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, accounts }) => {
                                     axisLine={false}
                                     interval={0}
                                     width={100}
-                                    tick={<CustomYAxisTick isExpanded={showAllUsers} />}
+                                    tick={{ fill: '#5A5A72', fontSize: 12 }}
                                 />
                                 <Tooltip
                                     cursor={{ fill: 'rgba(105, 50, 213, 0.1)', cursor: 'pointer' }}
@@ -292,22 +299,17 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, accounts }) => {
                                 <Bar
                                     dataKey={displayMode === 'cost' ? 'cost' : 'credits'}
                                     fill="#6932D5"
-                                    shape={<CustomShapeBar isExpanded={showAllUsers} />}
+                                    barSize={15}
+                                    shape={
+                                        <AccessibleBar 
+                                            onBarClick={handleUserBarClick}
+                                            ariaLabelGenerator={(p: any) => `Navigate to User Overview for ${p.name}`}
+                                        />
+                                    }
                                 />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
-                     {sortedTopSpendByUserData.length > 10 && (
-                        <div className="text-center mt-2 border-t border-border-light pt-2">
-                            <button
-                                onClick={() => setShowAllUsers(!showAllUsers)}
-                                className="text-sm font-semibold text-link hover:underline focus:outline-none"
-                                aria-expanded={showAllUsers}
-                            >
-                                {showAllUsers ? 'Show Less' : `Show ${sortedTopSpendByUserData.length - 10} More`}
-                            </button>
-                        </div>
-                    )}
                 </Card>
             </div>
         </div>
