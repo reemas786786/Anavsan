@@ -2,8 +2,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
-import { costBreakdownData, overviewMetrics } from '../data/dummyData';
-import { Account, User } from '../types';
+import { costBreakdownData, overviewMetrics, resourceSummaryData as initialResourceSummaryData } from '../data/dummyData';
+import { Account, User, BigScreenWidget } from '../types';
 import { IconDotsVertical } from '../constants';
 import SidePanel from '../components/SidePanel';
 import TableView from '../components/TableView';
@@ -13,6 +13,7 @@ interface OverviewProps {
     onSelectUser: (user: User) => void;
     accounts: Account[];
     users: User[];
+    onSetBigScreenWidget: (widget: BigScreenWidget) => void;
 }
 
 const Card: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className, title }) => (
@@ -21,13 +22,6 @@ const Card: React.FC<{ children: React.ReactNode, className?: string, title?: st
         {children}
     </div>
 );
-
-const resourceSummaryData = [
-    { title: 'Snowflake account', value: '5' },
-    { title: 'Warehouses Monitored', value: '12' },
-    { title: 'Executed Queries (Month)', value: '2,847' },
-    { title: 'Storage Used (GB, Month)', value: '2,085' },
-];
 
 const AccessibleBar = (props: any) => {
     const { x, y, width, height, fill, payload, onBarClick, ariaLabelGenerator } = props;
@@ -64,7 +58,7 @@ const AccessibleBar = (props: any) => {
 };
 
 
-const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, accounts, users }) => {
+const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, accounts, users, onSetBigScreenWidget }) => {
     const [displayMode, setDisplayMode] = useState<'cost' | 'credits'>('cost');
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -74,6 +68,11 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
         data: { name: string; cost: number; credits: number; percentage: number }[];
     } | null>(null);
     
+    const resourceSummaryData = [
+        { title: 'Snowflake accounts', value: accounts.length.toString() },
+        ...initialResourceSummaryData,
+    ];
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -89,6 +88,65 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
     const handleMenuClick = (menuId: string) => {
         setOpenMenu(prev => (prev === menuId ? null : menuId));
     };
+
+    const downloadCSV = (content: string, fileName: string) => {
+        const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const date = new Date().toISOString().split('T')[0];
+        link.href = URL.createObjectURL(blob);
+        link.download = `${fileName.replace(/\s+/g, '_')}_${date}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handleDownloadCSV = (widgetType: string) => {
+        let headers: string[] = [];
+        let dataRows: (string | number)[][] = [];
+        let fileName = '';
+        const timestamp = new Date().toISOString();
+
+        switch (widgetType) {
+            case 'cost-forecast':
+                fileName = 'Current_Month_Cost_Forecast';
+                headers = ['Metric', 'Cost', 'Credits', 'Timestamp'];
+                dataRows = [
+                    ['Current Spend', overviewMetrics.cost.current, overviewMetrics.credits.current, timestamp],
+                    ['Forecasted Spend', overviewMetrics.cost.forecasted, overviewMetrics.credits.forecasted, timestamp]
+                ];
+                break;
+            case 'resource-summary':
+                fileName = 'Resource_Summary';
+                headers = ['Metric', 'Value', 'Timestamp'];
+                dataRows = resourceSummaryData.map(item => [`"${item.title}"`, `"${item.value}"`, timestamp]);
+                break;
+            case 'spend-breakdown':
+                fileName = 'Spend_Breakdown';
+                headers = ['Entity', 'Cost', 'Credits', 'Timestamp'];
+                dataRows = costBreakdownData.map(item => [item.name, item.cost, item.credits, timestamp]);
+                break;
+            case 'top-spend-account':
+                fileName = 'Top_Spend_by_Account';
+                headers = ['Entity', 'Cost', 'Credits', 'Timestamp'];
+                dataRows = accounts.map(item => [`"${item.name}"`, item.cost, item.credits, timestamp]);
+                break;
+            case 'top-spend-user':
+                fileName = 'Top_Spend_by_User';
+                headers = ['Entity', 'Cost', 'Credits', 'Timestamp'];
+                dataRows = users.map(item => [`"${item.name}"`, item.cost, item.credits, timestamp]);
+                break;
+        }
+        
+        if (headers.length > 0) {
+            const csvContent = [
+                headers.join(','),
+                ...dataRows.map(row => row.join(','))
+            ].join('\n');
+            downloadCSV(csvContent, fileName);
+        }
+        setOpenMenu(null);
+    };
+
     
     const handleOpenSpendBreakdownTable = () => {
         const totalCost = costBreakdownData.reduce((sum, item) => sum + item.cost, 0);
@@ -212,7 +270,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                              {openMenu === 'cost-forecast' && (
                                 <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
                                     <div className="py-1" role="menu" aria-orientation="vertical">
-                                        <button onClick={() => setOpenMenu(null)} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
+                                        <button onClick={() => handleDownloadCSV('cost-forecast')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
                                     </div>
                                 </div>
                             )}
@@ -250,7 +308,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                              {openMenu === 'resource-summary' && (
                                 <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
                                     <div className="py-1" role="menu" aria-orientation="vertical">
-                                        <button onClick={() => setOpenMenu(null)} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
+                                        <button onClick={() => handleDownloadCSV('resource-summary')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
                                     </div>
                                 </div>
                             )}
@@ -280,10 +338,11 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                                 <IconDotsVertical className="h-5 w-5" />
                             </button>
                              {openMenu === 'spend-breakdown' && (
-                                <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
                                     <div className="py-1" role="menu" aria-orientation="vertical">
+                                        <button onClick={() => { onSetBigScreenWidget({ type: 'spend_breakdown', title: 'Spend Breakdown' }); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">View in Big Screen</button>
                                         <button onClick={() => { handleOpenSpendBreakdownTable(); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Table View</button>
-                                        <button onClick={() => setOpenMenu(null)} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
+                                        <button onClick={() => handleDownloadCSV('spend-breakdown')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
                                     </div>
                                 </div>
                             )}
@@ -359,9 +418,9 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                              {openMenu === 'top-spend-account' && (
                                 <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
                                     <div className="py-1" role="menu" aria-orientation="vertical">
-                                        <button onClick={() => setOpenMenu(null)} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">View in Big Screen</button>
+                                        <button onClick={() => { onSetBigScreenWidget({ type: 'account', title: 'Top Spend by Account' }); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">View in Big Screen</button>
                                         <button onClick={() => { handleOpenTopAccountTable(); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Table View</button>
-                                        <button onClick={() => setOpenMenu(null)} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
+                                        <button onClick={() => handleDownloadCSV('top-spend-account')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
                                     </div>
                                 </div>
                             )}
@@ -434,9 +493,9 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                              {openMenu === 'top-spend-user' && (
                                 <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
                                     <div className="py-1" role="menu" aria-orientation="vertical">
-                                        <button onClick={() => setOpenMenu(null)} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">View in Big Screen</button>
+                                        <button onClick={() => { onSetBigScreenWidget({ type: 'user', title: 'Top Spend by User' }); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">View in Big Screen</button>
                                         <button onClick={() => { handleOpenTopUserTable(); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Table View</button>
-                                        <button onClick={() => setOpenMenu(null)} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
+                                        <button onClick={() => handleDownloadCSV('top-spend-user')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
                                     </div>
                                 </div>
                             )}
@@ -506,6 +565,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                     />
                 )}
             </SidePanel>
+
         </div>
     );
 };

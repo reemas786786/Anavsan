@@ -7,9 +7,10 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  size?: 'md' | 'lg' | 'xl';
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 'md' }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -65,6 +66,12 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
 
 
   if (!isOpen) return null;
+  
+  const sizeClasses = {
+    md: 'max-w-lg',
+    lg: 'max-w-3xl',
+    xl: 'max-w-6xl',
+  };
 
   return (
     <div
@@ -78,7 +85,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
       <div
         ref={modalRef}
         tabIndex={-1}
-        className="relative bg-surface rounded-3xl shadow-xl w-full max-w-lg m-4 transform transition-all duration-300 ease-in-out scale-100 flex flex-col"
+        className={`relative bg-surface rounded-3xl shadow-xl w-full m-4 transform transition-all duration-300 ease-in-out scale-100 flex flex-col ${sizeClasses[size]}`}
         style={{maxHeight: '90vh'}}
       >
         {/* Header */}

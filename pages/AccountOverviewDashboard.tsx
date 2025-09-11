@@ -61,6 +61,34 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
         setOpenMenu(prev => (prev === menuId ? null : menuId));
     };
 
+    const handleDownloadCSV = () => {
+        const headers = ["Entity", "Credits", "Percentage", "Timestamp"];
+        const timestamp = new Date().toISOString();
+
+        const dataRows = accountCostBreakdown.map(item => [
+            item.name,
+            item.value,
+            item.percentage,
+            timestamp
+        ]);
+        
+        const csvContent = [
+            headers.join(','),
+            ...dataRows.map(row => row.join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const date = new Date().toISOString().split('T')[0];
+        link.href = URL.createObjectURL(blob);
+        link.download = `Spend_Breakdown_${date}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        setOpenMenu(null);
+    };
+
     const handleOpenSpendBreakdownTable = () => {
         const totalCredits = accountCostBreakdown.reduce((sum, item) => sum + item.value, 0);
         
@@ -175,7 +203,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                                     <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
                                         <div className="py-1" role="menu" aria-orientation="vertical">
                                             <button onClick={() => { handleOpenSpendBreakdownTable(); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Table View</button>
-                                            <button onClick={() => setOpenMenu(null)} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
+                                            <button onClick={handleDownloadCSV} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
                                         </div>
                                     </div>
                                 )}

@@ -19,8 +19,8 @@ import InviteUserFlow from './components/InviteUserFlow';
 import EditUserRoleFlow from './components/EditUserRoleFlow';
 import ConfirmationModal from './components/ConfirmationModal';
 import Toast from './components/Toast';
-import Modal from './components/Modal';
-import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem } from './types';
+import BigScreenView from './components/BigScreenView';
+import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem, BigScreenWidget } from './types';
 import { connectionsData, sqlFilesData as initialSqlFiles, usersData, dashboardsData as initialDashboardsData } from './data/dummyData';
 import SettingsPage from './pages/SettingsPage';
 import Dashboards from './pages/Dashboards';
@@ -52,6 +52,7 @@ const App: React.FC = () => {
   const [dashboardToDelete, setDashboardToDelete] = useState<DashboardItem | null>(null);
   
   const [editingDashboard, setEditingDashboard] = useState<DashboardItem | 'new' | null>(null);
+  const [bigScreenWidget, setBigScreenWidget] = useState<BigScreenWidget | null>(null);
 
 
   useEffect(() => {
@@ -261,7 +262,7 @@ const App: React.FC = () => {
   const renderContent = () => {
     switch (activePage) {
       case 'Data Cloud Overview':
-        return <Overview onSelectAccount={handleSelectAccount} onSelectUser={handleSelectUser} accounts={accounts} users={users} />;
+        return <Overview onSelectAccount={handleSelectAccount} onSelectUser={handleSelectUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} />;
       case 'Dashboards':
         return editingDashboard ? (
             <DashboardEditor
@@ -303,54 +304,73 @@ const App: React.FC = () => {
 
   return (
     <div className="h-screen bg-background font-sans flex flex-col">
-      <Header 
-        onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        onLogoClick={handleLogoClick}
-        isSidebarOpen={isSidebarOpen}
-      />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar
-            isOpen={isSidebarOpen}
-            onClose={() => setIsSidebarOpen(false)}
-            activePage={activePage}
-            setActivePage={handlePageChange}
-            activeSettingsSubPage={activeSettingsSubPage}
-            showCompact={!isAccountView && !isSettingsViewActive}
-        />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background">
-          {selectedAccount ? (
-              <AccountView
-              account={selectedAccount}
+      {bigScreenWidget ? (
+          <BigScreenView
+              widget={bigScreenWidget}
               accounts={accounts}
-              onBack={handleBackToConnections}
-              onSwitchAccount={handleSelectAccount}
-              sqlFiles={sqlFiles}
-              onSaveQueryClick={() => setIsSavingQuery(true)}
-              />
-          ) : selectedUser ? (
-              <UserView user={selectedUser} onBack={() => setSelectedUser(null)} />
-          ) : isSettingsViewActive ? (
-            <SettingsPage
-                users={users}
-                activeSubPage={activeSettingsSubPage}
-                onSubPageChange={setActiveSettingsSubPage}
-                onBack={() => {
-                    setIsSettingsViewActive(false);
-                    setActivePage('Data Cloud Overview');
-                }}
-                onAddUserClick={() => setIsAddingUser(true)}
-                onEditUserRoleClick={(user) => setUserToEdit(user)}
-                onSuspendUserClick={(user) => setUserToSuspend(user)}
-                onActivateUserClick={(user) => setUserToActivate(user)}
-                onRemoveUserClick={(user) => setUserToRemove(user)}
+              users={users}
+              onClose={() => setBigScreenWidget(null)}
+              onSelectAccount={(account) => {
+                  setBigScreenWidget(null);
+                  handleSelectAccount(account);
+              }}
+              onSelectUser={(user) => {
+                  setBigScreenWidget(null);
+                  handleSelectUser(user);
+              }}
+          />
+      ) : (
+        <>
+          <Header 
+            onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            onLogoClick={handleLogoClick}
+            isSidebarOpen={isSidebarOpen}
+          />
+          <div className="flex flex-1 overflow-hidden">
+            <Sidebar
+                isOpen={isSidebarOpen}
+                onClose={() => setIsSidebarOpen(false)}
+                activePage={activePage}
+                setActivePage={handlePageChange}
+                activeSettingsSubPage={activeSettingsSubPage}
+                showCompact={!isAccountView && !isSettingsViewActive}
             />
-          ) : (
-              <div className={activePage === 'Dashboards' && editingDashboard ? '' : 'p-4'}>
-                {renderContent()}
-              </div>
-          )}
-        </main>
-      </div>
+            <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background">
+              {selectedAccount ? (
+                  <AccountView
+                  account={selectedAccount}
+                  accounts={accounts}
+                  onBack={handleBackToConnections}
+                  onSwitchAccount={handleSelectAccount}
+                  sqlFiles={sqlFiles}
+                  onSaveQueryClick={() => setIsSavingQuery(true)}
+                  />
+              ) : selectedUser ? (
+                  <UserView user={selectedUser} onBack={() => setSelectedUser(null)} />
+              ) : isSettingsViewActive ? (
+                <SettingsPage
+                    users={users}
+                    activeSubPage={activeSettingsSubPage}
+                    onSubPageChange={setActiveSettingsSubPage}
+                    onBack={() => {
+                        setIsSettingsViewActive(false);
+                        setActivePage('Data Cloud Overview');
+                    }}
+                    onAddUserClick={() => setIsAddingUser(true)}
+                    onEditUserRoleClick={(user) => setUserToEdit(user)}
+                    onSuspendUserClick={(user) => setUserToSuspend(user)}
+                    onActivateUserClick={(user) => setUserToActivate(user)}
+                    onRemoveUserClick={(user) => setUserToRemove(user)}
+                />
+              ) : (
+                  <div className={activePage === 'Dashboards' && editingDashboard ? '' : 'p-4'}>
+                    {renderContent()}
+                  </div>
+              )}
+            </main>
+          </div>
+        </>
+      )}
 
 
       <Toast message={toastMessage} onClose={() => setToastMessage(null)} />

@@ -108,3 +108,21 @@ export interface User {
     cost: number;
     credits: number;
 }
+
+export type BigScreenWidgetType = 'account' | 'user' | 'spend_breakdown';
+
+export interface BigScreenWidget {
+  type: BigScreenWidgetType;
+  title: string;
+}
+
+export interface SimilarQuery {
+  id: string;
+  name: string; // or query text snippet
+  similarity: number; // percentage
+  executionTime: number; // in ms
+  warehouse: string;
+  cost: number;
+  credits: number;
+  pattern?: 'Join-heavy' | 'Aggregation-heavy' | 'Scan-heavy';
+}

@@ -1,4 +1,4 @@
-import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget } from '../types';
+import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget, SimilarQuery } from '../types';
 
 export const availableWidgetsData: Omit<Widget, 'id' | 'dataSource'>[] = [
     { 
@@ -107,6 +107,12 @@ export const overviewMetrics = {
     }
 };
 
+export const resourceSummaryData = [
+    { title: 'Warehouses Monitored', value: '12' },
+    { title: 'Executed Queries (Month)', value: '2,847' },
+    { title: 'Storage Used (GB, Month)', value: '2,085' },
+];
+
 export const topSpendData = [
     { id: '1', name: 'Snowflake Prod', cost: 260, credits: 104 },
     { id: '2', name: 'Marketing Analytics', cost: 190, credits: 76 },
@@ -190,4 +196,13 @@ export const usersData: User[] = [
     { id: 'user9', name: 'Ian Gallagher', email: 'ian.g@example.com', role: 'Viewer', status: 'Active', dateAdded: '2024-04-25', cost: 390.00, credits: 156.00 },
     { id: 'user10', name: 'Jane Smith', email: 'jane.s@example.com', role: 'Analyst', status: 'Active', dateAdded: '2024-04-28', cost: 320.50, credits: 128.20 },
     { id: 'user11', name: 'Kevin Ball', email: 'kevin.b@example.com', role: 'Analyst', status: 'Active', dateAdded: '2024-05-01', cost: 250.00, credits: 100.00 },
+];
+
+export const similarQueriesData: SimilarQuery[] = [
+  { id: 'sq1', name: 'SELECT c.name, COUNT(o.id) FROM customers c JOIN orders o ON c.id = o.customer_id...', similarity: 95, executionTime: 1250, warehouse: 'BI_WH', cost: 1.2, credits: 0.5, pattern: 'Join-heavy' },
+  { id: 'sq2', name: 'SELECT c.name, COUNT(o.id) FROM customers_v2 c JOIN orders_v2 o ON c.id = o.customer_id...', similarity: 94, executionTime: 1300, warehouse: 'BI_WH', cost: 1.3, credits: 0.52, pattern: 'Join-heavy' },
+  { id: 'sq3', name: 'AGGREGATE daily_metrics by date, region...', similarity: 89, executionTime: 800, warehouse: 'ETL_WH', cost: 0.8, credits: 0.32, pattern: 'Aggregation-heavy' },
+  { id: 'sq4', name: 'AGGREGATE daily_metrics_backup by date, region...', similarity: 88, executionTime: 820, warehouse: 'ETL_WH', cost: 0.82, credits: 0.33, pattern: 'Aggregation-heavy' },
+  { id: 'sq5', name: 'SELECT * FROM huge_log_table WHERE timestamp > ...', similarity: 82, executionTime: 2500, warehouse: 'DATA_SCIENCE_WH', cost: 2.5, credits: 1.0, pattern: 'Scan-heavy' },
+  { id: 'sq6', name: 'SELECT * FROM huge_log_table_archive WHERE timestamp > ...', similarity: 81, executionTime: 2600, warehouse: 'DATA_SCIENCE_WH', cost: 2.6, credits: 1.04, pattern: 'Scan-heavy' },
 ];

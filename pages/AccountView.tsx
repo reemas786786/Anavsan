@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Account, SQLFile } from '../types';
 import QueryWorkspace from './QueryWorkspace';
 import AccountOverviewDashboard from './AccountOverviewDashboard';
+import QueryPerformanceView from './QueryPerformanceView';
 import { IconChevronDown, IconChevronLeft, IconChevronRight } from '../constants';
 
 interface AccountViewProps {
@@ -89,6 +90,10 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                 return <AccountOverviewDashboard account={account} />;
             case 'Query Workspace':
                 return <QueryWorkspace sqlFiles={sqlFiles} onSaveQueryClick={onSaveQueryClick} />;
+            case 'Query Performance':
+            case 'Query List':
+            case 'Slow Queries':
+                return <QueryPerformanceView />;
             default:
                 return (
                     <div className="p-4 bg-surface rounded-lg border border-border-color">
