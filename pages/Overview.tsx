@@ -1,9 +1,12 @@
 
-import React, { useState } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { costBreakdownData, overviewMetrics } from '../data/dummyData';
 import { Account, User } from '../types';
 import { IconDotsVertical } from '../constants';
+import SidePanel from '../components/SidePanel';
+import TableView from '../components/TableView';
 
 interface OverviewProps {
     onSelectAccount: (account: Account) => void;
@@ -63,7 +66,81 @@ const AccessibleBar = (props: any) => {
 
 const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, accounts, users }) => {
     const [displayMode, setDisplayMode] = useState<'cost' | 'credits'>('cost');
+    const [openMenu, setOpenMenu] = useState<string | null>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
     
+    const [tableViewData, setTableViewData] = useState<{
+        title: string;
+        data: { name: string; cost: number; credits: number; percentage: number }[];
+    } | null>(null);
+    
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setOpenMenu(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    const handleMenuClick = (menuId: string) => {
+        setOpenMenu(prev => (prev === menuId ? null : menuId));
+    };
+    
+    const handleOpenSpendBreakdownTable = () => {
+        const totalCost = costBreakdownData.reduce((sum, item) => sum + item.cost, 0);
+        const totalCredits = costBreakdownData.reduce((sum, item) => sum + item.credits, 0);
+
+        const data = costBreakdownData.map(item => ({
+            name: item.name.replace(' Costs', ''),
+            cost: item.cost,
+            credits: item.credits,
+            percentage: (displayMode === 'cost' ? item.cost / totalCost : item.credits / totalCredits) * 100,
+        }));
+
+        setTableViewData({
+            title: "Spend Breakdown",
+            data: data,
+        });
+    };
+
+    const handleOpenTopAccountTable = () => {
+        const totalCost = accounts.reduce((sum, item) => sum + item.cost, 0);
+        const totalCredits = accounts.reduce((sum, item) => sum + item.credits, 0);
+
+        const data = accounts.map(item => ({
+            name: item.name,
+            cost: item.cost,
+            credits: item.credits,
+            percentage: totalCost > 0 || totalCredits > 0 ? (displayMode === 'cost' ? (item.cost / totalCost) * 100 : (item.credits / totalCredits) * 100) : 0,
+        }));
+
+        setTableViewData({
+            title: "Top Spend by Account",
+            data: data,
+        });
+    };
+
+    const handleOpenTopUserTable = () => {
+        const totalCost = users.reduce((sum, item) => sum + item.cost, 0);
+        const totalCredits = users.reduce((sum, item) => sum + item.credits, 0);
+
+        const data = users.map(item => ({
+            name: item.name,
+            cost: item.cost,
+            credits: item.credits,
+            percentage: totalCost > 0 || totalCredits > 0 ? (displayMode === 'cost' ? (item.cost / totalCost) * 100 : (item.credits / totalCredits) * 100) : 0,
+        }));
+
+        setTableViewData({
+            title: "Top Spend by User",
+            data: data,
+        });
+    };
+
     const handleBarClick = (data: any) => {
         const account = accounts.find(acc => acc.id === data.id);
         if (account) {
@@ -119,7 +196,28 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
 
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <Card title="Current Month Cost & Forecast">
+                <Card>
+                     <div className="flex justify-between items-start mb-4">
+                        <h4 className="text-base font-semibold text-text-strong">Current Month Cost & Forecast</h4>
+                        <div className="relative" ref={openMenu === 'cost-forecast' ? menuRef : null}>
+                            <button
+                                onClick={() => handleMenuClick('cost-forecast')}
+                                className="p-1 rounded-full text-text-secondary hover:bg-surface-hover hover:text-primary focus:outline-none"
+                                aria-label="Cost and forecast options"
+                                aria-haspopup="true"
+                                aria-expanded={openMenu === 'cost-forecast'}
+                            >
+                                <IconDotsVertical className="h-5 w-5" />
+                            </button>
+                             {openMenu === 'cost-forecast' && (
+                                <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                                    <div className="py-1" role="menu" aria-orientation="vertical">
+                                        <button onClick={() => setOpenMenu(null)} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="bg-background p-4 rounded-3xl">
                             <p className="text-text-secondary text-sm">Current Spend</p>
@@ -136,7 +234,28 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                     </div>
                 </Card>
 
-                <Card title="Resource Summary">
+                <Card>
+                    <div className="flex justify-between items-start mb-4">
+                        <h4 className="text-base font-semibold text-text-strong">Resource Summary</h4>
+                        <div className="relative" ref={openMenu === 'resource-summary' ? menuRef : null}>
+                            <button
+                                onClick={() => handleMenuClick('resource-summary')}
+                                className="p-1 rounded-full text-text-secondary hover:bg-surface-hover hover:text-primary focus:outline-none"
+                                aria-label="Resource summary options"
+                                aria-haspopup="true"
+                                aria-expanded={openMenu === 'resource-summary'}
+                            >
+                                <IconDotsVertical className="h-5 w-5" />
+                            </button>
+                             {openMenu === 'resource-summary' && (
+                                <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                                    <div className="py-1" role="menu" aria-orientation="vertical">
+                                        <button onClick={() => setOpenMenu(null)} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {resourceSummaryData.map(item => (
                              <div key={item.title} className="bg-background p-4 rounded-3xl">
@@ -150,9 +269,25 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                 <Card>
                     <div className="flex justify-between items-start mb-4">
                         <h4 className="text-base font-semibold text-text-strong">Spend Breakdown</h4>
-                        <button className="p-1 rounded-full text-text-secondary hover:bg-surface-hover hover:text-primary focus:outline-none" aria-label="Cost breakdown options">
-                            <IconDotsVertical className="h-5 w-5" />
-                        </button>
+                        <div className="relative" ref={openMenu === 'spend-breakdown' ? menuRef : null}>
+                            <button
+                                onClick={() => handleMenuClick('spend-breakdown')}
+                                className="p-1 rounded-full text-text-secondary hover:bg-surface-hover hover:text-primary focus:outline-none"
+                                aria-label="Spend breakdown options"
+                                aria-haspopup="true"
+                                aria-expanded={openMenu === 'spend-breakdown'}
+                            >
+                                <IconDotsVertical className="h-5 w-5" />
+                            </button>
+                             {openMenu === 'spend-breakdown' && (
+                                <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                                    <div className="py-1" role="menu" aria-orientation="vertical">
+                                        <button onClick={() => { handleOpenSpendBreakdownTable(); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Table View</button>
+                                        <button onClick={() => setOpenMenu(null)} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     <div className="flex items-center justify-center py-4">
@@ -208,8 +343,31 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                     </div>
                 </Card>
 
-                <Card title="Top Spend by Account">
-                    <div style={{ height: 400 }} aria-live="polite">
+                <Card>
+                    <div className="flex justify-between items-start mb-4">
+                        <h4 className="text-base font-semibold text-text-strong">Top Spend by Account</h4>
+                        <div className="relative" ref={openMenu === 'top-spend-account' ? menuRef : null}>
+                            <button
+                                onClick={() => handleMenuClick('top-spend-account')}
+                                className="p-1 rounded-full text-text-secondary hover:bg-surface-hover hover:text-primary focus:outline-none"
+                                aria-label="Top spend by account options"
+                                aria-haspopup="true"
+                                aria-expanded={openMenu === 'top-spend-account'}
+                            >
+                                <IconDotsVertical className="h-5 w-5" />
+                            </button>
+                             {openMenu === 'top-spend-account' && (
+                                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                                    <div className="py-1" role="menu" aria-orientation="vertical">
+                                        <button onClick={() => setOpenMenu(null)} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">View in Big Screen</button>
+                                        <button onClick={() => { handleOpenTopAccountTable(); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Table View</button>
+                                        <button onClick={() => setOpenMenu(null)} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div style={{ height: 360 }} aria-live="polite">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
                                 layout="vertical"
@@ -260,8 +418,31 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                     </div>
                 </Card>
 
-                <Card title="Top Spend by User">
-                    <div style={{ height: 400 }} aria-live="polite">
+                <Card>
+                    <div className="flex justify-between items-start mb-4">
+                        <h4 className="text-base font-semibold text-text-strong">Top Spend by User</h4>
+                         <div className="relative" ref={openMenu === 'top-spend-user' ? menuRef : null}>
+                            <button
+                                onClick={() => handleMenuClick('top-spend-user')}
+                                className="p-1 rounded-full text-text-secondary hover:bg-surface-hover hover:text-primary focus:outline-none"
+                                aria-label="Top spend by user options"
+                                aria-haspopup="true"
+                                aria-expanded={openMenu === 'top-spend-user'}
+                            >
+                                <IconDotsVertical className="h-5 w-5" />
+                            </button>
+                             {openMenu === 'top-spend-user' && (
+                                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                                    <div className="py-1" role="menu" aria-orientation="vertical">
+                                        <button onClick={() => setOpenMenu(null)} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">View in Big Screen</button>
+                                        <button onClick={() => { handleOpenTopUserTable(); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Table View</button>
+                                        <button onClick={() => setOpenMenu(null)} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div style={{ height: 360 }} aria-live="polite">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
                                 layout="vertical"
@@ -312,6 +493,19 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                     </div>
                 </Card>
             </div>
+
+             <SidePanel
+                isOpen={!!tableViewData}
+                onClose={() => setTableViewData(null)}
+                title="Table View"
+            >
+                {tableViewData && (
+                    <TableView
+                        title={tableViewData.title}
+                        data={tableViewData.data}
+                    />
+                )}
+            </SidePanel>
         </div>
     );
 };

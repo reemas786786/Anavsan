@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Account, OptimizationOpportunity, TopQuery, Warehouse } from '../types';
 import { accountSpend, topQueriesData, optimizationOpportunitiesData, warehousesData, accountCostBreakdown } from '../data/dummyData';
 import StatCard from '../components/StatCard';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import BudgetStatusWidget from '../components/BudgetStatusWidget';
 import { IconDotsVertical } from '../constants';
+import SidePanel from '../components/SidePanel';
+import TableView from '../components/TableView';
 
 const Card: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className, title }) => (
     <div className={`bg-surface p-4 rounded-3xl border border-border-color shadow-sm ${className}`}>
@@ -36,6 +38,45 @@ interface AccountOverviewDashboardProps {
 }
 
 const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ account }) => {
+    const [openMenu, setOpenMenu] = useState<string | null>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const [tableViewData, setTableViewData] = useState<{
+        title: string;
+        data: { name: string; cost: number; credits: number; percentage: number }[];
+    } | null>(null);
+    
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setOpenMenu(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    const handleMenuClick = (menuId: string) => {
+        setOpenMenu(prev => (prev === menuId ? null : menuId));
+    };
+
+    const handleOpenSpendBreakdownTable = () => {
+        const totalCredits = accountCostBreakdown.reduce((sum, item) => sum + item.value, 0);
+        
+        const data = accountCostBreakdown.map(item => ({
+            name: item.name.replace(' Costs', ''),
+            cost: 0, // No cost data on this page
+            credits: item.value,
+            percentage: totalCredits > 0 ? (item.value / totalCredits) * 100 : 0,
+        }));
+
+        setTableViewData({
+            title: "Spend Breakdown",
+            data: data,
+        });
+    };
+    
     const idleWarehouses = warehousesData.filter(w => w.status === 'Idle').length;
     const suspendedWarehouses = warehousesData.filter(w => w.status === 'Suspended').length;
 
@@ -120,9 +161,25 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                     <Card>
                         <div className="flex justify-between items-start mb-4">
                             <h4 className="text-base font-semibold text-text-strong">Spend Breakdown</h4>
-                             <button className="p-1 rounded-full text-text-secondary hover:bg-surface-hover hover:text-primary focus:outline-none" aria-label="Account cost breakdown options">
-                                <IconDotsVertical className="h-5 w-5" />
-                            </button>
+                            <div className="relative" ref={openMenu === 'spend-breakdown' ? menuRef : null}>
+                                <button
+                                    onClick={() => handleMenuClick('spend-breakdown')}
+                                    className="p-1 rounded-full text-text-secondary hover:bg-surface-hover hover:text-primary focus:outline-none"
+                                    aria-label="Spend breakdown options"
+                                    aria-haspopup="true"
+                                    aria-expanded={openMenu === 'spend-breakdown'}
+                                >
+                                    <IconDotsVertical className="h-5 w-5" />
+                                </button>
+                                {openMenu === 'spend-breakdown' && (
+                                    <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                                        <div className="py-1" role="menu" aria-orientation="vertical">
+                                            <button onClick={() => { handleOpenSpendBreakdownTable(); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Table View</button>
+                                            <button onClick={() => setOpenMenu(null)} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                         <div className="flex items-center justify-center py-4">
                             <div className="grid grid-cols-2 gap-8">
@@ -177,6 +234,19 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                     </div>
                 </div>
             </div>
+
+            <SidePanel
+                isOpen={!!tableViewData}
+                onClose={() => setTableViewData(null)}
+                title="Table View"
+            >
+                {tableViewData && (
+                    <TableView
+                        title={tableViewData.title}
+                        data={tableViewData.data}
+                    />
+                )}
+            </SidePanel>
         </div>
     );
 };
