@@ -127,7 +127,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
         <>
             <div className="flex flex-col h-screen bg-background">
                 {/* Header */}
-                <header className="bg-surface px-6 py-3 border-b border-border-color flex items-center justify-between flex-shrink-0">
+                <header className="bg-surface px-4 py-3 border-b border-border-color flex items-center justify-between flex-shrink-0">
                     <div>
                         <input type="text" value={editedDashboard.title} onChange={handleTitleChange} className="text-xl font-bold bg-transparent focus:outline-none focus:ring-1 focus:ring-primary rounded-md -ml-2 px-2 py-1" placeholder="Dashboard Title" />
                         <input type="text" value={editedDashboard.description} onChange={handleDescriptionChange} className="text-sm text-text-secondary w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-primary rounded-md -ml-2 px-2" placeholder="Dashboard description (optional)" />
@@ -139,15 +139,15 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                 </header>
                 
                 {/* Main Content */}
-                <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 p-6 overflow-hidden">
+                <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 p-4 overflow-hidden">
                     {/* Left Panel: Dashboard Canvas */}
-                    <main className="lg:col-span-2 bg-gray-100 rounded-xl border border-border-color p-4 overflow-y-auto">
+                    <main className="lg:col-span-2 bg-gray-100 rounded-3xl border border-border-color p-4 overflow-y-auto">
                         {editedDashboard.widgets.length > 0 ? (
                            <div className="grid grid-cols-12 gap-4 auto-rows-[100px]">
                                 {editedDashboard.widgets.map((widget, index) => (
                                     <div
                                         key={widget.id}
-                                        className="bg-surface rounded-lg shadow-sm border border-border-light flex flex-col group p-4 relative cursor-move"
+                                        className="bg-surface rounded-3xl shadow-sm border border-border-light flex flex-col group p-4 relative cursor-move"
                                         style={{ gridColumn: `span ${widget.layout.w}`, gridRow: `span ${widget.layout.h}` }}
                                         draggable
                                         onDragStart={() => (dragItem.current = index)}
@@ -176,7 +176,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                     </main>
 
                     {/* Right Panel: Widget Library */}
-                    <aside className="lg:col-span-1 bg-surface rounded-xl border border-border-color p-4 flex flex-col">
+                    <aside className="lg:col-span-1 bg-surface rounded-3xl border border-border-color p-4 flex flex-col">
                         <h3 className="text-base font-semibold text-text-strong mb-4">Widget Library</h3>
                         <div className="relative mb-2">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><IconSearch className="h-5 w-5 text-text-muted" /></div>
@@ -201,8 +201,8 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                         </div>
                         <div className="flex-1 overflow-y-auto -mr-2 pr-2 space-y-3">
                             {filteredWidgets.map(widget => (
-                                <div key={widget.widgetId} className="bg-background p-3 rounded-lg border border-border-light flex flex-col">
-                                    <img src={widget.imageUrl} alt={`${widget.title} preview`} className="w-full h-24 object-cover rounded-md bg-gray-200 mb-3" />
+                                <div key={widget.widgetId} className="bg-background p-3 rounded-3xl border border-border-light flex flex-col">
+                                    <img src={widget.imageUrl} alt={`${widget.title} preview`} className="w-full h-24 object-cover rounded-2xl bg-gray-200 mb-3" />
                                     <div className="flex-grow flex justify-between items-start gap-2">
                                         <div className="flex-1">
                                             <h4 className="font-semibold text-sm text-text-strong">{widget.title}</h4>

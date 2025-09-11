@@ -63,7 +63,7 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
                 <MetricCard title="Total Queries Synced" value="1.2M" />
             </div>
 
-            <div className="bg-surface p-6 rounded-xl border border-border-color shadow-sm">
+            <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm">
                 <div className="flex justify-between items-center mb-4">
                     <div className="relative w-full max-w-sm">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -130,9 +130,9 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
 };
 
 const MetricCard: React.FC<{ title: string, value: string }> = ({ title, value }) => (
-    <div className="bg-surface p-4 rounded-xl border border-border-color shadow-sm">
+    <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm">
         <h4 className="text-base font-semibold text-text-strong">{title}</h4>
-        <p className="text-2xl font-bold text-text-primary mt-6">{value}</p>
+        <p className="text-[22px] leading-7 font-bold text-text-primary mt-6">{value}</p>
     </div>
 );
 

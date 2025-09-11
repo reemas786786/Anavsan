@@ -335,7 +335,7 @@ const App: React.FC = () => {
                 onRemoveUserClick={(user) => setUserToRemove(user)}
             />
           ) : (
-              <div className={activePage === 'Dashboards' && editingDashboard ? '' : 'p-6'}>
+              <div className={activePage === 'Dashboards' && editingDashboard ? '' : 'p-4'}>
                 {renderContent()}
               </div>
           )}

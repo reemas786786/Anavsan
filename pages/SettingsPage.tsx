@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { IconChevronLeft, IconChevronRight, IconUser, IconBell } from '../constants';
 import UserManagement from './settings/UserManagement';
@@ -64,7 +63,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                 );
             case 'Budgets & Alerts':
                  return (
-                    <div className="p-6 bg-surface rounded-lg border border-border-color">
+                    <div className="p-4 bg-surface rounded-lg border border-border-color">
                         <h2 className="text-xl font-semibold text-text-primary">Budgets & Alerts</h2>
                         <p className="mt-2 text-text-secondary">Set spending budgets and configure alert notifications.</p>
                     </div>
@@ -123,7 +122,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                     </div>
                 </aside>
                 <main className="flex-1 overflow-y-auto bg-background">
-                    <div className="p-6">
+                    <div className="p-4">
                         {renderSubPage()}
                     </div>
                 </main>

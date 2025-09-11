@@ -6,14 +6,14 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import BudgetStatusWidget from '../components/BudgetStatusWidget';
 
 const Card: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className, title }) => (
-    <div className={`bg-surface p-6 rounded-xl border border-border-color shadow-sm ${className}`}>
-        {title && <h4 className="text-base font-semibold text-text-strong mb-6">{title}</h4>}
+    <div className={`bg-surface p-4 rounded-3xl border border-border-color shadow-sm ${className}`}>
+        {title && <h4 className="text-base font-semibold text-text-strong mb-4">{title}</h4>}
         {children}
     </div>
 );
 
 const AlertCard: React.FC<{ title: string, count: number, description: string }> = ({ title, count, description }) => (
-     <div className="bg-status-warning-light p-4 rounded-xl border border-status-warning-dark/50">
+     <div className="bg-status-warning-light p-4 rounded-3xl border border-status-warning-dark/50">
         <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-status-warning-dark">{title}</p>
             <span className="text-sm font-bold text-status-warning-dark bg-white/50 px-2 py-0.5 rounded-full">{count}</span>
@@ -38,6 +38,8 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
     const idleWarehouses = warehousesData.filter(w => w.status === 'Idle').length;
     const suspendedWarehouses = warehousesData.filter(w => w.status === 'Suspended').length;
 
+    const totalAccountSpend = accountCostBreakdown.reduce((sum, item) => sum + item.value, 0);
+
     return (
         <div className="space-y-4">
             {/* Top Row: Key Metrics */}
@@ -54,7 +56,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                     <Card title="Query Optimization Opportunities">
                         <div className="space-y-3">
                             {optimizationOpportunitiesData.map((opp: OptimizationOpportunity) => (
-                                <div key={opp.id} className="bg-background p-3 rounded-lg flex justify-between items-center">
+                                <div key={opp.id} className="bg-background p-3 rounded-3xl flex justify-between items-center">
                                     <div>
                                         <p className="font-mono text-xs text-text-secondary truncate max-w-md">{opp.queryText}</p>
                                         <p className="text-sm text-text-primary font-medium">{opp.recommendation}</p>
@@ -116,23 +118,43 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                 <div className="lg:col-span-1 space-y-4">
                     <AlertCard title="Active Anomalies" count={1} description="Unusual spike in ETL_WH" />
                     <BudgetStatusWidget />
-                    <Card title="Account Cost Breakdown">
-                        <ResponsiveContainer width="100%" height={200}>
-                            <PieChart>
-                                <Pie data={accountCostBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5}>
-                                    {accountCostBreakdown.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
-                                </Pie>
-                                <Tooltip />
-                            </PieChart>
-                        </ResponsiveContainer>
-                        <ul className="text-sm space-y-2 mt-4">
-                            {accountCostBreakdown.map(item => (
-                                <li key={item.name} className="flex justify-between items-center">
-                                    <span className="flex items-center"><span className="w-3 h-3 rounded-full mr-2" style={{backgroundColor: item.color}}></span>{item.name}</span>
-                                    <span className="font-semibold">{item.value.toLocaleString()} credits</span>
-                                </li>
-                            ))}
-                        </ul>
+                    <Card>
+                        <h4 className="text-base font-semibold text-text-strong">Account Cost Breakdown</h4>
+                        <div className="flex justify-around items-center mt-4">
+                            {accountCostBreakdown.map(item => {
+                                const percentage = totalAccountSpend > 0 ? Math.round((item.value / totalAccountSpend) * 100) : 0;
+                                const chartData = [{ value: percentage }, { value: 100 - percentage }];
+                                return (
+                                    <div key={item.name} className="flex flex-col items-center text-center">
+                                        <div className="relative h-[100px] w-[100px]">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={chartData}
+                                                        dataKey="value"
+                                                        innerRadius="70%"
+                                                        outerRadius="100%"
+                                                        startAngle={90}
+                                                        endAngle={-270}
+                                                        cy="50%"
+                                                        cx="50%"
+                                                        stroke="none"
+                                                    >
+                                                        <Cell fill={item.color} />
+                                                        <Cell fill="#E5E5E0" />
+                                                    </Pie>
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <span className="text-xl font-bold text-text-primary">{percentage}%</span>
+                                            </div>
+                                        </div>
+                                        <p className="mt-2 text-sm font-semibold text-text-strong">{item.name}</p>
+                                        <p className="text-sm text-text-secondary">{item.value.toLocaleString()} credits</p>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </Card>
                     
                     <div className="grid grid-cols-2 gap-4">

@@ -8,7 +8,7 @@ export const availableWidgetsData: Omit<Widget, 'id' | 'dataSource'>[] = [
       description: 'Displays the total credit spend for the current month.',
       imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Stat+Card',
       tags: ['Cost', 'Overall', 'Account Specific'],
-      layout: { w: 3, h: 2 }
+      layout: { w: 4, h: 2 }
     },
     { 
       widgetId: 'w2', 
@@ -17,7 +17,7 @@ export const availableWidgetsData: Omit<Widget, 'id' | 'dataSource'>[] = [
       description: 'AI-based forecast of this month\'s total spend.',
       imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Stat+Card',
       tags: ['Cost', 'Forecast', 'Overall'],
-      layout: { w: 3, h: 2 }
+      layout: { w: 4, h: 2 }
     },
     { 
       widgetId: 'w3', 
@@ -72,9 +72,9 @@ export const dashboardsData: DashboardItem[] = [
       description: 'Get a consolidated view of current spend, forecast, and trends across all accounts.',
       createdOn: 'January 14, 2024, 4:45 PM',
       widgets: [
-        { id: 'inst-1', widgetId: 'w1', title: 'Total Monthly Spend', type: 'StatCard', description: 'Displays the total credit spend for the current month.', dataSource: { type: 'overall' }, imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Stat+Card', tags: ['Cost', 'Overall', 'Account Specific'], layout: { w: 3, h: 2 } },
-        { id: 'inst-2', widgetId: 'w2', title: 'Forecasted Spend', type: 'StatCard', description: 'AI-based forecast of this month\'s total spend.', dataSource: { type: 'overall' }, imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Stat+Card', tags: ['Cost', 'Forecast', 'Overall'], layout: { w: 3, h: 2 } },
-        { id: 'inst-3', widgetId: 'w5', title: 'Cost Breakdown', type: 'DonutChart', description: 'A donut chart showing spend by category.', dataSource: { type: 'account', accountId: '1' }, imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Donut+Chart', tags: ['Cost', 'Overall', 'Account Specific'], layout: { w: 6, h: 2 } },
+        { id: 'inst-1', widgetId: 'w1', title: 'Total Monthly Spend', type: 'StatCard', description: 'Displays the total credit spend for the current month.', dataSource: { type: 'overall' }, imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Stat+Card', tags: ['Cost', 'Overall', 'Account Specific'], layout: { w: 4, h: 2 } },
+        { id: 'inst-2', widgetId: 'w2', title: 'Forecasted Spend', type: 'StatCard', description: 'AI-based forecast of this month\'s total spend.', dataSource: { type: 'overall' }, imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Stat+Card', tags: ['Cost', 'Forecast', 'Overall'], layout: { w: 4, h: 2 } },
+        { id: 'inst-3', widgetId: 'w5', title: 'Cost Breakdown', type: 'DonutChart', description: 'A donut chart showing spend by category.', dataSource: { type: 'account', accountId: '1' }, imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Donut+Chart', tags: ['Cost', 'Overall', 'Account Specific'], layout: { w: 4, h: 2 } },
       ]
     },
     {
@@ -104,10 +104,16 @@ export const topSpendData = [
     { id: '5', name: 'Data Science Cluster', totalSpend: 40 },
 ];
 
+export const topSpendByUserData = [
+    { name: 'Alice Johnson', spend: 1250.75 },
+    { name: 'Bob Williams', spend: 980.50 },
+    { name: 'Charlie Brown', spend: 760.00 },
+    { name: 'Diana Miller', spend: 450.25 },
+];
+
 export const costBreakdownData = [
-    { name: 'Warehouse Costs', value: 35000, percentage: 55, color: '#6932D5' },
-    { name: 'Storage Costs', value: 12000, percentage: 38, color: '#D6BCFA' },
-    { name: 'Data Transfer Cost', value: 3000, percentage: 12, color: '#D6BCFA' },
+    { name: 'Warehouse Costs', value: 13920, color: '#6932D5' },
+    { name: 'Storage Costs', value: 6287, color: '#A78BFA' },
 ];
 
 export const sqlFilesData: SQLFile[] = [
@@ -157,9 +163,8 @@ export const warehousesData: Warehouse[] = [
 ];
 
 export const accountCostBreakdown = [
-    { name: 'Compute', value: 8500, color: '#6932D5' },
-    { name: 'Storage', value: 3500, color: '#A78BFA' },
-    { name: 'Data Transfer', value: 450, color: '#D6BCFA' },
+    { name: 'Compute Costs', value: 8500, color: '#6932D5' },
+    { name: 'Storage Costs', value: 3500, color: '#A78BFA' },
 ];
 
 export const usersData: User[] = [

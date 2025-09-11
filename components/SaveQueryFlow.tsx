@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { SQLFile } from '../types';
 import TagSelector from './TagSelector';
@@ -93,7 +94,7 @@ const SaveQueryFlow: React.FC<SaveQueryFlowProps> = ({ files, onCancel, onSave }
                         rows={3}
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        className="w-full border border-border-color rounded-xl px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg placeholder-text-secondary"
+                        className="w-full border border-border-color rounded-3xl px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg placeholder-text-secondary"
                         placeholder="Describe the changes in this version..."
                      />
                 </div>

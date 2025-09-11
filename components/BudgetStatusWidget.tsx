@@ -2,7 +2,7 @@ import React from 'react';
 import { IconExclamationTriangle } from '../constants';
 
 const Card: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className }) => (
-    <div className={`bg-surface p-6 rounded-xl border border-border-color shadow-sm ${className}`}>
+    <div className={`bg-surface p-4 rounded-3xl border border-border-color shadow-sm ${className}`}>
         {children}
     </div>
 );
@@ -44,13 +44,13 @@ const BudgetStatusWidget: React.FC = () => {
 
     return (
         <Card>
-            <div className="flex items-center mb-6">
+            <div className="flex items-center mb-4">
                 <h4 className="text-base font-semibold text-text-strong">Monthly Budget Status</h4>
                 {alertIcon}
             </div>
             <div className="flex flex-col space-y-4">
                 <div className="text-center">
-                    <p className={`text-4xl font-bold ${textColor}`}>{remainingPercentage.toFixed(1)}%</p>
+                    <p className={`text-[22px] leading-7 font-bold ${textColor}`}>{remainingPercentage.toFixed(1)}%</p>
                     <p className="text-sm text-text-secondary">Remaining</p>
                 </div>
 

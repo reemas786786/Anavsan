@@ -81,7 +81,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
       <div
         ref={modalRef}
         tabIndex={-1}
-        className="relative bg-surface rounded-2xl shadow-xl w-full max-w-lg m-4 transform transition-all duration-300 ease-in-out scale-100 flex flex-col"
+        className="relative bg-surface rounded-3xl shadow-xl w-full max-w-lg m-4 transform transition-all duration-300 ease-in-out scale-100 flex flex-col"
       >
         {/* Header */}
         <div className="p-6 flex items-center justify-between border-b border-border-color flex-shrink-0">

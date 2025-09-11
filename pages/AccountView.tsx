@@ -91,7 +91,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                 return <QueryWorkspace sqlFiles={sqlFiles} onSaveQueryClick={onSaveQueryClick} />;
             default:
                 return (
-                    <div className="p-6 bg-surface rounded-lg border border-border-color">
+                    <div className="p-4 bg-surface rounded-lg border border-border-color">
                         <h2 className="text-xl font-semibold text-text-primary">{activeSubPage}</h2>
                         <p className="mt-2 text-text-secondary">Content for {activeSubPage} will be displayed here.</p>
                     </div>
@@ -195,7 +195,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                 </aside>
                 
                 <main className="flex-1 overflow-y-auto bg-background">
-                    <div className="p-6">
+                    <div className="p-4">
                         {renderSubPage()}
                     </div>
                 </main>

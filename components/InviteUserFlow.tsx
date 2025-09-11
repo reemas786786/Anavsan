@@ -66,7 +66,7 @@ const InviteUserFlow: React.FC<InviteUserFlowProps> = ({ onCancel, onSendInvite 
                         rows={4}
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
-                        className="w-full border border-border-color rounded-xl px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg placeholder-text-secondary"
+                        className="w-full border border-border-color rounded-3xl px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg placeholder-text-secondary"
                         placeholder="Add a personal message to the invitation."
                     />
                 </div>

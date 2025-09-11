@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { IconAdd, IconDotsVertical, IconEdit, IconDelete, IconShare } from '../constants';
 import { DashboardItem } from '../types';
@@ -25,7 +24,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ dashboard, onEditClick, o
     }, []);
 
     return (
-        <div className="bg-surface p-6 rounded-xl border border-border-color shadow-sm flex flex-col h-full">
+        <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm flex flex-col h-full">
             <div className="flex justify-between items-start mb-2">
                 <h3 className="text-base font-semibold text-text-strong pr-4">{dashboard.title}</h3>
                 <div className="relative flex-shrink-0" ref={menuRef}>
@@ -62,7 +61,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ dashboard, onEditClick, o
 };
 
 const EmptyState: React.FC<{ onAddDashboardClick: () => void }> = ({ onAddDashboardClick }) => (
-    <div className="text-center py-20 px-6 bg-surface rounded-xl border border-border-color shadow-sm">
+    <div className="text-center py-20 px-4 bg-surface rounded-3xl border border-border-color shadow-sm">
         <h2 className="text-xl font-bold text-text-primary">No Dashboards Found</h2>
         <p className="mt-2 text-text-secondary max-w-md mx-auto">It looks like you haven't created any dashboards yet. Get started by clicking the "Create Dashboard" button.</p>
         <button
