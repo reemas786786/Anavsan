@@ -93,6 +93,8 @@ export interface Warehouse {
     avgUtilization: number;
     peakUtilization: number;
     status: 'Active' | 'Idle' | 'Suspended';
+    cost: number;
+    credits: number;
 }
 
 export type UserRole = 'Admin' | 'Analyst' | 'Viewer';

@@ -178,10 +178,10 @@ export const optimizationOpportunitiesData: OptimizationOpportunity[] = [
 ];
 
 export const warehousesData: Warehouse[] = [
-    { id: 'wh1', name: 'ETL_WH', avgUtilization: 85, peakUtilization: 98, status: 'Active' },
-    { id: 'wh2', name: 'BI_WH', avgUtilization: 45, peakUtilization: 75, status: 'Active' },
-    { id: 'wh3', name: 'DATA_SCIENCE_WH', avgUtilization: 5, peakUtilization: 20, status: 'Idle' },
-    { id: 'wh4', name: 'DEV_WH', avgUtilization: 0, peakUtilization: 0, status: 'Suspended' },
+    { id: 'wh1', name: 'ETL_WH', avgUtilization: 85, peakUtilization: 98, status: 'Active', cost: 12000, credits: 4800 },
+    { id: 'wh2', name: 'BI_WH', avgUtilization: 45, peakUtilization: 75, status: 'Active', cost: 8500, credits: 3400 },
+    { id: 'wh3', name: 'DATA_SCIENCE_WH', avgUtilization: 5, peakUtilization: 20, status: 'Idle', cost: 2500, credits: 1000 },
+    { id: 'wh4', name: 'DEV_WH', avgUtilization: 0, peakUtilization: 0, status: 'Suspended', cost: 500, credits: 200 },
 ];
 
 export const accountCostBreakdown = [
