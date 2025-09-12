@@ -36,7 +36,19 @@ const App: React.FC = () => {
   const [isAddingAccount, setIsAddingAccount] = useState(false);
   const [isSavingQuery, setIsSavingQuery] = useState(false);
   const [sqlFiles, setSqlFiles] = useState<SQLFile[]>(initialSqlFiles);
-  const [users, setUsers] = useState<User[]>(usersData);
+  const [users, setUsers] = useState<User[]>(() => {
+    try {
+        const storedUsers = window.localStorage.getItem('anavsan-users');
+        if (storedUsers) {
+            return JSON.parse(storedUsers);
+        }
+        window.localStorage.setItem('anavsan-users', JSON.stringify(usersData));
+        return usersData;
+    } catch (error) {
+        console.error("Error with user data in localStorage:", error);
+        return usersData;
+    }
+  });
   const [dashboards, setDashboards] = useState<DashboardItem[]>(initialDashboardsData);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -60,6 +72,14 @@ const App: React.FC = () => {
         setAccounts(connectionsData);
     }
   }, []);
+
+  useEffect(() => {
+    try {
+        window.localStorage.setItem('anavsan-users', JSON.stringify(users));
+    } catch (error) {
+        console.error("Failed to save users to localStorage:", error);
+    }
+  }, [users]);
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -161,7 +181,7 @@ const App: React.FC = () => {
     setSelectedAccount(account);
     setSelectedUser(null);
     setIsSettingsViewActive(false);
-    setActivePage('Connections');
+    setActivePage('Account(s)');
   };
 
   const handleSelectUser = (user: User) => {
@@ -170,9 +190,9 @@ const App: React.FC = () => {
       setIsSettingsViewActive(false);
   };
 
-  const handleBackToConnections = () => {
+  const handleBackToAccounts = () => {
     setSelectedAccount(null);
-    setActivePage('Connections');
+    setActivePage('Account(s)');
   };
   
   const handleAddUser = (data: { name: string; role: UserRole; }) => {
@@ -279,7 +299,7 @@ const App: React.FC = () => {
                 onEditDashboardClick={(dashboard) => setEditingDashboard(dashboard)}
             />
         );
-      case 'Connections':
+      case 'Account(s)':
         return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setIsAddingAccount(true)} onDeleteAccount={handleDeleteAccount} />;
       case 'AI Agent':
         return <AIAgent />;
@@ -340,7 +360,7 @@ const App: React.FC = () => {
                   <AccountView
                   account={selectedAccount}
                   accounts={accounts}
-                  onBack={handleBackToConnections}
+                  onBack={handleBackToAccounts}
                   onSwitchAccount={handleSelectAccount}
                   sqlFiles={sqlFiles}
                   onSaveQueryClick={() => setIsSavingQuery(true)}

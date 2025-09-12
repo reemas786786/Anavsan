@@ -3,7 +3,7 @@ import React from 'react';
 export type Page = 
   | 'Data Cloud Overview'
   | 'Dashboards'
-  | 'Connections' 
+  | 'Account(s)' 
   | 'AI Agent' 
   | 'Reports' 
   | 'Book a Demo'
@@ -74,6 +74,7 @@ export interface TopQuery {
     id: string;
     queryText: string;
     credits: number;
+    cost: number;
     user: string;
     duration: string;
 }
@@ -81,7 +82,8 @@ export interface TopQuery {
 export interface OptimizationOpportunity {
     id: string;
     queryText: string;
-    potentialSavings: number;
+    potentialSavings: number; // in credits
+    potentialSavingsCost: number; // in cost
     recommendation: string;
 }
 

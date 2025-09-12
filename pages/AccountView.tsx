@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Account, SQLFile } from '../types';
 import QueryWorkspace from './QueryWorkspace';
 import AccountOverviewDashboard from './AccountOverviewDashboard';
-import QueryPerformanceView from './QueryPerformanceView';
+import QueryPerformanceView, { SimilarQueryPatternsView } from './QueryPerformanceView';
 import { IconChevronDown, IconChevronLeft, IconChevronRight } from '../constants';
 
 interface AccountViewProps {
@@ -16,7 +16,7 @@ interface AccountViewProps {
 
 const accountNavItems = [
     { name: 'Overview', children: [] },
-    { name: 'Query Performance', children: ['Query List', 'Slow Queries'] },
+    { name: 'Query Performance', children: ['Query List', 'Slow Queries', 'Similar Query Patterns'] },
     { name: 'Optimization', children: ['Query Analyzer', 'Query Optimizer', 'Query Simulator'] },
     { name: 'Storage & Cost', children: [] },
     { name: 'AI & Insights', children: [] },
@@ -94,6 +94,8 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
             case 'Query List':
             case 'Slow Queries':
                 return <QueryPerformanceView />;
+            case 'Similar Query Patterns':
+                return <SimilarQueryPatternsView />;
             default:
                 return (
                     <div className="p-4 bg-surface rounded-lg border border-border-color">
@@ -105,7 +107,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
     };
     
     const breadcrumbItems: { label: string; onClick?: () => void }[] = [
-        { label: 'Connections', onClick: onBack },
+        { label: 'Account(s)', onClick: onBack },
         { label: account.name },
     ];
     if (activeSubPage !== 'Overview') {

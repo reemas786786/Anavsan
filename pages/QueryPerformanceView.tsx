@@ -30,6 +30,112 @@ const SortIndicator: React.FC<{ direction: 'ascending' | 'descending' | null }> 
     );
 };
 
+export const SimilarQueryPatternsView: React.FC = () => {
+    const [viewingDetailsOf, setViewingDetailsOf] = useState<string | null>(null);
+
+    const groupedData = useMemo(() => {
+        const groups: { [key: string]: { queries: SimilarQuery[]; totalCredits: number; totalCost: number } } = {};
+        similarQueriesData.forEach(q => {
+            if (q.pattern) {
+                if (!groups[q.pattern]) {
+                    groups[q.pattern] = { queries: [], totalCredits: 0, totalCost: 0 };
+                }
+                groups[q.pattern].queries.push(q);
+                groups[q.pattern].totalCredits += q.credits;
+                groups[q.pattern].totalCost += q.cost;
+            }
+        });
+        return Object.entries(groups).map(([pattern, data]) => ({
+            pattern,
+            count: data.queries.length,
+            totalCredits: data.totalCredits,
+            totalCost: data.totalCost,
+        })).sort((a, b) => b.totalCredits - a.totalCredits);
+    }, []);
+
+    if (viewingDetailsOf) {
+        const queriesForPattern = similarQueriesData.filter(q => q.pattern === viewingDetailsOf);
+        return (
+            <div className="space-y-4">
+                <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm">
+                    <div className="flex justify-between items-center mb-4">
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-base font-semibold text-text-strong">Queries for Pattern:</h2>
+                            <PatternTag pattern={viewingDetailsOf} />
+                        </div>
+                        <button onClick={() => setViewingDetailsOf(null)} className="text-sm font-semibold text-link hover:underline">
+                            &larr; Back to Patterns
+                        </button>
+                    </div>
+                     <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left text-text-secondary">
+                            <thead className="bg-background text-xs text-text-secondary uppercase font-medium">
+                               <tr>
+                                    <th scope="col" className="px-6 py-3">Query</th>
+                                    <th scope="col" className="px-6 py-3">Similarity</th>
+                                    <th scope="col" className="px-6 py-3">Execution Time (ms)</th>
+                                    <th scope="col" className="px-6 py-3">Warehouse</th>
+                                    <th scope="col" className="px-6 py-3">Cost ($)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {queriesForPattern.map(query => (
+                                    <tr key={query.id} className="border-t border-border-color hover:bg-surface-hover">
+                                        <td className="px-6 py-4 font-mono text-xs text-text-primary whitespace-nowrap max-w-sm truncate">{query.name}</td>
+                                        <td className="px-6 py-4 font-medium text-text-primary">{query.similarity}%</td>
+                                        <td className="px-6 py-4">{query.executionTime.toLocaleString()}</td>
+                                        <td className="px-6 py-4">{query.warehouse}</td>
+                                        <td className="px-6 py-4">${query.cost.toFixed(2)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-4">
+            <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm">
+                <h2 className="text-base font-semibold text-text-strong mb-4">Similar Query Patterns</h2>
+                 <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left text-text-secondary">
+                        <thead className="bg-background text-xs text-text-secondary uppercase font-medium">
+                            <tr>
+                                <th scope="col" className="px-6 py-3">Pattern</th>
+                                <th scope="col" className="px-6 py-3">Query Count</th>
+                                <th scope="col" className="px-6 py-3">Total Credits</th>
+                                <th scope="col" className="px-6 py-3">Total Cost ($)</th>
+                                <th scope="col" className="px-6 py-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {groupedData.map(group => (
+                                <tr key={group.pattern} className="border-t border-border-color hover:bg-surface-hover">
+                                    <td className="px-6 py-4"><PatternTag pattern={group.pattern} /></td>
+                                    <td className="px-6 py-4 font-medium text-text-primary">{group.count}</td>
+                                    <td className="px-6 py-4">{group.totalCredits.toFixed(2)}</td>
+                                    <td className="px-6 py-4">${group.totalCost.toFixed(2)}</td>
+                                    <td className="px-6 py-4 text-right">
+                                        <button 
+                                            onClick={() => setViewingDetailsOf(group.pattern)}
+                                            className="text-sm font-semibold text-link hover:underline"
+                                        >
+                                            View Details
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const QueryPerformanceView: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState<{ key: keyof SimilarQuery; direction: 'ascending' | 'descending' } | null>({ key: 'similarity', direction: 'descending' });

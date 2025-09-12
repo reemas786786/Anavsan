@@ -133,6 +133,12 @@ export const IconShare: React.FC<{ className?: string }> = ({ className }) => (
     </svg>
 );
 
+export const IconInfo: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+    </svg>
+);
+
 export const IconChevronLeft: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -155,7 +161,7 @@ export const IconDragHandle: React.FC<{ className?: string }> = ({ className }) 
 export const NAV_ITEMS_TOP: NavItem[] = [
     { name: 'Data Cloud Overview', icon: IconOverview },
     { name: 'Dashboards', icon: IconDashboard },
-    { name: 'Connections', icon: IconConnections },
+    { name: 'Account(s)', icon: IconConnections },
     { name: 'AI Agent', icon: IconAIAgent },
     { 
         name: 'Reports', 

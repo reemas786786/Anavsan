@@ -129,8 +129,8 @@ export const topSpendData = [
 ];
 
 export const costBreakdownData = [
-    { name: 'Warehouse Costs', cost: 35000, credits: 1200, color: '#6932D5', percentage: 55 },
-    { name: 'Storage Costs', cost: 12000, credits: 400, color: '#A78BFA', percentage: 38 },
+    { name: 'Warehouse', cost: 35000, credits: 1200, color: '#6932D5', percentage: 55 },
+    { name: 'Storage', cost: 12000, credits: 400, color: '#A78BFA', percentage: 38 },
 ];
 
 export const sqlFilesData: SQLFile[] = [
@@ -155,21 +155,26 @@ export const sqlFilesData: SQLFile[] = [
 
 // --- Data for Account Overview Dashboard ---
 export const accountSpend = {
-    monthly: 12450,
-    forecasted: 21500,
-    ytd: 145800,
+    cost: {
+        monthly: 31125,
+        forecasted: 53750,
+    },
+    credits: {
+        monthly: 12450,
+        forecasted: 21500,
+    }
 };
 
 export const topQueriesData: TopQuery[] = [
-    { id: 'q1', queryText: 'SELECT * FROM sales_q3_2023...', credits: 120.5, user: 'ALICE', duration: '2h 15m' },
-    { id: 'q2', queryText: 'JOIN large_customer_table...', credits: 98.2, user: 'BOB', duration: '1h 45m' },
-    { id: 'q3', queryText: 'AGGREGATE daily_metrics...', credits: 75.1, user: 'ALICE', duration: '55m' },
-    { id: 'q4', queryText: 'WINDOW function over user_sessions...', credits: 50.8, user: 'CHARLIE', duration: '32m' },
+    { id: 'q1', queryText: 'SELECT * FROM sales_q3_2023...', credits: 120.5, cost: 301.25, user: 'ALICE', duration: '2h 15m' },
+    { id: 'q2', queryText: 'JOIN large_customer_table...', credits: 98.2, cost: 245.50, user: 'BOB', duration: '1h 45m' },
+    { id: 'q3', queryText: 'AGGREGATE daily_metrics...', credits: 75.1, cost: 187.75, user: 'ALICE', duration: '55m' },
+    { id: 'q4', queryText: 'WINDOW function over user_sessions...', credits: 50.8, cost: 127.00, user: 'CHARLIE', duration: '32m' },
 ];
 
 export const optimizationOpportunitiesData: OptimizationOpportunity[] = [
-    { id: 'opt1', queryText: 'SELECT DISTINCT user_id FROM events...', potentialSavings: 45.0, recommendation: 'Use APPROX_COUNT_DISTINCT' },
-    { id: 'opt2', queryText: 'CROSS JOIN customer_regions...', potentialSavings: 25.5, recommendation: 'Add explicit JOIN condition' },
+    { id: 'opt1', queryText: 'SELECT DISTINCT user_id FROM events...', potentialSavings: 45.0, potentialSavingsCost: 112.5, recommendation: 'Use APPROX_COUNT_DISTINCT' },
+    { id: 'opt2', queryText: 'CROSS JOIN customer_regions...', potentialSavings: 25.5, potentialSavingsCost: 63.75, recommendation: 'Add explicit JOIN condition' },
 ];
 
 export const warehousesData: Warehouse[] = [
@@ -180,8 +185,8 @@ export const warehousesData: Warehouse[] = [
 ];
 
 export const accountCostBreakdown = [
-    { name: 'Warehouse Costs', value: 1200, color: '#6932D5', percentage: 55 },
-    { name: 'Storage Costs', value: 400, color: '#A78BFA', percentage: 38 },
+    { name: 'Warehouse', cost: 24125, credits: 9711, color: '#6932D5', percentage: 78 },
+    { name: 'Storage', cost: 7000, credits: 2739, color: '#A78BFA', percentage: 22 },
 ];
 
 export const usersData: User[] = [

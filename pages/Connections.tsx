@@ -54,7 +54,7 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
 
     return (
         <div className="space-y-4">
-            <h1 className="text-2xl font-bold text-text-primary">Connections</h1>
+            <h1 className="text-2xl font-bold text-text-primary">Account(s)</h1>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard title="Total Accounts" value={accounts.length.toString()} />

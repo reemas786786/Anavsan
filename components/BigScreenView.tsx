@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { BigScreenWidget, Account, User } from '../types';
@@ -47,6 +48,29 @@ const AccessibleBar = (props: any) => {
     );
 };
 
+const CustomTooltip = ({ active, payload, label, displayMode }: any) => {
+    if (active && payload && payload.length) {
+        const value = payload[0].value;
+        return (
+            <div className="bg-surface p-2 rounded-lg border border-border-color shadow-sm">
+                <p className="text-sm font-semibold text-text-strong mb-1">{label}</p>
+                <div className="text-sm text-primary flex items-baseline">
+                    <span className="font-semibold text-text-secondary mr-2">{displayMode === 'cost' ? 'Spend:' : 'Credits:'}</span>
+                    {displayMode === 'cost' ? (
+                        <span className="font-semibold text-text-primary">{`$${value.toLocaleString()}`}</span>
+                    ) : (
+                        <>
+                            <span className="font-semibold text-text-primary">{value.toLocaleString()}</span>
+                            <span className="text-xs font-medium text-text-secondary ml-1">credits</span>
+                        </>
+                    )}
+                </div>
+            </div>
+        );
+    }
+    return null;
+};
+
 
 const BigScreenView: React.FC<BigScreenViewProps> = ({ widget, accounts, users, onClose, onSelectAccount, onSelectUser }) => {
     const [displayMode, setDisplayMode] = useState<'cost' | 'credits'>('cost');
@@ -73,13 +97,13 @@ const BigScreenView: React.FC<BigScreenViewProps> = ({ widget, accounts, users, 
                         <BarChart
                             layout="vertical"
                             data={[...accounts].sort((a, b) => b[displayMode] - a[displayMode])}
-                            margin={{ top: 5, right: 30, left: 120, bottom: 30 }}
+                            margin={{ top: 5, right: 30, left: 40, bottom: 30 }}
                             barCategoryGap="10%"
                         >
                             <XAxis type="number" stroke="#5A5A72" fontSize={12} tickLine={false} axisLine={{ stroke: '#E5E5E0' }} label={{ value: displayMode === 'cost' ? 'Cost ($)' : 'Credits', position: 'insideBottom', dy: 15, style: { fill: '#5A5A72', fontSize: 12, fontWeight: 500 } }} />
                             <YAxis type="category" dataKey="name" stroke="#5A5A72" tickLine={false} axisLine={false} interval={0} width={120} tick={{ fill: '#5A5A72', fontSize: 12 }} />
-                            <Tooltip cursor={{ fill: 'rgba(105, 50, 213, 0.1)' }} contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E0', borderRadius: '12px' }} labelStyle={{ color: '#1E1E2D' }} formatter={(value: number) => [ displayMode === 'cost' ? `$${value.toLocaleString()}`: `${value.toLocaleString()} credits`, displayMode === 'cost' ? 'Spend' : 'Credits' ]} />
-                            <Bar dataKey={displayMode} fill="#6932D5" barSize={20} shape={ <AccessibleBar onBarClick={handleBarClick} ariaLabelGenerator={(p: any) => `Navigate to Account Overview for ${p.name}`} /> } />
+                            <Tooltip cursor={{ fill: 'rgba(105, 50, 213, 0.1)' }} content={<CustomTooltip displayMode={displayMode} />} />
+                            <Bar dataKey={displayMode === 'cost' ? 'cost' : 'credits'} fill="#6932D5" barSize={accounts.length <= 10 ? 12 : 20} shape={ <AccessibleBar onBarClick={handleBarClick} ariaLabelGenerator={(p: any) => `Navigate to Account Overview for ${p.name}`} /> } />
                         </BarChart>
                     </ResponsiveContainer>
                 );
@@ -89,13 +113,13 @@ const BigScreenView: React.FC<BigScreenViewProps> = ({ widget, accounts, users, 
                         <BarChart
                             layout="vertical"
                             data={[...users].sort((a, b) => b[displayMode] - a[displayMode])}
-                            margin={{ top: 5, right: 30, left: 120, bottom: 30 }}
+                            margin={{ top: 5, right: 30, left: 40, bottom: 30 }}
                             barCategoryGap="10%"
                         >
                             <XAxis type="number" stroke="#5A5A72" fontSize={12} tickLine={false} axisLine={{ stroke: '#E5E5E0' }} label={{ value: displayMode === 'cost' ? 'Cost ($)' : 'Credits', position: 'insideBottom', dy: 15, style: { fill: '#5A5A72', fontSize: 12, fontWeight: 500 } }} />
                             <YAxis type="category" dataKey="name" stroke="#5A5A72" tickLine={false} axisLine={false} interval={0} width={120} tick={{ fill: '#5A5A72', fontSize: 12 }} />
-                            <Tooltip cursor={{ fill: 'rgba(105, 50, 213, 0.1)' }} contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E0', borderRadius: '12px' }} labelStyle={{ color: '#1E1E2D' }} formatter={(value: number) => [ displayMode === 'cost' ? `$${value.toLocaleString()}`: `${value.toLocaleString()} credits`, displayMode === 'cost' ? 'Spend' : 'Credits' ]} />
-                            <Bar dataKey={displayMode} fill="#6932D5" barSize={15} shape={ <AccessibleBar onBarClick={handleUserBarClick} ariaLabelGenerator={(p: any) => `Navigate to User Overview for ${p.name}`} /> } />
+                            <Tooltip cursor={{ fill: 'rgba(105, 50, 213, 0.1)' }} content={<CustomTooltip displayMode={displayMode} />} />
+                            <Bar dataKey={displayMode === 'cost' ? 'cost' : 'credits'} fill="#6932D5" barSize={users.length <= 10 ? 12 : 15} shape={ <AccessibleBar onBarClick={handleUserBarClick} ariaLabelGenerator={(p: any) => `Navigate to User Overview for ${p.name}`} /> } />
                         </BarChart>
                     </ResponsiveContainer>
                 );
@@ -109,8 +133,7 @@ const BigScreenView: React.FC<BigScreenViewProps> = ({ widget, accounts, users, 
                                     {costBreakdownData.map(item => {
                                         const chartData = [{ value: item.percentage }, { value: 100 - item.percentage }];
                                         const value = displayMode === 'cost' ? item.cost : item.credits;
-                                        const label = item.name.replace(' Costs', '');
-                                        const displayValue = displayMode === 'cost' ? `$${value.toLocaleString()}` : `${value.toLocaleString()} credits`;
+                                        const label = item.name;
                                         return (
                                             <div key={item.name} className="flex flex-col items-center text-center">
                                                 <div className="relative h-[150px] w-[150px]">
@@ -126,18 +149,31 @@ const BigScreenView: React.FC<BigScreenViewProps> = ({ widget, accounts, users, 
                                                         <span className="text-3xl font-bold text-text-primary">{item.percentage}%</span>
                                                     </div>
                                                 </div>
-                                                <p className="mt-4 text-base text-text-secondary">
-                                                    <span className="font-semibold text-text-strong">{label}</span> — {displayValue}
-                                                </p>
+                                                <div className="mt-4 text-base text-text-secondary flex items-baseline justify-center">
+                                                    <span className="font-semibold text-text-strong mr-1">{label}</span> —&nbsp;
+                                                    {displayMode === 'cost' ? (
+                                                        `$${value.toLocaleString()}`
+                                                    ) : (
+                                                        <>
+                                                            <span>{value.toLocaleString()}</span>
+                                                            <span className="text-sm font-medium ml-1">credits</span>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </div>
                                         );
                                     })}
                                 </div>
                             </div>
-                             <div className="text-center mt-6 pt-6 border-t border-border-light">
-                                <span className="text-base text-text-secondary">Current Spend: </span>
+                             <div className="text-center mt-6 pt-6 border-t border-border-light flex items-baseline justify-center">
+                                <span className="text-base text-text-secondary mr-1">Current Spend:</span>
                                 <span className="text-base font-semibold text-text-primary">
-                                    {displayMode === 'cost' ? `$${currentSpend.toLocaleString()}` : `${currentSpend.toLocaleString()} credits`}
+                                    {displayMode === 'cost' ? `$${currentSpend.toLocaleString()}` : (
+                                        <>
+                                            <span>{currentSpend.toLocaleString()}</span>
+                                            <span className="text-sm font-medium text-text-secondary ml-1">credits</span>
+                                        </>
+                                    )}
                                 </span>
                             </div>
                         </div>

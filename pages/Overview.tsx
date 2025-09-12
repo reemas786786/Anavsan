@@ -1,5 +1,4 @@
 
-
 import React, { useState, useRef, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { costBreakdownData, overviewMetrics, resourceSummaryData as initialResourceSummaryData } from '../data/dummyData';
@@ -7,6 +6,7 @@ import { Account, User, BigScreenWidget } from '../types';
 import { IconDotsVertical } from '../constants';
 import SidePanel from '../components/SidePanel';
 import TableView from '../components/TableView';
+import InfoTooltip from '../components/InfoTooltip';
 
 interface OverviewProps {
     onSelectAccount: (account: Account) => void;
@@ -55,6 +55,29 @@ const AccessibleBar = (props: any) => {
             <rect x={x} y={y} width={width} height={height} fill={fill} />
         </g>
     );
+};
+
+const CustomTooltip = ({ active, payload, label, displayMode }: any) => {
+    if (active && payload && payload.length) {
+        const value = payload[0].value;
+        return (
+            <div className="bg-surface p-2 rounded-lg border border-border-color shadow-sm">
+                <p className="text-sm font-semibold text-text-strong mb-1">{label}</p>
+                <div className="text-sm text-primary flex items-baseline">
+                    <span className="font-semibold text-text-secondary mr-2">{displayMode === 'cost' ? 'Spend:' : 'Credits:'}</span>
+                    {displayMode === 'cost' ? (
+                        <span className="font-semibold text-text-primary">{`$${value.toLocaleString()}`}</span>
+                    ) : (
+                        <>
+                            <span className="font-semibold text-text-primary">{value.toLocaleString()}</span>
+                            <span className="text-xs font-medium text-text-secondary ml-1">credits</span>
+                        </>
+                    )}
+                </div>
+            </div>
+        );
+    }
+    return null;
 };
 
 
@@ -108,7 +131,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
 
         switch (widgetType) {
             case 'cost-forecast':
-                fileName = 'Current_Month_Cost_Forecast';
+                fileName = 'Current_Month_Spend_Forecast';
                 headers = ['Metric', 'Cost', 'Credits', 'Timestamp'];
                 dataRows = [
                     ['Current Spend', overviewMetrics.cost.current, overviewMetrics.credits.current, timestamp],
@@ -153,7 +176,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
         const totalCredits = costBreakdownData.reduce((sum, item) => sum + item.credits, 0);
 
         const data = costBreakdownData.map(item => ({
-            name: item.name.replace(' Costs', ''),
+            name: item.name,
             cost: item.cost,
             credits: item.credits,
             percentage: (displayMode === 'cost' ? item.cost / totalCost : item.credits / totalCredits) * 100,
@@ -225,6 +248,9 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
     
     const currentSpend = displayMode === 'cost' ? overviewMetrics.cost.current : overviewMetrics.credits.current;
     const forecastedSpend = displayMode === 'cost' ? overviewMetrics.cost.forecasted : overviewMetrics.credits.forecasted;
+    const barHeight = 12;
+    const userBarHeight = 12;
+
 
     return (
         <div className="space-y-4">
@@ -256,7 +282,10 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <Card>
                      <div className="flex justify-between items-start mb-4">
-                        <h4 className="text-base font-semibold text-text-strong">Current Month Cost & Forecast</h4>
+                        <div className="flex items-center">
+                            <h4 className="text-base font-semibold text-text-strong">Current Month Spend & Forecast</h4>
+                            <InfoTooltip text="The total cost or credits consumed this month, and the projected spend by the end of the month based on current usage patterns." />
+                        </div>
                         <div className="relative" ref={openMenu === 'cost-forecast' ? menuRef : null}>
                             <button
                                 onClick={() => handleMenuClick('cost-forecast')}
@@ -276,25 +305,42 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                             )}
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
                         <div className="bg-background p-4 rounded-3xl">
                             <p className="text-text-secondary text-sm">Current Spend</p>
-                            <p className="text-[22px] leading-7 font-bold text-text-primary mt-1">
-                                {displayMode === 'cost' ? `$${currentSpend.toLocaleString()}` : `${currentSpend.toLocaleString()} credits`}
-                            </p>
+                            <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
+                                {displayMode === 'cost' ? (
+                                    `$${currentSpend.toLocaleString()}.00`
+                                ) : (
+                                    <>
+                                        <span>{currentSpend.toLocaleString()}</span>
+                                        <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
+                                    </>
+                                )}
+                            </div>
                         </div>
                         <div className="bg-background p-4 rounded-3xl">
                             <p className="text-text-secondary text-sm">Forecasted Spend</p>
-                            <p className="text-[22px] leading-7 font-bold text-text-primary mt-1">
-                                {displayMode === 'cost' ? `$${forecastedSpend.toLocaleString()}` : `${forecastedSpend.toLocaleString()} credits`}
-                            </p>
+                            <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
+                                {displayMode === 'cost' ? (
+                                    `$${forecastedSpend.toLocaleString()}.00`
+                                ) : (
+                                    <>
+                                        <span>{forecastedSpend.toLocaleString()}</span>
+                                        <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </Card>
 
                 <Card>
                     <div className="flex justify-between items-start mb-4">
-                        <h4 className="text-base font-semibold text-text-strong">Resource Summary</h4>
+                        <div className="flex items-center">
+                            <h4 className="text-base font-semibold text-text-strong">Resource Summary</h4>
+                            <InfoTooltip text="A high-level summary of monitored resources and activities within the current month." />
+                        </div>
                         <div className="relative" ref={openMenu === 'resource-summary' ? menuRef : null}>
                             <button
                                 onClick={() => handleMenuClick('resource-summary')}
@@ -326,7 +372,10 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                 
                 <Card>
                     <div className="flex justify-between items-start mb-4">
-                        <h4 className="text-base font-semibold text-text-strong">Spend Breakdown</h4>
+                        <div className="flex items-center">
+                            <h4 className="text-base font-semibold text-text-strong">Spend Breakdown</h4>
+                            <InfoTooltip text="A breakdown of monthly spend by the primary cost categories: compute (Warehouse) and storage." />
+                        </div>
                         <div className="relative" ref={openMenu === 'spend-breakdown' ? menuRef : null}>
                             <button
                                 onClick={() => handleMenuClick('spend-breakdown')}
@@ -348,19 +397,28 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                             )}
                         </div>
                     </div>
+                     <div className="space-y-4">
+                        {costBreakdownData.map(item => {
+                            const chartData = [{ value: item.percentage }, { value: 100 - item.percentage }];
+                            const value = displayMode === 'cost' ? item.cost : item.credits;
 
-                    <div className="flex items-center justify-center py-4">
-                        <div className="grid grid-cols-2 gap-8">
-                            {costBreakdownData.map(item => {
-                                const chartData = [{ value: item.percentage }, { value: 100 - item.percentage }];
-                                const value = displayMode === 'cost' ? item.cost : item.credits;
-                                const label = item.name.replace(' Costs', '');
-                                const displayValue = displayMode === 'cost'
-                                    ? `$${value.toLocaleString()}`
-                                    : `${value.toLocaleString()} credits`;
-                                return (
-                                    <div key={item.name} className="flex flex-col items-center text-center">
-                                        <div className="relative h-[100px] w-[100px]">
+                            return (
+                                <div key={item.name} className="flex items-center justify-between gap-4">
+                                    <div className="bg-background p-4 rounded-3xl flex-grow">
+                                        <p className="text-text-secondary text-sm">{item.name}</p>
+                                        <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
+                                            {displayMode === 'cost' ? (
+                                                `$${value.toLocaleString()}`
+                                            ) : (
+                                                <>
+                                                    <span>{value.toLocaleString()}</span>
+                                                    <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex-shrink-0 px-4">
+                                        <div className="relative h-[80px] w-[80px]">
                                             <ResponsiveContainer width="100%" height="100%">
                                                 <PieChart>
                                                     <Pie
@@ -383,28 +441,32 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                                                 <span className="text-xl font-bold text-text-primary">{item.percentage}%</span>
                                             </div>
                                         </div>
-                                        <p className="mt-2 text-sm text-text-secondary">
-                                            <span className="font-semibold text-text-strong">{label}</span> — {displayValue}
-                                        </p>
                                     </div>
-                                );
-                            })}
-                        </div>
+                                </div>
+                            );
+                        })}
                     </div>
-
-                    <div className="text-center mt-4 pt-4 border-t border-border-light">
-                        <span className="text-sm text-text-secondary">Current Spend: </span>
+                    <div className="text-center mt-4 pt-4 border-t border-border-light flex items-baseline justify-center">
+                        <span className="text-sm text-text-secondary mr-1">Current Spend:</span>
                         <span className="text-sm font-semibold text-text-primary">
-                             {displayMode === 'cost'
-                                ? `$${currentSpend.toLocaleString()}`
-                                : `${currentSpend.toLocaleString()} credits`}
+                             {displayMode === 'cost' ? (
+                                `$${currentSpend.toLocaleString()}.00`
+                             ) : (
+                                <>
+                                    <span>{currentSpend.toLocaleString()}</span>
+                                    <span className="text-xs font-medium text-text-secondary ml-1">credits</span>
+                                </>
+                             )}
                         </span>
                     </div>
                 </Card>
 
                 <Card>
                     <div className="flex justify-between items-start mb-4">
-                        <h4 className="text-base font-semibold text-text-strong">Top Spend by Account</h4>
+                        <div className="flex items-center">
+                            <h4 className="text-base font-semibold text-text-strong">Top Spend by Account</h4>
+                            <InfoTooltip text="Displays the top 10 accounts ranked by their total cost or credit consumption for the current period." />
+                        </div>
                         <div className="relative" ref={openMenu === 'top-spend-account' ? menuRef : null}>
                             <button
                                 onClick={() => handleMenuClick('top-spend-account')}
@@ -431,7 +493,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                             <BarChart
                                 layout="vertical"
                                 data={sortedTopSpendData}
-                                margin={{ top: 5, right: 30, left: 100, bottom: 20 }}
+                                margin={{ top: 5, right: 30, left: 20, bottom: 20 }}
                                 barCategoryGap="10%"
                             >
                                 <XAxis
@@ -454,17 +516,12 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                                 />
                                 <Tooltip
                                     cursor={{ fill: 'rgba(105, 50, 213, 0.1)' }}
-                                    contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E0', borderRadius: '12px' }}
-                                    labelStyle={{ color: '#1E1E2D' }}
-                                    formatter={(value: number) => [
-                                        displayMode === 'cost' ? `$${value.toLocaleString()}`: `${value.toLocaleString()} credits`,
-                                        displayMode === 'cost' ? 'Spend' : 'Credits'
-                                    ]}
+                                    content={<CustomTooltip displayMode={displayMode} />}
                                 />
                                 <Bar 
                                     dataKey={displayMode === 'cost' ? 'cost' : 'credits'} 
                                     fill="#6932D5" 
-                                    barSize={20}
+                                    barSize={barHeight}
                                     shape={
                                         <AccessibleBar 
                                             onBarClick={handleBarClick} 
@@ -479,7 +536,10 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
 
                 <Card>
                     <div className="flex justify-between items-start mb-4">
-                        <h4 className="text-base font-semibold text-text-strong">Top Spend by User</h4>
+                        <div className="flex items-center">
+                            <h4 className="text-base font-semibold text-text-strong">Top Spend by User</h4>
+                            <InfoTooltip text="Displays the top 10 users ranked by their total cost or credit consumption for the current period." />
+                        </div>
                          <div className="relative" ref={openMenu === 'top-spend-user' ? menuRef : null}>
                             <button
                                 onClick={() => handleMenuClick('top-spend-user')}
@@ -506,7 +566,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                             <BarChart
                                 layout="vertical"
                                 data={topUsers}
-                                margin={{ top: 5, right: 30, left: 100, bottom: 20 }}
+                                margin={{ top: 5, right: 30, left: 20, bottom: 20 }}
                                 barCategoryGap="20%"
                             >
                                 <XAxis
@@ -529,17 +589,12 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                                 />
                                 <Tooltip
                                     cursor={{ fill: 'rgba(105, 50, 213, 0.1)', cursor: 'pointer' }}
-                                    contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E0', borderRadius: '12px' }}
-                                    labelStyle={{ color: '#1E1E2D', fontWeight: 'bold' }}
-                                    formatter={(value: number) => [
-                                        displayMode === 'cost' ? `$${value.toLocaleString()}` : `${value.toLocaleString()} credits`,
-                                        displayMode === 'cost' ? 'Spend' : 'Credits'
-                                    ]}
+                                    content={<CustomTooltip displayMode={displayMode} />}
                                 />
                                 <Bar
                                     dataKey={displayMode === 'cost' ? 'cost' : 'credits'}
                                     fill="#6932D5"
-                                    barSize={15}
+                                    barSize={userBarHeight}
                                     shape={
                                         <AccessibleBar 
                                             onBarClick={handleUserBarClick}
