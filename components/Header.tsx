@@ -1,11 +1,12 @@
-
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { IconMenu, IconAIAgent, IconSupport, IconUser, IconSearch, IconBell, IconClose } from '../constants';
 
 interface HeaderProps {
     onMenuClick: () => void;
     onLogoClick: () => void;
     isSidebarOpen: boolean;
+    onOpenProfileSettings: () => void;
+    onLogout: () => void;
 }
 
 const AnavsanLogo: React.FC<{}> = () => (
@@ -22,7 +23,20 @@ const AnavsanLogo: React.FC<{}> = () => (
 );
 
 
-const Header: React.FC<HeaderProps> = ({ onMenuClick, onLogoClick, isSidebarOpen }) => {
+const Header: React.FC<HeaderProps> = ({ onMenuClick, onLogoClick, isSidebarOpen, onOpenProfileSettings, onLogout }) => {
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+        if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+            setIsUserMenuOpen(false);
+        }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
     <header className="bg-sidebar-topbar px-4 py-2 flex items-center justify-between flex-shrink-0 h-12 z-40 relative">
       <div className="flex items-center gap-4">
@@ -61,10 +75,18 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onLogoClick, isSidebarOpen
           <IconSupport className="h-6 w-6" />
         </button>
 
-        <div className="flex items-center pl-2">
-            <button className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
+        <div className="relative flex items-center pl-2" ref={menuRef}>
+            <button onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors" aria-haspopup="true" aria-expanded={isUserMenuOpen} aria-label="User menu">
                 <IconUser className="h-6 w-6" />
             </button>
+            {isUserMenuOpen && (
+                <div className="origin-top-right absolute right-0 top-full mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-20">
+                    <div className="py-1" role="menu" aria-orientation="vertical">
+                        <button onClick={() => { onOpenProfileSettings(); setIsUserMenuOpen(false); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Profile Settings</button>
+                        <button onClick={() => { onLogout(); setIsUserMenuOpen(false); }} className="w-full text-left block px-4 py-2 text-sm text-status-error hover:bg-status-error/10" role="menuitem">Logout</button>
+                    </div>
+                </div>
+            )}
         </div>
       </div>
     </header>

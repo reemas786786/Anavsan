@@ -25,6 +25,7 @@ import { connectionsData, sqlFilesData as initialSqlFiles, usersData, dashboards
 import SettingsPage from './pages/SettingsPage';
 import Dashboards from './pages/Dashboards';
 import DashboardEditor from './pages/DashboardEditor';
+import ProfileSettingsPage from './pages/ProfileSettingsPage';
 
 const App: React.FC = () => {
   const [activePage, setActivePage] = useState<Page>('Data Cloud Overview');
@@ -66,6 +67,10 @@ const App: React.FC = () => {
   const [editingDashboard, setEditingDashboard] = useState<DashboardItem | 'new' | null>(null);
   const [bigScreenWidget, setBigScreenWidget] = useState<BigScreenWidget | null>(null);
 
+  const [isProfileSettingsPageActive, setIsProfileSettingsPageActive] = useState(false);
+  // Mock current user - assuming the first user is the logged-in user
+  const [currentUser, setCurrentUser] = useState<User | null>(users.length > 0 ? users[0] : null);
+
 
   useEffect(() => {
     if (accounts.length === 0 && !isAddingAccount) {
@@ -92,6 +97,7 @@ const App: React.FC = () => {
     setActivePage(page);
     setSelectedAccount(null);
     setSelectedUser(null);
+    setIsProfileSettingsPageActive(false);
     
     if (page === 'Settings') {
         setIsSettingsViewActive(true);
@@ -112,6 +118,7 @@ const App: React.FC = () => {
     setSelectedAccount(null);
     setSelectedUser(null);
     setIsSettingsViewActive(false);
+    setIsProfileSettingsPageActive(false);
     setIsSidebarOpen(false);
   };
 
@@ -181,6 +188,7 @@ const App: React.FC = () => {
     setSelectedAccount(account);
     setSelectedUser(null);
     setIsSettingsViewActive(false);
+    setIsProfileSettingsPageActive(false);
     setActivePage('Account(s)');
   };
 
@@ -188,6 +196,7 @@ const App: React.FC = () => {
       setSelectedUser(user);
       setSelectedAccount(null);
       setIsSettingsViewActive(false);
+      setIsProfileSettingsPageActive(false);
   };
 
   const handleBackToAccounts = () => {
@@ -278,6 +287,23 @@ const App: React.FC = () => {
     setEditingDashboard(null);
   };
 
+  const handleUpdateUserProfile = (updatedUser: User) => {
+    // Update the current user state
+    setCurrentUser(updatedUser);
+    // Also update the main users list to reflect changes elsewhere
+    setUsers(prevUsers => 
+        prevUsers.map(user => 
+            user.id === updatedUser.id ? updatedUser : user
+        )
+    );
+    showToast('Profile updated successfully!');
+  };
+  
+  const handleLogout = () => {
+    showToast('You have been logged out.');
+    // In a real app, you'd clear session/token here
+  };
+
 
   const renderContent = () => {
     switch (activePage) {
@@ -345,6 +371,14 @@ const App: React.FC = () => {
             onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
             onLogoClick={handleLogoClick}
             isSidebarOpen={isSidebarOpen}
+            onOpenProfileSettings={() => {
+              setIsSidebarOpen(false);
+              setSelectedAccount(null);
+              setSelectedUser(null);
+              setIsSettingsViewActive(false);
+              setIsProfileSettingsPageActive(true);
+            }}
+            onLogout={handleLogout}
           />
           <div className="flex flex-1 overflow-hidden">
             <Sidebar
@@ -353,7 +387,7 @@ const App: React.FC = () => {
                 activePage={activePage}
                 setActivePage={handlePageChange}
                 activeSettingsSubPage={activeSettingsSubPage}
-                showCompact={!isAccountView && !isSettingsViewActive}
+                showCompact={!isAccountView && !isSettingsViewActive && !isProfileSettingsPageActive}
             />
             <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background">
               {selectedAccount ? (
@@ -382,6 +416,12 @@ const App: React.FC = () => {
                     onActivateUserClick={(user) => setUserToActivate(user)}
                     onRemoveUserClick={(user) => setUserToRemove(user)}
                 />
+              ) : isProfileSettingsPageActive && currentUser ? (
+                  <ProfileSettingsPage
+                      user={currentUser}
+                      onSave={handleUpdateUserProfile}
+                      onBack={() => setIsProfileSettingsPageActive(false)}
+                  />
               ) : (
                   <div className={activePage === 'Dashboards' && editingDashboard ? '' : 'p-4'}>
                     {renderContent()}

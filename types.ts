@@ -105,6 +105,7 @@ export interface User {
     name: string;
     email: string;
     role: UserRole;
+    roleTitle?: string;
     status: UserStatus;
     dateAdded: string;
     avatarUrl?: string;

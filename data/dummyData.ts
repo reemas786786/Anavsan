@@ -190,17 +190,17 @@ export const accountCostBreakdown = [
 ];
 
 export const usersData: User[] = [
-    { id: 'user1', name: 'Alice Johnson', email: 'alice.j@example.com', role: 'Admin', status: 'Active', dateAdded: '2024-05-10', cost: 1250.75, credits: 500.30 },
-    { id: 'user2', name: 'Bob Williams', email: 'bob.w@example.com', role: 'Analyst', status: 'Active', dateAdded: '2024-05-12', cost: 980.50, credits: 392.20 },
-    { id: 'user3', name: 'Charlie Brown', email: 'charlie.b@example.com', role: 'Viewer', status: 'Active', dateAdded: '2024-06-01', cost: 760.00, credits: 304.00 },
-    { id: 'user4', name: 'Diana Miller', email: 'diana.m@example.com', role: 'Analyst', status: 'Suspended', dateAdded: '2024-04-20', cost: 450.25, credits: 180.10 },
-    { id: 'user5', name: 'Ethan Hunt', email: 'ethan.h@example.com', role: 'Analyst', status: 'Active', dateAdded: '2024-05-15', cost: 1120.00, credits: 448.00 },
-    { id: 'user6', name: 'Fiona Glenanne', email: 'fiona.g@example.com', role: 'Analyst', status: 'Active', dateAdded: '2024-05-18', cost: 850.50, credits: 340.20 },
-    { id: 'user7', name: 'George Mason', email: 'george.m@example.com', role: 'Viewer', status: 'Active', dateAdded: '2024-05-20', cost: 680.00, credits: 272.00 },
-    { id: 'user8', name: 'Hannah Abbott', email: 'hannah.a@example.com', role: 'Admin', status: 'Invited', dateAdded: '2024-06-02', cost: 510.75, credits: 204.30 },
-    { id: 'user9', name: 'Ian Gallagher', email: 'ian.g@example.com', role: 'Viewer', status: 'Active', dateAdded: '2024-04-25', cost: 390.00, credits: 156.00 },
-    { id: 'user10', name: 'Jane Smith', email: 'jane.s@example.com', role: 'Analyst', status: 'Active', dateAdded: '2024-04-28', cost: 320.50, credits: 128.20 },
-    { id: 'user11', name: 'Kevin Ball', email: 'kevin.b@example.com', role: 'Analyst', status: 'Active', dateAdded: '2024-05-01', cost: 250.00, credits: 100.00 },
+    { id: 'user1', name: 'Alice Johnson', email: 'alice.j@example.com', role: 'Admin', roleTitle: 'Lead Data Analyst', status: 'Active', dateAdded: '2024-05-10', cost: 1250.75, credits: 500.30 },
+    { id: 'user2', name: 'Bob Williams', email: 'bob.w@example.com', role: 'Analyst', roleTitle: 'Marketing Analyst', status: 'Active', dateAdded: '2024-05-12', cost: 980.50, credits: 392.20 },
+    { id: 'user3', name: 'Charlie Brown', email: 'charlie.b@example.com', role: 'Viewer', roleTitle: 'Sales Associate', status: 'Active', dateAdded: '2024-06-01', cost: 760.00, credits: 304.00 },
+    { id: 'user4', name: 'Diana Miller', email: 'diana.m@example.com', role: 'Analyst', roleTitle: 'BI Developer', status: 'Suspended', dateAdded: '2024-04-20', cost: 450.25, credits: 180.10 },
+    { id: 'user5', name: 'Ethan Hunt', email: 'ethan.h@example.com', role: 'Analyst', roleTitle: 'Data Engineer', status: 'Active', dateAdded: '2024-05-15', cost: 1120.00, credits: 448.00 },
+    { id: 'user6', name: 'Fiona Glenanne', email: 'fiona.g@example.com', role: 'Analyst', roleTitle: 'Data Scientist', status: 'Active', dateAdded: '2024-05-18', cost: 850.50, credits: 340.20 },
+    { id: 'user7', name: 'George Mason', email: 'george.m@example.com', role: 'Viewer', roleTitle: 'Product Manager', status: 'Active', dateAdded: '2024-05-20', cost: 680.00, credits: 272.00 },
+    { id: 'user8', name: 'Hannah Abbott', email: 'hannah.a@example.com', role: 'Admin', roleTitle: 'IT Administrator', status: 'Invited', dateAdded: '2024-06-02', cost: 510.75, credits: 204.30 },
+    { id: 'user9', name: 'Ian Gallagher', email: 'ian.g@example.com', role: 'Viewer', roleTitle: 'Executive Assistant', status: 'Active', dateAdded: '2024-04-25', cost: 390.00, credits: 156.00 },
+    { id: 'user10', name: 'Jane Smith', email: 'jane.s@example.com', role: 'Analyst', roleTitle: 'FinOps Analyst', status: 'Active', dateAdded: '2024-04-28', cost: 320.50, credits: 128.20 },
+    { id: 'user11', name: 'Kevin Ball', email: 'kevin.b@example.com', role: 'Analyst', roleTitle: 'DevOps Engineer', status: 'Active', dateAdded: '2024-05-01', cost: 250.00, credits: 100.00 },
 ];
 
 export const similarQueriesData: SimilarQuery[] = [
