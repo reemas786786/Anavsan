@@ -1,4 +1,4 @@
-import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget, SimilarQuery } from '../types';
+import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget, SimilarQuery, QueryListItem, QueryStatus, QueryType, StorageBreakdownItem, TopStorageConsumer, StorageGrowthPoint, UnusedTable, StorageActivityLogItem, StorageByTeamItem, DuplicateDataPattern, StorageOptimizationOpportunity, DataAgeDistributionItem, StorageTierItem, TieringOpportunityItem, CostForecastPoint, TierForecastPoint, AnomalyAlertItem, SavingsProjection } from '../types';
 
 export const availableWidgetsData: Omit<Widget, 'id' | 'dataSource'>[] = [
     { 
@@ -211,3 +211,151 @@ export const similarQueriesData: SimilarQuery[] = [
   { id: 'sq5', name: 'SELECT * FROM huge_log_table WHERE timestamp > ...', similarity: 82, executionTime: 2500, warehouse: 'DATA_SCIENCE_WH', cost: 2.5, credits: 1.0, pattern: 'Scan-heavy' },
   { id: 'sq6', name: 'SELECT * FROM huge_log_table_archive WHERE timestamp > ...', similarity: 81, executionTime: 2600, warehouse: 'DATA_SCIENCE_WH', cost: 2.6, credits: 1.04, pattern: 'Scan-heavy' },
 ];
+
+export const queryListData: QueryListItem[] = [
+    { id: '01b3a8c1-04a9-1cde-0000-4b8d00045e32', status: 'Success', costUSD: 1.25, costCredits: 0.5, duration: '00:01:32', warehouse: 'BI_WH', estSavingsUSD: 0.30, estSavingsPercent: 24, queryText: "SELECT\n  c.c_name AS customer_name,\n  COUNT(o.o_orderkey) AS order_count,\n  SUM(o.o_totalprice) AS total_spent\nFROM\n  SNOWFLAKE_SAMPLE_DATA.TPCH_SF1.CUSTOMER c\nJOIN\n  SNOWFLAKE_SAMPLE_DATA.TPCH_SF1.ORDERS o\nON\n  c.c_custkey = o.o_custkey\nWHERE\n  c.c_mktsegment = 'BUILDING'\nGROUP BY\n  c.c_name\nORDER BY\n  total_spent DESC\nLIMIT 100;", timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), type: ['SELECT', 'WHERE', 'Aggregation', 'JOIN'], user: 'Alice Johnson' },
+    { id: '01b3a8c2-04a9-1cde-0000-4b8d00045e33', status: 'Failed', costUSD: 0.05, costCredits: 0.02, duration: '00:00:10', warehouse: 'ETL_WH', estSavingsUSD: 0, estSavingsPercent: 0, queryText: "INSERT INTO new_users SELECT * FROM staging_users;", timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), type: ['INSERT', 'SELECT'], user: 'Bob Williams' },
+    { id: '01b3a8c3-04a9-1cde-0000-4b8d00045e34', status: 'Success', costUSD: 5.60, costCredits: 2.24, duration: '00:15:45', warehouse: 'DATA_SCIENCE_WH', estSavingsUSD: 1.50, estSavingsPercent: 27, queryText: "SELECT\n  p.p_name AS product_name,\n  s.s_name AS supplier_name,\n  ps.ps_availqty AS available_quantity\nFROM\n  SNOWFLAKE_SAMPLE_DATA.TPCH_SF1.PARTSUPP ps\nJOIN\n  SNOWFLAKE_SAMPLE_DATA.TPCH_SF1.PART p ON ps.ps_partkey = p.p_partkey\nJOIN\n  SNOWFLAKE_SAMPLE_DATA.TPCH_SF1.SUPPLIER s ON ps.ps_suppkey = s.s_suppkey\nWHERE\n  p.p_type LIKE '%BRASS'\n  AND ps.ps_supplycost < 500;", timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), type: ['SELECT', 'JOIN', 'WHERE'], user: 'Charlie Brown' },
+    { id: '01b3a8c4-04a9-1cde-0000-4b8d00045e35', status: 'Success', costUSD: 0.80, costCredits: 0.32, duration: '00:00:45', warehouse: 'BI_WH', estSavingsUSD: 0, estSavingsPercent: 0, queryText: "SELECT DISTINCT l_returnflag, l_linestatus FROM SNOWFLAKE_SAMPLE_DATA.TPCH_SF1.LINEITEM;", timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), type: ['SELECT'], user: 'Diana Miller' },
+    { id: '01b3a8c5-04a9-1cde-0000-4b8d00045e36', status: 'Failed', costUSD: 0.10, costCredits: 0.04, duration: '00:00:15', warehouse: 'DEV_WH', estSavingsUSD: 0, estSavingsPercent: 0, queryText: "ALTER TABLE non_existent_table ADD COLUMN new_col VARCHAR(50);", timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(), type: [], user: 'Ethan Hunt' },
+    { id: '01b3a8c6-04a9-1cde-0000-4b8d00045e37', status: 'Success', costUSD: 2.10, costCredits: 0.84, duration: '00:05:10', warehouse: 'ETL_WH', estSavingsUSD: 0.50, estSavingsPercent: 24, queryText: "UPDATE product_inventory SET stock = stock - 1 WHERE product_id = 'XYZ-123';", timestamp: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), type: ['UPDATE', 'WHERE'], user: 'Fiona Glenanne' },
+    ...Array.from({ length: 15 }, (_, i) => ({
+      id: `01b3a8d${i}-04a9-1cde-0000-4b8d00045e${40 + i}`,
+      status: (Math.random() > 0.1 ? 'Success' : 'Failed') as QueryStatus,
+      costUSD: parseFloat((Math.random() * 5).toFixed(2)),
+      costCredits: parseFloat((Math.random() * 2).toFixed(2)),
+      duration: `00:${String(Math.floor(Math.random() * 59)).padStart(2, '0')}:${String(Math.floor(Math.random() * 59)).padStart(2, '0')}`,
+      warehouse: ['BI_WH', 'ETL_WH', 'DATA_SCIENCE_WH'][Math.floor(Math.random() * 3)],
+      estSavingsUSD: Math.random() > 0.5 ? parseFloat((Math.random() * 1).toFixed(2)) : 0,
+      estSavingsPercent: Math.random() > 0.5 ? Math.floor(Math.random() * 30) : 0,
+      queryText: `SELECT column_${i} FROM table_${i} WHERE condition='true';`,
+      timestamp: new Date(Date.now() - (10 + i) * 24 * 60 * 60 * 1000).toISOString(),
+      type: ['SELECT', 'WHERE'] as QueryType[],
+      user: ['George Mason', 'Hannah Abbott', 'Ian Gallagher'][Math.floor(Math.random() * 3)]
+    }))
+];
+
+// --- Data for Storage Optimization View ---
+export const storageBreakdownData: StorageBreakdownItem[] = [
+    { name: 'PROD_DB', value: 1200, color: '#6932D5' },
+    { name: 'STAGING_DB', value: 500, color: '#A78BFA' },
+    { name: 'ANALYTICS_DB', value: 350, color: '#C4B5FD' },
+    { name: 'LOGS_DB', value: 250, color: '#E0E7FF' },
+];
+
+export const topStorageConsumersData: TopStorageConsumer[] = [
+    { name: 'EVENTS_RAW', size: 450, monthlyGrowth: 15.2 },
+    { name: 'CUSTOMER_SESSIONS', size: 320, monthlyGrowth: 8.5 },
+    { name: 'TRANSACTIONS_Q3', size: 210, monthlyGrowth: 5.0 },
+    { name: 'USER_PROFILES_BACKUP', size: 180, monthlyGrowth: 1.2 },
+    { name: 'API_LOGS_2023', size: 150, monthlyGrowth: 22.1 },
+    { name: 'FINANCIAL_REPORTS', size: 120, monthlyGrowth: 2.5 },
+    { name: 'MARKETING_CAMPAIGNS', size: 90, monthlyGrowth: 7.8 },
+    { name: 'PRODUCT_CATALOG', size: 75, monthlyGrowth: 0.5 },
+    { name: 'HR_RECORDS', size: 50, monthlyGrowth: 1.0 },
+    { name: 'ARCHIVED_ORDERS', size: 40, monthlyGrowth: 0.1 },
+];
+
+export const storageGrowthData: StorageGrowthPoint[] = [
+    { date: 'Jan', 'Active Storage (GB)': 1200, 'Time Travel (GB)': 200 },
+    { date: 'Feb', 'Active Storage (GB)': 1250, 'Time Travel (GB)': 210 },
+    { date: 'Mar', 'Active Storage (GB)': 1350, 'Time Travel (GB)': 220 },
+    { date: 'Apr', 'Active Storage (GB)': 1400, 'Time Travel (GB)': 230 },
+    { date: 'May', 'Active Storage (GB)': 1550, 'Time Travel (GB)': 250 },
+    { date: 'Jun', 'Active Storage (GB)': 1600, 'Time Travel (GB)': 260 },
+];
+
+export const unusedTablesData: UnusedTable[] = [
+    { name: 'TEMP_USERS_IMPORT_2022', size: '15.2 GB', lastAccessed: '14 months ago', potentialSavings: 120 },
+    { name: 'Q2_2021_SALES_BACKUP', size: '8.1 GB', lastAccessed: '2 years ago', potentialSavings: 65 },
+    { name: 'DEV_TEST_FEATURE_X', size: '2.5 GB', lastAccessed: '9 months ago', potentialSavings: 20 },
+];
+
+export const duplicateDataPatternsData: DuplicateDataPattern[] = [
+    { id: 'dup1', datasets: ['USER_PROFILES_BACKUP', 'PROFILES_USER_ARCHIVE_2023'], size: '180 GB', potentialSavings: 150 },
+    { id: 'dup2', datasets: ['SALES_Q1_FINAL', 'Q1_SALES_REPORT_FINAL_V2'], size: '55 GB', potentialSavings: 45 },
+];
+
+export const storageOptimizationOpportunitiesData: StorageOptimizationOpportunity[] = [
+    { id: 'so1', type: 'Compression', tableName: 'API_LOGS_2023', recommendation: 'Table could be compressed 30%, saving storage costs.', potentialSavings: 88 },
+    { id: 'so2', type: 'Partitioning', tableName: 'EVENTS_RAW', recommendation: 'Partition by `event_date` to improve query performance and reduce scan sizes.', potentialSavings: 125 },
+    { id: 'so3', type: 'Compression', tableName: 'CUSTOMER_SESSIONS', recommendation: 'ZSTD compression can reduce size by an estimated 45%.', potentialSavings: 210 },
+];
+
+export const storageActivityLogData: StorageActivityLogItem[] = Array.from({ length: 20 }, (_, i) => ({
+    id: `log${i}`,
+    timestamp: new Date(Date.now() - i * 3 * 60 * 60 * 1000).toLocaleString(),
+    user: ['ALICE_J', 'BOB_W', 'SYS_ADMIN'][i % 3],
+    action: ['CREATE TABLE', 'DROP TABLE', 'LOAD DATA'][i % 3],
+    details: `Details for action ${i}`
+}));
+
+export const storageByTeamData: StorageByTeamItem[] = [
+    { team: 'Engineering', storageGB: 850 },
+    { team: 'Analytics', storageGB: 620 },
+    { team: 'Marketing', storageGB: 310 },
+    { team: 'Finance', storageGB: 180 },
+    { team: 'Data Science', storageGB: 450 },
+];
+
+// --- Data for Data Tiering View ---
+export const dataAgeDistributionData: DataAgeDistributionItem[] = [
+    { ageBucket: '0-30 days', sizeGB: 1200 },
+    { ageBucket: '30-90 days', sizeGB: 850 },
+    { ageBucket: '90-180 days', sizeGB: 500 },
+    { ageBucket: '180-365 days', sizeGB: 320 },
+    { ageBucket: '> 1 year', sizeGB: 780 },
+];
+
+export const storageByTierData: { current: StorageTierItem[], recommended: StorageTierItem[] } = {
+    current: [
+        { name: 'Hot', value: 2.5, color: '#DC2626' },
+        { name: 'Warm', value: 1.0, color: '#F59E0B' },
+        { name: 'Cold', value: 0.5, color: '#2563EB' },
+    ],
+    recommended: [
+        { name: 'Hot', value: 1.5, color: '#DC2626' },
+        { name: 'Warm', value: 1.2, color: '#F59E0B' },
+        { name: 'Cold', value: 1.3, color: '#2563EB' },
+    ],
+};
+
+export const tieringOpportunitiesData: TieringOpportunityItem[] = [
+    { id: 'to1', tableName: 'LOGS_ARCHIVE_2022', size: '750 GB', currentTier: 'Warm', recommendedTier: 'Cold', potentialSavings: 250 },
+    { id: 'to2', tableName: 'USER_SESSIONS_RAW', size: '1.2 TB', currentTier: 'Hot', recommendedTier: 'Warm', potentialSavings: 400 },
+    { id: 'to3', tableName: 'FINANCIAL_REPORTS_Q1_2023', size: '300 GB', currentTier: 'Hot', recommendedTier: 'Warm', potentialSavings: 150 },
+    { id: 'to4', tableName: 'MARKETING_LEADS_HISTORICAL', size: '500 GB', currentTier: 'Warm', recommendedTier: 'Cold', potentialSavings: 180 },
+];
+
+export const policyComplianceData = {
+    compliancePercentage: 92,
+};
+
+// --- Data for Cost Forecasting View ---
+export const costSpendForecastData: CostForecastPoint[] = Array.from({ length: 30 }, (_, i) => {
+    const day = i + 1;
+    const base = day * 100;
+    const actual = day <= 20 ? base + Math.sin(day) * 200 + Math.random() * 100 : null;
+    const forecast = (base + Math.sin(day) * 200) * 1.05;
+    return { day, actual, forecast };
+});
+
+export const costForecastByTierData: TierForecastPoint[] = [
+    { month: 'Jul', Hot: 1200, Warm: 500, Cold: 200 },
+    { month: 'Aug', Hot: 1300, Warm: 550, Cold: 220 },
+    { month: 'Sep', Hot: 1400, Warm: 600, Cold: 250 },
+    { month: 'Oct', Hot: 1550, Warm: 650, Cold: 280 },
+    { month: 'Nov', Hot: 1650, Warm: 700, Cold: 300 },
+    { month: 'Dec', Hot: 1800, Warm: 750, Cold: 320 },
+];
+
+export const costAnomalyAlertsData: AnomalyAlertItem[] = [
+    { id: 'ca1', tableName: 'API_LOGS_2023', projection: 'Projected to increase 50% above trend next month.' },
+    { id: 'ca2', tableName: 'STG_USER_UPLOADS', projection: 'Unusual spike detected; forecasting 2x cost increase.' },
+    { id: 'ca3', tableName: 'ML_TRAINING_DATA_V3', projection: 'Growth accelerating, potential budget overrun in 6 weeks.' },
+];
+
+export const costSavingsProjectionData: SavingsProjection = {
+    message: 'If you archive unused tables and implement tiering recommendations, your storage spend will drop by an estimated',
+    savingsPercentage: 25,
+};

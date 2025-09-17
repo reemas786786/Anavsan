@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { costBreakdownData, overviewMetrics, resourceSummaryData as initialResourceSummaryData } from '../data/dummyData';
@@ -17,7 +16,7 @@ interface OverviewProps {
 }
 
 const Card: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className, title }) => (
-    <div className={`bg-surface p-4 rounded-3xl border border-border-color shadow-sm ${className}`}>
+    <div className={`bg-surface p-4 rounded-3xl border border-border-color shadow-sm break-inside-avoid mb-4 ${className}`}>
         {title && <h4 className="text-base font-semibold text-text-strong mb-4">{title}</h4>}
         {children}
     </div>
@@ -279,7 +278,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
             </div>
 
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="columns-1 lg:columns-2 gap-4">
                 <Card>
                      <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center">
@@ -306,7 +305,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                         </div>
                     </div>
                     <div className="space-y-2">
-                        <div className="bg-background p-4 rounded-3xl">
+                        <div className="bg-surface-nested p-4 rounded-3xl">
                             <p className="text-text-secondary text-sm">Current Spend</p>
                             <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
                                 {displayMode === 'cost' ? (
@@ -319,7 +318,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                                 )}
                             </div>
                         </div>
-                        <div className="bg-background p-4 rounded-3xl">
+                        <div className="bg-surface-nested p-4 rounded-3xl">
                             <p className="text-text-secondary text-sm">Forecasted Spend</p>
                             <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
                                 {displayMode === 'cost' ? (
@@ -362,7 +361,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {resourceSummaryData.map(item => (
-                             <div key={item.title} className="bg-background p-4 rounded-3xl">
+                             <div key={item.title} className="bg-surface-nested p-4 rounded-3xl">
                                 <p className="text-text-secondary text-sm">{item.title}</p>
                                 <p className="text-[22px] leading-7 font-bold text-text-primary mt-1">{item.value}</p>
                             </div>
@@ -404,7 +403,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
 
                             return (
                                 <div key={item.name} className="flex items-center justify-between gap-4">
-                                    <div className="bg-background p-4 rounded-3xl flex-grow">
+                                    <div className="bg-surface-nested p-4 rounded-3xl flex-grow">
                                         <p className="text-text-secondary text-sm">{item.name}</p>
                                         <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
                                             {displayMode === 'cost' ? (

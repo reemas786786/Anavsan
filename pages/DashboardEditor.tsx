@@ -23,7 +23,6 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
     );
 
     const [searchTerm, setSearchTerm] = useState('');
-    const [sortOrder, setSortOrder] = useState('asc');
     const [activeCategory, setActiveCategory] = useState('All');
 
     const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
@@ -113,9 +112,8 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
         if (activeCategory !== 'All') {
             widgets = widgets.filter(widget => widget.tags?.includes(activeCategory));
         }
-        widgets.sort((a, b) => sortOrder === 'asc' ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title));
         return widgets;
-    }, [searchTerm, activeCategory, sortOrder]);
+    }, [searchTerm, activeCategory]);
 
     const getDataSourceTag = (dataSource: Widget['dataSource']): string => {
         if (dataSource.type === 'overall') return 'Overall';
@@ -194,9 +192,6 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                                         {category} ({count})
                                     </option>
                                 ))}
-                            </select>
-                            <select onChange={(e) => setSortOrder(e.target.value)} value={sortOrder} className="text-sm border-border-color rounded-full px-3 py-1.5 focus:ring-primary focus:border-primary bg-input-bg">
-                                <option value="asc">Sort A-Z</option><option value="desc">Sort Z-A</option>
                             </select>
                         </div>
                         <div className="flex-1 overflow-y-auto -mr-2 pr-2 space-y-3">

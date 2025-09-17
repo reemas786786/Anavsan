@@ -131,3 +131,119 @@ export interface SimilarQuery {
   credits: number;
   pattern?: 'Join-heavy' | 'Aggregation-heavy' | 'Scan-heavy';
 }
+
+export type QueryStatus = 'Success' | 'Failed';
+export type QueryType = 'SELECT' | 'WHERE' | 'JOIN' | 'Aggregation' | 'INSERT' | 'UPDATE' | 'DELETE';
+
+
+export interface QueryListItem {
+  id: string;
+  status: QueryStatus;
+  costUSD: number;
+  costCredits: number;
+  duration: string; // "hh:mm:ss"
+  warehouse: string;
+  estSavingsUSD: number;
+  estSavingsPercent: number;
+  queryText: string;
+  timestamp: string; // ISO string
+  type: QueryType[];
+  user: string;
+}
+
+export interface StorageBreakdownItem {
+  name: string;
+  value: number; // in GB
+  color: string;
+}
+
+export interface TopStorageConsumer {
+  name: string;
+  size: number; // in GB
+  monthlyGrowth: number; // percentage
+}
+
+export interface StorageGrowthPoint {
+  date: string;
+  'Active Storage (GB)': number;
+  'Time Travel (GB)': number;
+}
+
+export interface UnusedTable {
+    name: string;
+    size: string;
+    lastAccessed: string;
+    potentialSavings: number; // USD
+}
+
+export interface DuplicateDataPattern {
+    id: string;
+    datasets: string[]; // List of table/file names that are duplicates
+    size: string;
+    potentialSavings: number; // USD
+}
+
+export interface StorageOptimizationOpportunity {
+    id: string;
+    type: 'Compression' | 'Partitioning';
+    tableName: string;
+    recommendation: string;
+    potentialSavings: number; // USD
+}
+
+export interface StorageActivityLogItem {
+    id: string;
+    timestamp: string;
+    user: string;
+    action: string;
+    details: string;
+}
+
+export interface StorageByTeamItem {
+    team: string;
+    storageGB: number;
+}
+
+export interface DataAgeDistributionItem {
+    ageBucket: string;
+    sizeGB: number;
+}
+
+export interface StorageTierItem {
+    name: string;
+    value: number; // in TB
+    color: string;
+}
+
+export interface TieringOpportunityItem {
+    id: string;
+    tableName: string;
+    size: string;
+    currentTier: 'Hot' | 'Warm' | 'Cold';
+    recommendedTier: 'Hot' | 'Warm' | 'Cold';
+    potentialSavings: number; // USD per month
+}
+
+export interface CostForecastPoint {
+    day: number;
+    actual: number | null;
+    forecast: number;
+}
+
+export interface TierForecastPoint {
+    month: string;
+    Hot: number;
+    Warm: number;
+    Cold: number;
+}
+
+export interface AnomalyAlertItem {
+    id: string;
+    tableName: string;
+    projection: string;
+}
+
+export interface SavingsProjection {
+    message: string;
+    savingsPercentage: number;
+}

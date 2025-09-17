@@ -80,12 +80,7 @@ const UserInfoSection: React.FC<{ user: User; onSave: (updatedUser: User) => voi
 };
 
 const ChangePasswordSection: React.FC = () => {
-    // State for the main change password flow
     const [passwords, setPasswords] = useState({ old: '', new: '', confirm: '' });
-    // State to manage which sub-flow is active
-    const [flow, setFlow] = useState<'change' | 'forgot' | 'confirmation'>('change');
-    // State for the email in the forgot password flow
-    const [resetEmail, setResetEmail] = useState('');
 
     const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setPasswords({ ...passwords, [e.target.name]: e.target.value });
@@ -104,92 +99,33 @@ const ChangePasswordSection: React.FC = () => {
         setPasswords({ old: '', new: '', confirm: '' });
     };
 
-    const handleSendResetLink = () => {
-        // Mock sending link
-        if (!resetEmail.includes('@')) { // simple validation
-            alert("Please enter a valid email address.");
-            return;
-        }
-        console.log(`Sending password reset to ${resetEmail}`);
-        setFlow('confirmation');
-    };
-
-    const renderFlow = () => {
-        switch (flow) {
-            case 'forgot':
-                return (
-                    <>
-                        <div className="space-y-4">
-                            <div>
-                                <label htmlFor="reset-email" className="block text-sm font-medium text-text-secondary">Email Address</label>
-                                <input
-                                    type="email"
-                                    id="reset-email"
-                                    name="reset-email"
-                                    value={resetEmail}
-                                    onChange={(e) => setResetEmail(e.target.value)}
-                                    className="mt-1 w-full border border-border-color rounded-full px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg"
-                                    placeholder="your.email@example.com"
-                                />
-                            </div>
-                        </div>
-                        <div className="mt-6 pt-6 border-t border-border-color flex justify-between items-center">
-                            <button onClick={() => setFlow('change')} className="text-sm text-link hover:underline">
-                                Back to Change Password
-                            </button>
-                            <button onClick={handleSendResetLink} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full">
-                                Send Reset Link
-                            </button>
-                        </div>
-                    </>
-                );
-            case 'confirmation':
-                 return (
-                    <div className="text-center py-4">
-                        <p className="text-sm text-text-secondary">We've sent a password reset link to your email.</p>
-                        <button onClick={() => { setFlow('change'); setResetEmail(''); }} className="mt-4 text-sm text-link hover:underline">
-                           &larr; Back to Change Password
-                        </button>
-                    </div>
-                );
-            case 'change':
-            default:
-                return (
-                    <>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-text-secondary">Current Password</label>
-                                <input type="password" name="old" value={passwords.old} onChange={handlePasswordChange} className="mt-1 w-full border border-border-color rounded-full px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-text-secondary">New Password</label>
-                                <input type="password" name="new" value={passwords.new} onChange={handlePasswordChange} className="mt-1 w-full border border-border-color rounded-full px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-text-secondary">Confirm New Password</label>
-                                <input type="password" name="confirm" value={passwords.confirm} onChange={handlePasswordChange} className="mt-1 w-full border border-border-color rounded-full px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg" />
-                            </div>
-                        </div>
-                        <div className="mt-6 pt-6 border-t border-border-color flex justify-between items-center">
-                            <button onClick={() => setFlow('forgot')} className="text-sm text-link hover:underline">
-                                Forgot Password?
-                            </button>
-                            <button onClick={handleUpdatePassword} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full">Update Password</button>
-                        </div>
-                    </>
-                );
-        }
-    }
-
     return (
         <ProfileCard title="Change Password">
-            {renderFlow()}
+             <>
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-text-secondary">Current Password</label>
+                        <input type="password" name="old" value={passwords.old} onChange={handlePasswordChange} className="mt-1 w-full border border-border-color rounded-full px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-text-secondary">New Password</label>
+                        <input type="password" name="new" value={passwords.new} onChange={handlePasswordChange} className="mt-1 w-full border border-border-color rounded-full px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-text-secondary">Confirm New Password</label>
+                        <input type="password" name="confirm" value={passwords.confirm} onChange={handlePasswordChange} className="mt-1 w-full border border-border-color rounded-full px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg" />
+                    </div>
+                </div>
+                <div className="mt-6 pt-6 border-t border-border-color flex justify-end items-center">
+                    <button onClick={handleUpdatePassword} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full">Update Password</button>
+                </div>
+            </>
         </ProfileCard>
     );
 };
 
 
-const BrandingSection: React.FC = () => {
+const BrandSettingsSection: React.FC = () => {
     const [logo, setLogo] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -204,7 +140,7 @@ const BrandingSection: React.FC = () => {
     };
     
     return (
-        <ProfileCard title="Branding">
+        <ProfileCard title="Brand Settings">
             <div className="flex items-center gap-6">
                 <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border border-border-color">
                     {logo ? <img src={logo} alt="Logo Preview" className="w-full h-full object-cover" /> : <span className="text-xs text-text-muted">Logo</span>}
@@ -228,14 +164,14 @@ const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, onSave,
     const settingsNavItems = [
         { name: 'User Info', icon: IconUser },
         { name: 'Change Password', icon: IconLockClosed },
-        { name: 'Branding', icon: IconPhoto },
+        { name: 'Brand Settings', icon: IconPhoto },
     ];
     
     const renderContent = () => {
         switch(activeSection) {
             case 'User Info': return <UserInfoSection user={user} onSave={onSave} />;
             case 'Change Password': return <ChangePasswordSection />;
-            case 'Branding': return <BrandingSection />;
+            case 'Brand Settings': return <BrandSettingsSection />;
             default: return null;
         }
     };
@@ -253,10 +189,10 @@ const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, onSave,
                                 <li key={item.name}>
                                     <button
                                         onClick={() => setActiveSection(item.name)}
-                                        className={`w-full flex items-center text-left px-3 py-2 rounded-full text-sm font-medium transition-colors ${activeSection === item.name ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'}`}
+                                        className={`w-full flex items-center gap-2 text-left px-3 py-2 rounded-full text-sm font-medium transition-colors ${activeSection === item.name ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'}`}
                                     >
-                                        <item.icon className={`h-5 w-5 shrink-0 ${activeSection === item.name ? 'text-primary' : 'text-text-secondary'}`} />
-                                        <span className="ml-3">{item.name}</span>
+                                        <item.icon className={`h-4 w-4 shrink-0 ${activeSection === item.name ? 'text-primary' : 'text-text-secondary'}`} />
+                                        {item.name}
                                     </button>
                                 </li>
                             ))}

@@ -1,5 +1,3 @@
-
-
 // FIX: Corrected import statement for React hooks.
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, TopQuery, Warehouse } from '../types';
@@ -12,7 +10,7 @@ import TableView from '../components/TableView';
 import InfoTooltip from '../components/InfoTooltip';
 
 const Card: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className, title }) => (
-    <div className={`bg-surface p-4 rounded-3xl border border-border-color shadow-sm ${className}`}>
+    <div className={`bg-surface p-4 rounded-3xl border border-border-color shadow-sm break-inside-avoid mb-4 ${className}`}>
         {title && <h4 className="text-base font-semibold text-text-strong mb-4">{title}</h4>}
         {children}
     </div>
@@ -160,14 +158,14 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="columns-1 lg:columns-2 gap-4">
                 <Card>
                     <div className="flex items-center mb-4">
                         <h4 className="text-base font-semibold text-text-strong">Current Month Spend & Forecast</h4>
                         <InfoTooltip text="The total cost or credits consumed by this account this month, and the projected spend by the end of the month based on current usage patterns." />
                     </div>
                     <div className="space-y-2">
-                        <div className="bg-background p-4 rounded-3xl">
+                        <div className="bg-surface-nested p-4 rounded-3xl">
                             <p className="text-text-secondary text-sm">Current Spend</p>
                             <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
                                 {displayMode === 'cost' ? (
@@ -180,7 +178,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                                 )}
                             </div>
                         </div>
-                        <div className="bg-background p-4 rounded-3xl">
+                        <div className="bg-surface-nested p-4 rounded-3xl">
                             <p className="text-text-secondary text-sm">Forecasted Spend</p>
                             <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
                                {displayMode === 'cost' ? (
@@ -225,7 +223,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
 
                             return (
                                 <div key={item.name} className="flex items-center justify-between gap-4">
-                                    <div className="bg-background p-4 rounded-3xl flex-grow">
+                                    <div className="bg-surface-nested p-4 rounded-3xl flex-grow">
                                         <p className="text-text-secondary text-sm">{item.name}</p>
                                         <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
                                             {displayMode === 'cost' ? (

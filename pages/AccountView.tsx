@@ -3,7 +3,26 @@ import { Account, SQLFile } from '../types';
 import QueryWorkspace from './QueryWorkspace';
 import AccountOverviewDashboard from './AccountOverviewDashboard';
 import QueryPerformanceView, { SimilarQueryPatternsView } from './QueryPerformanceView';
-import { IconChevronDown, IconChevronLeft, IconChevronRight } from '../constants';
+import { 
+    IconChevronDown, 
+    IconChevronLeft, 
+    IconChevronRight,
+    IconOverview,
+    IconList,
+    IconClock,
+    IconSearch,
+    IconAIAgent,
+    IconBeaker,
+    IconDatabase,
+    IconCode,
+    IconWand,
+    IconLayers,
+    IconTrendingUp
+} from '../constants';
+import QueryListView from './QueryListView';
+import StorageOptimizationView from './StorageOptimizationView';
+import DataTieringView from './DataTieringView';
+import CostForecastingView from './CostForecastingView';
 
 interface AccountViewProps {
     account: Account;
@@ -15,12 +34,36 @@ interface AccountViewProps {
 }
 
 const accountNavItems = [
-    { name: 'Overview', children: [] },
-    { name: 'Query Performance', children: ['Query List', 'Slow Queries', 'Similar Query Patterns'] },
-    { name: 'Optimization', children: ['Query Analyzer', 'Query Optimizer', 'Query Simulator'] },
-    { name: 'Storage & Cost', children: [] },
-    { name: 'AI & Insights', children: [] },
-    { name: 'Query Workspace', children: [] },
+    { name: 'Overview', icon: IconOverview, children: [] },
+    { 
+        name: 'Query Performance', 
+        icon: IconOverview, 
+        children: [
+            { name: 'Query List', icon: IconList },
+            { name: 'Slow Queries', icon: IconClock },
+            { name: 'Similar Query Patterns', icon: IconSearch }
+        ] 
+    },
+    { 
+        name: 'Optimization',
+        icon: IconAIAgent,
+        children: [
+            { name: 'Query Analyzer', icon: IconSearch },
+            { name: 'Query Optimizer', icon: IconAIAgent },
+            { name: 'Query Simulator', icon: IconBeaker }
+        ] 
+    },
+    { 
+        name: 'Storage & Cost', 
+        icon: IconDatabase, 
+        children: [
+            { name: 'Storage Optimization', icon: IconWand },
+            { name: 'Data Tiering', icon: IconLayers },
+            { name: 'Cost Forecasting', icon: IconTrendingUp }
+        ] 
+    },
+    { name: 'AI & Insights', icon: IconAIAgent, children: [] },
+    { name: 'Query Workspace', icon: IconCode, children: [] },
 ];
 
 const Breadcrumb: React.FC<{ items: { label: string; onClick?: () => void }[] }> = ({ items }) => (
@@ -41,7 +84,7 @@ const Breadcrumb: React.FC<{ items: { label: string; onClick?: () => void }[] }>
 const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, onSwitchAccount, sqlFiles, onSaveQueryClick }) => {
     const [activeSubPage, setActiveSubPage] = useState('Overview');
     
-    const [openSections, setOpenSections] = useState<Set<string>>(new Set(['Query Performance', 'Optimization']));
+    const [openSections, setOpenSections] = useState<Set<string>>(new Set(['Query Performance', 'Optimization', 'Storage & Cost']));
     const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
     const [isAccountSidebarExpanded, setIsAccountSidebarExpanded] = useState(true);
     const switcherRef = useRef<HTMLDivElement>(null);
@@ -68,7 +111,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
     }, [account]);
 
     useEffect(() => {
-        const parent = accountNavItems.find(item => item.children.includes(activeSubPage) || item.name === activeSubPage);
+        const parent = accountNavItems.find(item => item.children.some(child => child.name === activeSubPage) || item.name === activeSubPage);
         if (parent && parent.children.length > 0) {
             setOpenSections(prev => new Set(prev).add(parent.name));
         }
@@ -92,10 +135,17 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                 return <QueryWorkspace sqlFiles={sqlFiles} onSaveQueryClick={onSaveQueryClick} />;
             case 'Query Performance':
             case 'Query List':
+                return <QueryListView />;
             case 'Slow Queries':
                 return <QueryPerformanceView />;
             case 'Similar Query Patterns':
                 return <SimilarQueryPatternsView />;
+            case 'Storage Optimization':
+                return <StorageOptimizationView />;
+            case 'Data Tiering':
+                return <DataTieringView />;
+            case 'Cost Forecasting':
+                return <CostForecastingView />;
             default:
                 return (
                     <div className="p-4 bg-surface rounded-lg border border-border-color">
@@ -153,22 +203,31 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                                                 {item.children.length === 0 ? (
                                                     <button 
                                                         onClick={() => handleNavClick(item.name)}
-                                                        className={`w-full text-left px-3 py-2 rounded-full text-sm font-medium transition-colors ${activeSubPage === item.name ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'}`}
-                                                    >{item.name}</button>
+                                                        className={`w-full text-left px-3 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${activeSubPage === item.name ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'}`}
+                                                    >
+                                                        <item.icon className={`h-4 w-4 shrink-0 ${activeSubPage === item.name ? 'text-primary' : 'text-text-secondary'}`} />
+                                                        {item.name}
+                                                    </button>
                                                 ) : (
                                                     <div>
                                                         <button onClick={() => toggleSection(item.name)} className="w-full flex justify-between items-center text-left px-3 py-2 rounded-full text-sm font-medium text-text-secondary hover:bg-surface-hover hover:text-text-primary">
-                                                            <span>{item.name}</span>
+                                                            <span className="flex items-center gap-2">
+                                                                <item.icon className="h-4 w-4 shrink-0 text-text-secondary" />
+                                                                {item.name}
+                                                            </span>
                                                             <IconChevronDown className={`w-4 h-4 transition-transform ${openSections.has(item.name) ? 'rotate-180' : ''}`} />
                                                         </button>
                                                         {openSections.has(item.name) && (
                                                             <ul className="pl-3 mt-1 space-y-1">
                                                                 {item.children.map(child => (
-                                                                    <li key={child}>
+                                                                    <li key={child.name}>
                                                                         <button 
-                                                                            onClick={() => handleNavClick(child)}
-                                                                            className={`w-full text-left px-3 py-2 rounded-full text-sm transition-colors ${activeSubPage === child ? 'text-primary font-semibold' : 'text-text-secondary hover:text-text-primary'}`}
-                                                                        >{child}</button>
+                                                                            onClick={() => handleNavClick(child.name)}
+                                                                            className={`w-full text-left px-3 py-2 rounded-full text-sm transition-colors flex items-center gap-2 ${activeSubPage === child.name ? 'text-primary font-semibold' : 'text-text-secondary hover:text-text-primary'}`}
+                                                                        >
+                                                                            <child.icon className={`h-4 w-4 shrink-0 ${activeSubPage === child.name ? 'text-primary' : 'text-text-secondary'}`} />
+                                                                            {child.name}
+                                                                        </button>
                                                                     </li>
                                                                 ))}
                                                             </ul>

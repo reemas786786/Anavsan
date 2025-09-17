@@ -167,6 +167,52 @@ export const IconDragHandle: React.FC<{ className?: string }> = ({ className }) 
     </svg>
 );
 
+// Contextual Sidebar Icons
+export const IconList: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h7.5M8.25 12h7.5m-7.5 5.25h7.5M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 17.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+    </svg>
+);
+export const IconClock: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+);
+export const IconDatabase: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375" />
+    </svg>
+);
+export const IconBeaker: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M14.25 6.087c0-.66.537-1.197 1.197-1.197h.001a1.197 1.197 0 011.196 1.196v1.196c0 .66-.537 1.197-1.197 1.197h-.001a1.197 1.197 0 01-1.196-1.196v-1.196z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M14.25 6.087a3.375 3.375 0 00-3.375-3.375H6.375a3.375 3.375 0 00-3.375 3.375v11.25a3.375 3.375 0 003.375 3.375h7.5a3.375 3.375 0 003.375-3.375V6.087z" />
+    </svg>
+);
+export const IconCode: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 15" />
+    </svg>
+);
+export const IconWand: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v.01a6 6 0 01-5.84-7.38l-2.06-8.24a1.5 1.5 0 011.66-1.88l8.24 2.06a6 6 0 017.38 5.84v.01z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v.001M16.5 3.75v.001M10.5 13.5v.001M4.5 9.75v.001" />
+    </svg>
+);
+export const IconLayers: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75l-8.25 4.5 8.25 4.5 8.25-4.5L12 6.75z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12l8.25 4.5 8.25-4.5" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 17.25l8.25 4.5 8.25-4.5" />
+    </svg>
+);
+export const IconTrendingUp: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-3.182 3.182m3.182-3.182v4.5" />
+    </svg>
+);
+
 
 export const NAV_ITEMS_TOP: NavItem[] = [
     { name: 'Data Cloud Overview', icon: IconOverview },

@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { IconExclamationTriangle } from '../constants';
 import InfoTooltip from './InfoTooltip';
 
 const Card: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className }) => (
-    <div className={`bg-surface p-4 rounded-3xl border border-border-color shadow-sm ${className}`}>
+    <div className={`bg-surface p-4 rounded-3xl border border-border-color shadow-sm break-inside-avoid mb-4 ${className}`}>
         {children}
     </div>
 );
