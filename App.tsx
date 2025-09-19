@@ -70,6 +70,7 @@ const App: React.FC = () => {
   const [isProfileSettingsPageActive, setIsProfileSettingsPageActive] = useState(false);
   // Mock current user - assuming the first user is the logged-in user
   const [currentUser, setCurrentUser] = useState<User | null>(users.length > 0 ? users[0] : null);
+  const [brandLogo, setBrandLogo] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -299,6 +300,11 @@ const App: React.FC = () => {
     showToast('Profile updated successfully!');
   };
   
+  const handleUpdateBrandLogo = (newLogo: string) => {
+    setBrandLogo(newLogo);
+    showToast("Brand logo updated successfully!");
+  };
+
   const handleLogout = () => {
     showToast('You have been logged out.');
     // In a real app, you'd clear session/token here
@@ -371,6 +377,7 @@ const App: React.FC = () => {
             onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
             onLogoClick={handleLogoClick}
             isSidebarOpen={isSidebarOpen}
+            brandLogo={brandLogo}
             onOpenProfileSettings={() => {
               setIsSidebarOpen(false);
               setSelectedAccount(null);
@@ -421,6 +428,8 @@ const App: React.FC = () => {
                       user={currentUser}
                       onSave={handleUpdateUserProfile}
                       onBack={() => setIsProfileSettingsPageActive(false)}
+                      brandLogo={brandLogo}
+                      onUpdateBrandLogo={handleUpdateBrandLogo}
                   />
               ) : (
                   <div className={activePage === 'Dashboards' && editingDashboard ? '' : 'p-4'}>

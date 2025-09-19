@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { IconMenu, IconAIAgent, IconSupport, IconUser, IconSearch, IconBell, IconClose } from '../constants';
 
@@ -5,6 +6,7 @@ interface HeaderProps {
     onMenuClick: () => void;
     onLogoClick: () => void;
     isSidebarOpen: boolean;
+    brandLogo: string | null;
     onOpenProfileSettings: () => void;
     onLogout: () => void;
 }
@@ -22,8 +24,14 @@ const AnavsanLogo: React.FC<{}> = () => (
     </div>
 );
 
+const BrandLogo: React.FC<{ logoUrl: string }> = ({ logoUrl }) => (
+    <div className="flex items-center justify-center h-[26px] w-[112px]" title="Brand Logo">
+        <img src={logoUrl} alt="Brand Logo" className="max-h-full max-w-full object-contain" />
+    </div>
+);
 
-const Header: React.FC<HeaderProps> = ({ onMenuClick, onLogoClick, isSidebarOpen, onOpenProfileSettings, onLogout }) => {
+
+const Header: React.FC<HeaderProps> = ({ onMenuClick, onLogoClick, isSidebarOpen, brandLogo, onOpenProfileSettings, onLogout }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -50,7 +58,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onLogoClick, isSidebarOpen
           {isSidebarOpen ? <IconClose className="h-6 w-6" /> : <IconMenu className="h-6 w-6" />}
         </button>
         <button onClick={onLogoClick} className="focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1">
-          <AnavsanLogo />
+            {brandLogo ? <BrandLogo logoUrl={brandLogo} /> : <AnavsanLogo />}
         </button>
       </div>
       

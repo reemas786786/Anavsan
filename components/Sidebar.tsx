@@ -253,21 +253,21 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
                     tabIndex={-1}
                     className={`relative flex flex-col h-full bg-surface w-full max-w-xs md:w-64 shadow-xl transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} focus:outline-none`}
                 >
-                    <div className="flex-1">
-                        <div className="py-4">
-                            <ul className="space-y-1">
-                                {NAV_ITEMS_TOP.map((item) => (
-                                    <NavItem 
-                                        key={item.name} 
-                                        item={item} 
-                                        isActive={activePage === item.name}
-                                        onClick={handleItemClick}
-                                        activeSettingsSubPage={activeSettingsSubPage}
-                                    />
-                                ))}
-                            </ul>
-                            <div className="border-t border-border-light my-4 mx-4"></div>
-                            <ul className="space-y-1">
+                    <nav className="flex flex-col h-full py-4">
+                        <ul className="space-y-2">
+                            {NAV_ITEMS_TOP.map((item) => (
+                                <NavItem 
+                                    key={item.name} 
+                                    item={item} 
+                                    isActive={activePage === item.name}
+                                    onClick={handleItemClick}
+                                    activeSettingsSubPage={activeSettingsSubPage}
+                                />
+                            ))}
+                        </ul>
+                        <div className="mt-auto">
+                             <div className="border-t border-border-light my-2 mx-4"></div>
+                             <ul className="space-y-2">
                                 {NAV_ITEMS_BOTTOM.map((item) => (
                                     <NavItem 
                                         key={item.name} 
@@ -279,7 +279,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
                                 ))}
                             </ul>
                         </div>
-                    </div>
+                    </nav>
                 </aside>
             </div>
 

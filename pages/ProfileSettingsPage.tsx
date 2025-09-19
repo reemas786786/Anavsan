@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useEffect } from 'react';
 import { User } from '../types';
 import { IconEdit, IconUser, IconLockClosed, IconPhoto } from '../constants';
@@ -7,6 +8,8 @@ interface ProfileSettingsPageProps {
   user: User;
   onSave: (updatedUser: User) => void;
   onBack: () => void;
+  brandLogo: string | null;
+  onUpdateBrandLogo: (logoUrl: string) => void;
 }
 
 const Breadcrumb: React.FC<{ items: { label: string; onClick?: () => void }[] }> = ({ items }) => (
@@ -124,32 +127,94 @@ const ChangePasswordSection: React.FC = () => {
     );
 };
 
+const AnavsanLogoPreview: React.FC<{}> = () => (
+    <div className="flex items-center" title="Anavsan - Default Logo">
+        <h1 className="text-xl font-bold flex items-center text-text-primary">
+            <span style={{fontFamily: 'serif', background: 'linear-gradient(to bottom right, #A78BFA, #6932D5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}} className="text-4xl -mr-1">
+                A
+            </span>
+            <span className="tracking-[0.1em]">
+                NAVSAN
+            </span>
+        </h1>
+    </div>
+);
 
-const BrandSettingsSection: React.FC = () => {
-    const [logo, setLogo] = useState<string | null>(null);
+const BrandSettingsSection: React.FC<{ currentLogo: string | null; onSaveLogo: (logoUrl: string) => void; }> = ({ currentLogo, onSaveLogo }) => {
+    const [previewLogo, setPreviewLogo] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                setLogo(event.target?.result as string);
-            };
-            reader.readAsDataURL(e.target.files[0]);
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/svg+xml'];
+        const maxSize = 2 * 1024 * 1024; // 2MB
+
+        if (!allowedTypes.includes(file.type)) {
+            alert('Invalid file type. Please use PNG, JPG, or SVG.');
+            return;
         }
+        if (file.size > maxSize) {
+            alert('File is too large. Max size is 2MB.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setPreviewLogo(reader.result as string);
+        };
+        reader.readAsDataURL(file);
     };
     
+    const handleSaveChanges = () => {
+        if (previewLogo) {
+            onSaveLogo(previewLogo);
+            setPreviewLogo(null);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+    };
+
+    const isSaveDisabled = !previewLogo;
+
     return (
         <ProfileCard title="Brand Settings">
-            <div className="flex items-center gap-6">
-                <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border border-border-color">
-                    {logo ? <img src={logo} alt="Logo Preview" className="w-full h-full object-cover" /> : <span className="text-xs text-text-muted">Logo</span>}
+            <p className="text-sm text-text-secondary mb-4">Recommended: Size 200×200px · Max 2MB · PNG, JPG, or SVG.</p>
+            <div className="flex flex-col md:flex-row items-center gap-6">
+                <div className="w-[300px] h-[100px] border border-border-color bg-input-bg rounded-xl flex items-center justify-center overflow-hidden">
+                    {previewLogo ? (
+                        <img src={previewLogo} alt="Logo Preview" className="max-w-full max-h-full object-contain" />
+                    ) : currentLogo ? (
+                        <img src={currentLogo} alt="Current Brand Logo" className="max-w-full max-h-full object-contain" />
+                    ) : (
+                        <AnavsanLogoPreview />
+                    )}
                 </div>
-                <div>
-                    <p className="text-sm text-text-secondary mb-2">Upload your company logo (PNG or SVG recommended).</p>
-                     <input type="file" accept="image/png, image/svg+xml" onChange={handleLogoUpload} ref={fileInputRef} className="hidden" />
-                    <button onClick={() => fileInputRef.current?.click()} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-gray-50">
-                        {logo ? 'Replace Logo' : 'Upload Logo'}
+
+                <div className="flex items-center gap-4">
+                     <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        accept="image/png, image/jpeg, image/svg+xml"
+                        className="hidden"
+                    />
+                    <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-4 py-2 text-sm font-semibold text-primary border border-primary rounded-full hover:bg-primary/10 transition-colors whitespace-nowrap"
+                    >
+                        Change Logo
+                    </button>
+                    <button 
+                        onClick={handleSaveChanges}
+                        disabled={isSaveDisabled}
+                        className={`px-4 py-2 text-sm font-semibold text-white rounded-full transition-colors whitespace-nowrap ${
+                            isSaveDisabled 
+                            ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                            : 'bg-primary hover:bg-primary-hover'
+                        }`}
+                    >
+                        Save Changes
                     </button>
                 </div>
             </div>
@@ -158,7 +223,7 @@ const BrandSettingsSection: React.FC = () => {
 };
 
 
-const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, onSave, onBack }) => {
+const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, onSave, onBack, brandLogo, onUpdateBrandLogo }) => {
     const [activeSection, setActiveSection] = useState('User Info');
     
     const settingsNavItems = [
@@ -171,7 +236,7 @@ const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, onSave,
         switch(activeSection) {
             case 'User Info': return <UserInfoSection user={user} onSave={onSave} />;
             case 'Change Password': return <ChangePasswordSection />;
-            case 'Brand Settings': return <BrandSettingsSection />;
+            case 'Brand Settings': return <BrandSettingsSection currentLogo={brandLogo} onSaveLogo={onUpdateBrandLogo} />;
             default: return null;
         }
     };
