@@ -11,7 +11,7 @@ import {
 import { IconExclamationTriangle, IconAIAgent } from '../constants';
 
 const WidgetCard: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className = '', title }) => (
-    <div className={`bg-surface rounded-3xl shadow-sm border border-border-color p-6 break-inside-avoid mb-4 ${className}`}>
+    <div className={`bg-surface rounded-3xl shadow-sm border border-border-color p-4 break-inside-avoid mb-4 ${className}`}>
         {title && <h3 className="text-base font-semibold text-text-strong mb-4">{title}</h3>}
         {children}
     </div>
@@ -61,7 +61,7 @@ const ForecastByTierWidget: React.FC = () => (
 
 const AnomalyDetectionWidget: React.FC = () => (
     <WidgetCard title="Anomaly Detection">
-        <div className="space-y-3" style={{ maxHeight: 300, overflowY: 'auto' }}>
+        <div className="space-y-4" style={{ maxHeight: 300, overflowY: 'auto' }}>
             {costAnomalyAlertsData.map(alert => (
                 <div key={alert.id} className="bg-surface-nested p-4 rounded-3xl border border-status-warning/30 flex items-start gap-3">
                     <IconExclamationTriangle className="h-5 w-5 text-status-warning flex-shrink-0 mt-0.5" />
@@ -97,7 +97,7 @@ const SavingsProjectionWidget: React.FC = () => (
 
 const CostForecastingView: React.FC = () => {
     return (
-        <div className="columns-1 lg:columns-2 gap-4">
+        <div className="columns-1 md:columns-2 gap-4">
             <SpendVsForecastWidget />
             <ForecastByTierWidget />
             <AnomalyDetectionWidget />

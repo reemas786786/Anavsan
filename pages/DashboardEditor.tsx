@@ -194,7 +194,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                                 ))}
                             </select>
                         </div>
-                        <div className="flex-1 overflow-y-auto -mr-2 pr-2 space-y-3">
+                        <div className="flex-1 overflow-y-auto -mr-2 pr-2 space-y-4">
                             {filteredWidgets.map(widget => (
                                 <div key={widget.widgetId} className="bg-background p-3 rounded-3xl border border-border-light flex flex-col">
                                     <img src={widget.imageUrl} alt={`${widget.title} preview`} className="w-full h-24 object-cover rounded-2xl bg-gray-200 mb-3" />

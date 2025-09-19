@@ -8,7 +8,7 @@ import {
 } from '../data/dummyData';
 
 const WidgetCard: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className = '', title }) => (
-    <div className={`bg-surface rounded-3xl shadow-sm border border-border-color p-6 break-inside-avoid mb-4 ${className}`}>
+    <div className={`bg-surface rounded-3xl shadow-sm border border-border-color p-4 break-inside-avoid mb-4 ${className}`}>
         {title && <h3 className="text-base font-semibold text-text-strong mb-4">{title}</h3>}
         {children}
     </div>
@@ -182,7 +182,7 @@ const PolicyComplianceWidget: React.FC = () => {
 
 const DataTieringView: React.FC = () => {
     return (
-        <div className="columns-1 lg:columns-2 gap-4">
+        <div className="columns-1 md:columns-2 gap-4">
             <DataAgeDistributionWidget />
             <StorageByTierWidget />
             <TieringOpportunitiesWidget />

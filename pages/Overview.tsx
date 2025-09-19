@@ -278,7 +278,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
             </div>
 
 
-            <div className="columns-1 lg:columns-2 gap-4">
+            <div className="columns-1 md:columns-2 gap-4">
                 <Card>
                      <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center">
@@ -304,7 +304,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                             )}
                         </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                         <div className="bg-surface-nested p-4 rounded-3xl">
                             <p className="text-text-secondary text-sm">Current Spend</p>
                             <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">

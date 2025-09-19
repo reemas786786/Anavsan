@@ -56,7 +56,7 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
         <div className="space-y-4">
             <h1 className="text-2xl font-bold text-text-primary">Account(s)</h1>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="columns-1 md:columns-2 gap-4">
                 <MetricCard title="Total Accounts" value={accounts.length.toString()} />
                 <MetricCard title="Active Accounts" value={activeAccounts.toString()} />
                 <MetricCard title="Last Sync Status" value="Healthy" />
@@ -130,7 +130,7 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
 };
 
 const MetricCard: React.FC<{ title: string, value: string }> = ({ title, value }) => (
-    <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm">
+    <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm break-inside-avoid mb-4">
         <h4 className="text-base font-semibold text-text-strong">{title}</h4>
         <p className="text-[22px] leading-7 font-bold text-text-primary mt-6">{value}</p>
     </div>

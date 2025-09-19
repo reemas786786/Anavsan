@@ -28,8 +28,8 @@ const Breadcrumb: React.FC<{ items: { label: string; onClick?: () => void }[] }>
 );
 
 const ProfileCard: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-    <div className="bg-surface p-6 rounded-3xl border border-border-color shadow-sm">
-        <h3 className="text-lg font-semibold text-text-strong mb-6">{title}</h3>
+    <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm break-inside-avoid mb-4">
+        <h3 className="text-lg font-semibold text-text-strong mb-4">{title}</h3>
         {children}
     </div>
 );
@@ -48,6 +48,11 @@ const UserInfoSection: React.FC<{ user: User; onSave: (updatedUser: User) => voi
 
     const handleSaveInfo = () => {
         onSave({ ...user, ...userInfo });
+        setIsEditingInfo(false);
+    };
+
+    const handleCancelEdit = () => {
+        setUserInfo({ name: user.name, email: user.email, roleTitle: user.roleTitle || '' });
         setIsEditingInfo(false);
     };
     
@@ -69,11 +74,14 @@ const UserInfoSection: React.FC<{ user: User; onSave: (updatedUser: User) => voi
                 <InfoField label="Email" name="email" value={userInfo.email} isEditing={isEditingInfo} onChange={handleInfoChange} />
                 <InfoField label="Role Title" name="roleTitle" value={userInfo.roleTitle} isEditing={isEditingInfo} onChange={handleInfoChange} />
             </div>
-            <div className="mt-6 pt-6 border-t border-border-color text-right">
+            <div className="mt-4 pt-4 border-t border-border-color flex justify-end">
                 {isEditingInfo ? (
-                     <button onClick={handleSaveInfo} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full">Save Changes</button>
+                    <div className="flex items-center gap-3">
+                        <button onClick={handleCancelEdit} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-gray-50">Cancel</button>
+                        <button onClick={handleSaveInfo} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full">Save Changes</button>
+                    </div>
                 ) : (
-                    <button onClick={() => setIsEditingInfo(true)} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-gray-50 flex items-center gap-2 ml-auto">
+                    <button onClick={() => setIsEditingInfo(true)} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-gray-50 flex items-center gap-2">
                         <IconEdit className="h-4 w-4" /> Edit
                     </button>
                 )}
@@ -119,7 +127,7 @@ const ChangePasswordSection: React.FC = () => {
                         <input type="password" name="confirm" value={passwords.confirm} onChange={handlePasswordChange} className="mt-1 w-full border border-border-color rounded-full px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg" />
                     </div>
                 </div>
-                <div className="mt-6 pt-6 border-t border-border-color flex justify-end items-center">
+                <div className="mt-4 pt-4 border-t border-border-color flex justify-end items-center">
                     <button onClick={handleUpdatePassword} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full">Update Password</button>
                 </div>
             </>
@@ -180,7 +188,7 @@ const BrandSettingsSection: React.FC<{ currentLogo: string | null; onSaveLogo: (
     return (
         <ProfileCard title="Brand Settings">
             <p className="text-sm text-text-secondary mb-4">Recommended: Size 200×200px · Max 2MB · PNG, JPG, or SVG.</p>
-            <div className="flex flex-col md:flex-row items-center gap-6">
+            <div className="flex flex-col md:flex-row items-center gap-4">
                 <div className="w-[300px] h-[100px] border border-border-color bg-input-bg rounded-xl flex items-center justify-center overflow-hidden">
                     {previewLogo ? (
                         <img src={previewLogo} alt="Logo Preview" className="max-w-full max-h-full object-contain" />
@@ -233,12 +241,14 @@ const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, onSave,
     ];
     
     const renderContent = () => {
-        switch(activeSection) {
-            case 'User Info': return <UserInfoSection user={user} onSave={onSave} />;
-            case 'Change Password': return <ChangePasswordSection />;
-            case 'Brand Settings': return <BrandSettingsSection currentLogo={brandLogo} onSaveLogo={onUpdateBrandLogo} />;
-            default: return null;
-        }
+        // Render all sections for masonry layout
+        return (
+            <>
+                <UserInfoSection user={user} onSave={onSave} />
+                <ChangePasswordSection />
+                <BrandSettingsSection currentLogo={brandLogo} onSaveLogo={onUpdateBrandLogo} />
+            </>
+        );
     };
 
     return (
@@ -246,30 +256,11 @@ const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, onSave,
             <div className="bg-surface w-full py-4 px-6 border-b border-border-color flex-shrink-0">
                 <Breadcrumb items={[{ label: 'Dashboard', onClick: onBack }, { label: 'Profile Settings' }]} />
             </div>
-            <div className="flex flex-1 overflow-hidden">
-                <aside className="w-64 bg-surface flex-shrink-0 border-r border-border-color p-4">
-                    <nav className="mt-4">
-                        <ul className="space-y-1">
-                            {settingsNavItems.map(item => (
-                                <li key={item.name}>
-                                    <button
-                                        onClick={() => setActiveSection(item.name)}
-                                        className={`w-full flex items-center gap-2 text-left px-3 py-2 rounded-full text-sm font-medium transition-colors ${activeSection === item.name ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'}`}
-                                    >
-                                        <item.icon className={`h-4 w-4 shrink-0 ${activeSection === item.name ? 'text-primary' : 'text-text-secondary'}`} />
-                                        {item.name}
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </nav>
-                </aside>
-                <main className="flex-1 overflow-y-auto p-4">
-                    <div className="max-w-3xl">
-                        {renderContent()}
-                    </div>
-                </main>
-            </div>
+            <main className="flex-1 overflow-y-auto p-4">
+                <div className="columns-1 md:columns-2 gap-4">
+                    {renderContent()}
+                </div>
+            </main>
         </div>
     );
 };

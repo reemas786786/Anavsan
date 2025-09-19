@@ -5,7 +5,7 @@ import { IconSearch, IconChevronLeft, IconChevronRight, IconChevronDown, IconDot
 import Modal from '../components/Modal';
 
 const MetricCard: React.FC<{ title: string; value: string; valueColor?: string }> = ({ title, value, valueColor = 'text-text-primary' }) => (
-    <div className="bg-surface p-4 rounded-3xl border border-border-color">
+    <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm break-inside-avoid mb-4">
         <h4 className="text-sm font-medium text-text-secondary">{title}</h4>
         <p className={`text-2xl font-bold mt-2 ${valueColor}`}>{value}</p>
     </div>
@@ -187,7 +187,7 @@ const QueryListView: React.FC = () => {
             
             {/* Main Content */}
             <main className="flex-1 flex flex-col gap-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="columns-1 md:columns-2 lg:columns-3 gap-4">
                     <MetricCard title="Total Queries" value={totalQueries.toLocaleString()} />
                     <MetricCard title="Success" value={successQueries.toLocaleString()} valueColor="text-status-success" />
                     <MetricCard title="Failed" value={failedQueries.toLocaleString()} valueColor="text-status-error" />
