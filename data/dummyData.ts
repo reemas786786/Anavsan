@@ -398,6 +398,7 @@ export const totalStorageMetrics = {
 export const storageGrowthForecast = {
     nextMonthSizeGB: 2500,
     growthPercentage: 8.46,
+    nextMonthCost: 12960,
 };
 
 export const storageBreakdownData: StorageBreakdownItem[] = [
