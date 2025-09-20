@@ -1,10 +1,12 @@
 import React from 'react';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import {
+    totalStorageMetrics,
+    storageGrowthForecast,
     topStorageConsumersData,
-    unusedTablesData,
-    duplicateDataPatternsData,
-    storageOptimizationOpportunitiesData
+    storageGrowthData
 } from '../data/dummyData';
+import { IconTrendingUp } from '../constants';
 
 const WidgetCard: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className = '', title }) => (
     <div className={`bg-surface rounded-3xl shadow-sm border border-border-color p-4 break-inside-avoid mb-4 ${className}`}>
@@ -13,25 +15,41 @@ const WidgetCard: React.FC<{ children: React.ReactNode, className?: string, titl
     </div>
 );
 
-const TopStorageConsumingTablesWidget: React.FC = () => (
-    <WidgetCard title="Top Storage Consuming Tables">
-        <div className="overflow-x-auto">
+// KPI Widgets
+const TotalStorageKPI: React.FC = () => (
+    <WidgetCard title="Total Storage">
+        <p className="text-3xl font-bold text-text-primary">{totalStorageMetrics.totalSizeGB.toLocaleString()} GB</p>
+        <p className="text-sm text-text-secondary">Total active storage</p>
+    </WidgetCard>
+);
+
+const StorageCostKPI: React.FC = () => (
+    <WidgetCard title="Storage Cost">
+        <p className="text-3xl font-bold text-text-primary">${totalStorageMetrics.totalCost.toLocaleString()}</p>
+        <p className="text-sm text-text-secondary">Estimated per month</p>
+    </WidgetCard>
+);
+
+// Table Widget
+const TableStorageAnalysisWidget: React.FC = () => (
+    <WidgetCard title="Table Storage Analysis">
+        <div className="overflow-x-auto" style={{ maxHeight: '400px' }}>
             <table className="w-full text-sm">
-                <thead className="text-left text-xs text-text-secondary uppercase">
+                <thead className="text-left text-xs text-text-secondary uppercase sticky top-0 bg-surface">
                     <tr>
-                        <th className="pb-2 font-medium">Table Name</th>
-                        <th className="pb-2 font-medium text-right">Size (GB)</th>
-                        <th className="pb-2 font-medium text-right">Monthly Growth %</th>
+                        <th className="py-2 px-3 font-medium">Table Name</th>
+                        <th className="py-2 px-3 font-medium text-right">Size (GB)</th>
+                        <th className="py-2 px-3 font-medium text-right">Rows</th>
+                        <th className="py-2 px-3 font-medium">Last Updated</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {topStorageConsumersData.slice(0, 7).map(item => (
-                        <tr key={item.name} className="border-t border-border-color">
-                            <td className="py-2.5 font-mono text-xs text-text-primary">{item.name}</td>
-                            <td className="py-2.5 text-right font-semibold text-text-primary">{item.size.toLocaleString()}</td>
-                            <td className={`py-2.5 text-right font-semibold ${item.monthlyGrowth > 10 ? 'text-status-warning' : 'text-text-secondary'}`}>
-                                {item.monthlyGrowth.toFixed(1)}%
-                            </td>
+                <tbody className="divide-y divide-border-color">
+                    {topStorageConsumersData.map(item => (
+                        <tr key={item.name}>
+                            <td className="py-2.5 px-3 font-mono text-xs text-text-primary">{item.name}</td>
+                            <td className="py-2.5 px-3 text-right font-semibold text-text-primary">{item.size.toLocaleString()}</td>
+                            <td className="py-2.5 px-3 text-right text-text-secondary">{item.rows?.toLocaleString()}</td>
+                            <td className="py-2.5 px-3 text-text-secondary">{item.lastUpdated}</td>
                         </tr>
                     ))}
                 </tbody>
@@ -40,87 +58,62 @@ const TopStorageConsumingTablesWidget: React.FC = () => (
     </WidgetCard>
 );
 
-const UnusedDataWidget: React.FC = () => (
-    <WidgetCard title="Orphaned / Unused Data">
-         <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-                <thead className="text-left text-xs text-text-secondary uppercase">
-                    <tr>
-                        <th className="pb-2 font-medium">Table Name</th>
-                        <th className="pb-2 font-medium">Last Queried</th>
-                        <th className="pb-2 font-medium text-right">Potential Savings</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {unusedTablesData.map(table => (
-                        <tr key={table.name} className="border-t border-border-color">
-                            <td className="py-2.5">
-                                <p className="font-mono text-xs font-semibold text-text-primary">{table.name}</p>
-                                <p className="text-xs text-text-secondary">{table.size}</p>
-                            </td>
-                            <td className="py-2.5 text-text-secondary">{table.lastAccessed}</td>
-                            <td className="py-2.5 text-right font-bold text-status-success-dark">${table.potentialSavings}/mo</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+// Chart Widget
+const StorageGrowthTrendsWidget: React.FC = () => (
+    <WidgetCard title="Storage Growth Trends">
+        <div style={{ height: 300 }}>
+            <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={storageGrowthData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                    <XAxis dataKey="date" stroke="#9A9AB2" fontSize={12} />
+                    <YAxis stroke="#9A9AB2" fontSize={12} unit=" GB" tickFormatter={(value) => value.toLocaleString()} />
+                    <Tooltip
+                        contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E0', borderRadius: '1rem' }}
+                        labelStyle={{ color: '#1E1E2D', fontWeight: 'bold' }}
+                        formatter={(value: number) => [`${value.toLocaleString()} GB`]}
+                    />
+                    <Legend verticalAlign="top" height={36} iconSize={10} />
+                    <defs>
+                        <linearGradient id="colorActive" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#6932D5" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="#6932D5" stopOpacity={0}/>
+                        </linearGradient>
+                        <linearGradient id="colorTimeTravel" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#A78BFA" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="#A78BFA" stopOpacity={0}/>
+                        </linearGradient>
+                    </defs>
+                    <Area type="monotone" dataKey="Active Storage (GB)" stroke="#6932D5" fillOpacity={1} fill="url(#colorActive)" />
+                    <Area type="monotone" dataKey="Time Travel (GB)" stroke="#A78BFA" fillOpacity={1} fill="url(#colorTimeTravel)" />
+                </AreaChart>
+            </ResponsiveContainer>
         </div>
     </WidgetCard>
 );
 
-const DuplicateDataPatternsWidget: React.FC = () => (
-    <WidgetCard title="Duplicate Data Patterns">
-        <div className="space-y-4">
-            {duplicateDataPatternsData.map(pattern => (
-                <div key={pattern.id} className="bg-surface-nested p-4 rounded-3xl border border-border-light">
-                    <p className="text-sm text-text-secondary">Detected duplicate set:</p>
-                    <div className="mt-1 space-y-0.5">
-                        {pattern.datasets.map(ds => (
-                            <p key={ds} className="font-mono text-xs font-semibold text-text-primary">{ds}</p>
-                        ))}
-                    </div>
-                    <div className="mt-2 pt-2 border-t border-border-color flex justify-between items-baseline">
-                        <span className="text-sm text-text-secondary">Total Size: {pattern.size}</span>
-                        <span className="text-sm font-bold text-status-success-dark">Save ~${pattern.potentialSavings}/mo</span>
-                    </div>
-                </div>
-            ))}
-             {duplicateDataPatternsData.length === 0 && (
-                <p className="text-sm text-text-secondary text-center py-4">No duplicate patterns detected.</p>
-            )}
+// Forecast Widget
+const GrowthForecastWidget: React.FC = () => (
+    <WidgetCard title="Growth Forecast">
+        <div className="flex flex-col items-center justify-center text-center" style={{ minHeight: '150px' }}>
+            <IconTrendingUp className="w-10 h-10 text-primary mb-2" />
+            <p className="text-3xl font-bold text-text-primary">
+                {storageGrowthForecast.nextMonthSizeGB.toLocaleString()} GB
+            </p>
+            <p className="text-sm text-text-secondary">projected next month</p>
+            <p className="mt-2 text-lg font-semibold text-status-warning">
+                +{storageGrowthForecast.growthPercentage}%
+            </p>
         </div>
     </WidgetCard>
 );
-
-
-const StorageOpportunitiesWidget: React.FC = () => (
-    <WidgetCard title="Compression & Partitioning Opportunities">
-        <div className="space-y-4">
-            {storageOptimizationOpportunitiesData.map(opp => (
-                <div key={opp.id} className="bg-surface-nested p-4 rounded-3xl border border-border-light">
-                     <div className="flex items-center gap-2 mb-2">
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${opp.type === 'Compression' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>{opp.type}</span>
-                        <p className="font-mono text-xs font-semibold text-text-primary">{opp.tableName}</p>
-                    </div>
-                    <p className="text-sm text-text-secondary">{opp.recommendation}</p>
-                    <p className="text-sm font-bold text-status-success-dark mt-2">Potential Savings: ~${opp.potentialSavings}/mo</p>
-                </div>
-            ))}
-            {storageOptimizationOpportunitiesData.length === 0 && (
-                <p className="text-sm text-text-secondary text-center py-4">No specific opportunities found.</p>
-            )}
-        </div>
-    </WidgetCard>
-);
-
 
 const StorageOptimizationView: React.FC = () => {
     return (
         <div className="columns-1 md:columns-2 gap-4">
-            <TopStorageConsumingTablesWidget />
-            <UnusedDataWidget />
-            <DuplicateDataPatternsWidget />
-            <StorageOpportunitiesWidget />
+            <TotalStorageKPI />
+            <StorageCostKPI />
+            <GrowthForecastWidget />
+            <TableStorageAnalysisWidget />
+            <StorageGrowthTrendsWidget />
         </div>
     );
 };

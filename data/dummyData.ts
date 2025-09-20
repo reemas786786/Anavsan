@@ -1,60 +1,54 @@
 import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget, SimilarQuery, QueryListItem, QueryStatus, QueryType, StorageBreakdownItem, TopStorageConsumer, StorageGrowthPoint, UnusedTable, StorageActivityLogItem, StorageByTeamItem, DuplicateDataPattern, StorageOptimizationOpportunity, DataAgeDistributionItem, StorageTierItem, TieringOpportunityItem, CostForecastPoint, TierForecastPoint, AnomalyAlertItem, SavingsProjection } from '../types';
 
-export const availableWidgetsData: Omit<Widget, 'id' | 'dataSource'>[] = [
+export const availableWidgetsData: Omit<Widget, 'id' | 'dataSource' | 'imageUrl'>[] = [
     { 
-      widgetId: 'w1', 
-      title: 'Total Monthly Spend', 
-      type: 'StatCard', 
-      description: 'Displays the total credit spend for the current month.',
-      imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Stat+Card',
-      tags: ['Cost', 'Overall', 'Account Specific'],
-      layout: { w: 4, h: 2 }
-    },
-    { 
-      widgetId: 'w2', 
-      title: 'Forecasted Spend', 
-      type: 'StatCard', 
-      description: 'AI-based forecast of this month\'s total spend.',
-      imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Stat+Card',
-      tags: ['Cost', 'Forecast', 'Overall'],
-      layout: { w: 4, h: 2 }
-    },
-    { 
-      widgetId: 'w3', 
-      title: 'Top Queries by Cost', 
-      type: 'Table', 
-      description: 'A table of the most expensive queries.',
-      imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Table',
-      tags: ['Performance', 'Cost', 'Account Specific'],
-      layout: { w: 6, h: 2 }
-    },
-    { 
-      widgetId: 'w4', 
-      title: 'Warehouse Utilization', 
-      type: 'BarChart', 
-      description: 'Shows average and peak utilization for warehouses.',
-      imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Bar+Chart',
+      widgetId: 'airflow-dag-durations', 
+      title: 'Airflow DAG durations', 
+      type: 'LineChart', 
+      description: 'Shows the most frequent Airflow DAGs and their duration.',
       tags: ['Performance', 'Account Specific'],
       layout: { w: 6, h: 2 }
     },
     { 
-      widgetId: 'w5', 
-      title: 'Cost Breakdown', 
-      type: 'DonutChart', 
-      description: 'A donut chart showing spend by category.',
-      imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Donut+Chart',
-      tags: ['Cost', 'Overall', 'Account Specific'],
-      layout: { w: 4, h: 2 }
+      widgetId: 'airflow-dag-runs', 
+      title: 'Airflow DAG runs', 
+      type: 'Table', 
+      description: 'A list of recent Airflow DAG runs.',
+      tags: ['Performance', 'Account Specific'],
+      layout: { w: 6, h: 2 }
     },
     { 
-      widgetId: 'w6', 
-      title: 'Spend Over Time', 
+      widgetId: 'avg-time-to-resolution', 
+      title: 'Average time to resolution', 
       type: 'LineChart', 
-      description: 'A line chart of daily spend over the last 30 days.',
-      imageUrl: 'https://placehold.co/300x150/F8F8FC/1E1E2D?text=Line+Chart',
-      tags: ['Cost', 'Trend', 'Overall', 'Account Specific'],
-      layout: { w: 8, h: 2 }
-    }
+      description: 'A chart showing the average time it took to resolve an incident over the last 6 months.',
+      tags: ['Performance', 'Overall'],
+      layout: { w: 6, h: 2 }
+    },
+    { 
+      widgetId: 'dbt-job-durations', 
+      title: 'dbt job durations', 
+      type: 'LineChart', 
+      description: 'Shows the most frequent jobs and their duration.',
+      tags: ['Performance', 'Account Specific'],
+      layout: { w: 6, h: 2 }
+    },
+    { 
+      widgetId: 'dbt-recent-job-runs', 
+      title: 'dbt recent job runs', 
+      type: 'Table', 
+      description: 'Details and status of recent dbt job runs.',
+      tags: ['Performance', 'Account Specific'],
+      layout: { w: 6, h: 2 }
+    },
+    { 
+      widgetId: 'fivetran-connector-durations', 
+      title: 'Fivetran connector durations', 
+      type: 'LineChart', 
+      description: 'Shows the most frequent connectors and their duration.',
+      tags: ['Performance', 'Account Specific'],
+      layout: { w: 6, h: 2 }
+    },
 ];
 
 export const connectionsData: Account[] = [
@@ -236,6 +230,16 @@ export const queryListData: QueryListItem[] = [
 ];
 
 // --- Data for Storage Optimization View ---
+export const totalStorageMetrics = {
+    totalSizeGB: 2305,
+    totalCost: 12000,
+};
+
+export const storageGrowthForecast = {
+    nextMonthSizeGB: 2500,
+    growthPercentage: 8.46,
+};
+
 export const storageBreakdownData: StorageBreakdownItem[] = [
     { name: 'PROD_DB', value: 1200, color: '#6932D5' },
     { name: 'STAGING_DB', value: 500, color: '#A78BFA' },
@@ -244,16 +248,16 @@ export const storageBreakdownData: StorageBreakdownItem[] = [
 ];
 
 export const topStorageConsumersData: TopStorageConsumer[] = [
-    { name: 'EVENTS_RAW', size: 450, monthlyGrowth: 15.2 },
-    { name: 'CUSTOMER_SESSIONS', size: 320, monthlyGrowth: 8.5 },
-    { name: 'TRANSACTIONS_Q3', size: 210, monthlyGrowth: 5.0 },
-    { name: 'USER_PROFILES_BACKUP', size: 180, monthlyGrowth: 1.2 },
-    { name: 'API_LOGS_2023', size: 150, monthlyGrowth: 22.1 },
-    { name: 'FINANCIAL_REPORTS', size: 120, monthlyGrowth: 2.5 },
-    { name: 'MARKETING_CAMPAIGNS', size: 90, monthlyGrowth: 7.8 },
-    { name: 'PRODUCT_CATALOG', size: 75, monthlyGrowth: 0.5 },
-    { name: 'HR_RECORDS', size: 50, monthlyGrowth: 1.0 },
-    { name: 'ARCHIVED_ORDERS', size: 40, monthlyGrowth: 0.1 },
+    { name: 'EVENTS_RAW', size: 450, monthlyGrowth: 15.2, rows: 250000000, lastUpdated: '2 hours ago' },
+    { name: 'CUSTOMER_SESSIONS', size: 320, monthlyGrowth: 8.5, rows: 120000000, lastUpdated: '5 hours ago' },
+    { name: 'TRANSACTIONS_Q3', size: 210, monthlyGrowth: 5.0, rows: 85000000, lastUpdated: '1 day ago' },
+    { name: 'USER_PROFILES_BACKUP', size: 180, monthlyGrowth: 1.2, rows: 5000000, lastUpdated: '3 days ago' },
+    { name: 'API_LOGS_2023', size: 150, monthlyGrowth: 22.1, rows: 500000000, lastUpdated: 'just now' },
+    { name: 'FINANCIAL_REPORTS', size: 120, monthlyGrowth: 2.5, rows: 1200000, lastUpdated: '7 days ago' },
+    { name: 'MARKETING_CAMPAIGNS', size: 90, monthlyGrowth: 7.8, rows: 8000000, lastUpdated: '4 days ago' },
+    { name: 'PRODUCT_CATALOG', size: 75, monthlyGrowth: 0.5, rows: 1000000, lastUpdated: '1 month ago' },
+    { name: 'HR_RECORDS', size: 50, monthlyGrowth: 1.0, rows: 500000, lastUpdated: '1 month ago' },
+    { name: 'ARCHIVED_ORDERS', size: 40, monthlyGrowth: 0.1, rows: 20000000, lastUpdated: '2 months ago' },
 ];
 
 export const storageGrowthData: StorageGrowthPoint[] = [

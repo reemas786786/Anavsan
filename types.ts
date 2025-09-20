@@ -54,6 +54,7 @@ export interface DashboardItem {
   createdOn: string;
   description?: string;
   widgets: Widget[];
+  dataSourceContext?: { type: 'overall' } | { type: 'account', accountId: string };
 }
 
 export interface SQLVersion {
@@ -161,6 +162,8 @@ export interface TopStorageConsumer {
   name: string;
   size: number; // in GB
   monthlyGrowth: number; // percentage
+  rows?: number;
+  lastUpdated?: string;
 }
 
 export interface StorageGrowthPoint {
