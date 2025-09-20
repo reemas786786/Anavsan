@@ -1,14 +1,21 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { DashboardItem, Widget, Account, WidgetType } from '../types';
 import { availableWidgetsData } from '../data/dummyData';
-import { IconAdd, IconSearch, IconClose } from '../constants';
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
+import { IconAdd, IconSearch, IconClose, IconChevronDown } from '../constants';
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 const dummyLineData = [
     { name: 'Jan', value: Math.random() * 100 },
     { name: 'Feb', value: Math.random() * 100 },
     { name: 'Mar', value: Math.random() * 100 },
     { name: 'Apr', value: Math.random() * 100 },
+];
+
+const dummyBarData = [
+    { name: 'WH1', value: Math.random() * 500 },
+    { name: 'WH2', value: Math.random() * 500 },
+    { name: 'WH3', value: Math.random() * 500 },
+    { name: 'WH4', value: Math.random() * 500 },
 ];
 
 const DummyLineChart: React.FC = () => (
@@ -23,6 +30,41 @@ const DummyLineChart: React.FC = () => (
         </LineChart>
     </ResponsiveContainer>
 );
+
+const DummyStatCard: React.FC = () => (
+    <div className="p-2 h-full flex flex-col justify-center items-center">
+        <div className="text-2xl font-bold text-text-primary">$12.3k</div>
+        <div className="text-[10px] text-text-secondary mt-1">Current Spend</div>
+    </div>
+);
+
+const DummyBarChart: React.FC = () => (
+    <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={dummyBarData} margin={{ top: 5, right: 5, bottom: 0, left: -30 }}>
+            <XAxis dataKey="name" fontSize={10} stroke="#9A9AB2" axisLine={false} tickLine={false} />
+            <YAxis fontSize={10} stroke="#9A9AB2" axisLine={false} tickLine={false} />
+            <Tooltip
+                contentStyle={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px', border: '1px solid #E5E5E0' }} 
+            />
+            <Bar dataKey="value" fill="#6932D5" />
+        </BarChart>
+    </ResponsiveContainer>
+);
+
+const DummyDonutChart: React.FC = () => (
+    <div className="w-full h-full flex items-center justify-center p-2">
+         <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+                <Pie data={[{value: 70}, {value: 30}]} dataKey="value" innerRadius="60%" outerRadius="80%" stroke="none">
+                     <Cell fill="#6932D5" />
+                     <Cell fill="#E0E7FF" />
+                </Pie>
+                 <Tooltip contentStyle={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px', border: '1px solid #E5E5E0' }} />
+            </PieChart>
+        </ResponsiveContainer>
+    </div>
+);
+
 
 const dummyTableData = [
     { event: 'daily', time: 'Nov 16, 7:08 AM', details: '15s', status: 'passing' },
@@ -59,6 +101,12 @@ const WidgetRenderer: React.FC<{type: WidgetType}> = ({ type }) => {
             return <DummyLineChart />;
         case 'Table':
             return <DummyTable />;
+        case 'StatCard':
+            return <DummyStatCard />;
+        case 'BarChart':
+            return <DummyBarChart />;
+        case 'DonutChart':
+            return <DummyDonutChart />;
         default:
             return <div className="text-xs text-text-muted">Preview not available</div>;
     }
@@ -105,6 +153,10 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
 
     const [searchTerm, setSearchTerm] = useState('');
     const [isEditMode, setIsEditMode] = useState(true);
+    const [activeFilter, setActiveFilter] = useState<string>('All');
+    const [isAggregated, setIsAggregated] = useState(true);
+    const [selectedAccountForNewWidgets, setSelectedAccountForNewWidgets] = useState(accounts.length > 0 ? accounts[0].id : '');
+    
     const dragItem = useRef<number | null>(null);
     const dragOverItem = useRef<number | null>(null);
 
@@ -120,7 +172,9 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
         const newWidgetInstance: Widget = {
             ...widgetTemplate,
             id: `inst-${Date.now()}-${Math.random()}`,
-            dataSource: { type: 'account', accountId: accounts[0]?.id || '' },
+            dataSource: isAggregated 
+                ? { type: 'overall' }
+                : { type: 'account', accountId: selectedAccountForNewWidgets },
         };
         setEditedDashboard(prev => ({
             ...prev,
@@ -156,15 +210,31 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
         setEditedDashboard(prev => ({ ...prev, widgets: newWidgets }));
     };
 
+    const widgetTagsWithCounts = useMemo(() => {
+        const counts: Record<string, number> = { All: availableWidgetsData.length };
+        const allTags = Array.from(new Set(availableWidgetsData.flatMap(w => w.tags || [])));
+        
+        availableWidgetsData.forEach(widget => {
+            widget.tags?.forEach(tag => {
+                counts[tag] = (counts[tag] || 0) + 1;
+            });
+        });
+
+        allTags.sort();
+        return [{ tag: 'All', count: availableWidgetsData.length }, ...allTags.map(tag => ({ tag, count: counts[tag] }))];
+    }, []);
+
     const filteredWidgets = useMemo(() => {
-        return availableWidgetsData.filter(widget =>
-            widget.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            widget.description.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [searchTerm]);
+        return availableWidgetsData.filter(widget => {
+            const matchesSearch = widget.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                widget.description.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesFilter = activeFilter === 'All' || widget.tags?.includes(activeFilter);
+            return matchesSearch && matchesFilter;
+        });
+    }, [searchTerm, activeFilter]);
 
     return (
-        <div className="flex flex-col h-screen bg-background">
+        <div className="flex flex-col bg-background">
             {/* Header */}
             <header className="bg-surface px-6 py-3 border-b border-border-color flex items-center justify-between flex-shrink-0">
                 <div>
@@ -183,18 +253,61 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
             </header>
             
             {/* Main Content */}
-            <div className={`flex-1 grid grid-cols-1 ${isEditMode ? 'lg:grid-cols-12' : ''} gap-4 p-4 overflow-hidden`}>
+            <div className={`flex-1 grid grid-cols-1 ${isEditMode ? 'lg:grid-cols-12' : ''} gap-4 p-4`}>
                 {/* Left Panel: Widget Library */}
                 {isEditMode && (
-                    <aside className="lg:col-span-4 xl:col-span-3 bg-surface rounded-3xl border border-border-color p-4 flex flex-col">
+                    <aside className="lg:col-span-4 xl:col-span-3 bg-surface rounded-3xl border border-border-color p-4 flex flex-col self-start sticky top-4 max-h-[calc(100vh-80px)]">
                         <h3 className="text-lg font-semibold text-text-strong mb-4 px-2">Select Views</h3>
                         
-                        <div className="relative mb-4 px-2">
-                            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none"><IconSearch className="h-5 w-5 text-text-muted" /></div>
-                            <input type="text" placeholder="Search views..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border-0 rounded-full text-sm focus:ring-2 focus:ring-primary bg-background placeholder-text-secondary" />
+                        <div className="flex flex-col space-y-4 px-2 flex-shrink-0">
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <label htmlFor="aggregate-toggle" className="text-sm font-medium text-text-strong pr-4">Enable aggregated metrics</label>
+                                    <ToggleSwitch enabled={isAggregated} onChange={setIsAggregated} />
+                                </div>
+                                {!isAggregated && accounts.length > 0 && (
+                                    <div className="relative">
+                                        <select 
+                                            id="account-select" 
+                                            value={selectedAccountForNewWidgets} 
+                                            onChange={e => setSelectedAccountForNewWidgets(e.target.value)}
+                                            className="w-full appearance-none border-0 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-primary bg-background"
+                                        >
+                                            {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
+                                        </select>
+                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-text-secondary">
+                                            <IconChevronDown className="h-5 w-5" />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><IconSearch className="h-5 w-5 text-text-muted" /></div>
+                                <input type="text" placeholder="Search views..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border-0 rounded-full text-sm focus:ring-2 focus:ring-primary bg-background placeholder-text-secondary" />
+                            </div>
+
+                            <div>
+                                <label htmlFor="category-filter" className="text-xs font-semibold text-text-secondary uppercase mb-2 block px-1">Category</label>
+                                <div className="relative">
+                                    <select 
+                                        id="category-filter"
+                                        value={activeFilter}
+                                        onChange={e => setActiveFilter(e.target.value)}
+                                        className="w-full appearance-none border-0 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-primary bg-background"
+                                    >
+                                        {widgetTagsWithCounts.map(({tag, count}) => (
+                                            <option key={tag} value={tag}>{tag} ({count})</option>
+                                        ))}
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-text-secondary">
+                                        <IconChevronDown className="h-5 w-5" />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        
-                        <div className="flex-1 overflow-y-auto space-y-2 pr-2 -mr-2">
+
+                        <div className="flex-1 overflow-y-auto space-y-2 pr-2 -mr-2 pt-2 mt-4">
                              <div className="grid grid-cols-1 gap-4">
                                 {filteredWidgets.map(widget => (
                                     <div key={widget.widgetId} className="bg-background p-4 rounded-2xl border border-border-light flex flex-col gap-3">
@@ -223,11 +336,15 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                 )}
 
                 {/* Right Panel: Dashboard Canvas */}
-                <main className={`${isEditMode ? 'lg:col-span-8 xl:col-span-9' : 'col-span-1'} bg-background rounded-3xl border border-border-color p-4 overflow-y-auto`}>
+                <main className={`${isEditMode ? 'lg:col-span-8 xl:col-span-9' : 'col-span-1'} bg-background rounded-3xl border border-border-color p-4`}>
                     <h3 className="text-lg font-semibold text-text-strong mb-4 px-2">Layout</h3>
                     {editedDashboard.widgets.length > 0 ? (
                        <div className="columns-1 md:columns-2 gap-4">
-                            {editedDashboard.widgets.map((widget, index) => (
+                            {editedDashboard.widgets.map((widget, index) => {
+                                const dataSourceText = widget.dataSource.type === 'overall' 
+                                    ? 'Overall' 
+                                    : accounts.find(a => a.id === (widget.dataSource as any).accountId)?.name || 'Account';
+                                return (
                                 <div
                                     key={widget.id}
                                     className={`bg-surface rounded-3xl shadow-sm border border-border-light flex flex-col group p-4 relative break-inside-avoid mb-4 ${isEditMode ? 'cursor-move' : ''}`}
@@ -246,11 +363,14 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                                         )}
                                     </div>
                                     <p className="text-sm text-text-secondary mt-1">{widget.description}</p>
-                                    <div className="flex-grow min-h-[200px] mt-4 rounded-2xl">
+                                    <div className="flex-grow min-h-[200px] mt-4 rounded-2xl relative">
                                         <WidgetRenderer type={widget.type} />
+                                        <div className="absolute bottom-0 left-0 text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full font-medium z-10">
+                                            {dataSourceText}
+                                        </div>
                                     </div>
                                 </div>
-                            ))}
+                            )})}
                        </div>
                     ) : (
                         <div className="h-full flex flex-col items-center justify-center text-center text-text-secondary border-2 border-dashed border-border-color rounded-2xl">

@@ -49,6 +49,166 @@ export const availableWidgetsData: Omit<Widget, 'id' | 'dataSource' | 'imageUrl'
       tags: ['Performance', 'Account Specific'],
       layout: { w: 6, h: 2 }
     },
+    {
+      widgetId: 'total-monthly-spend',
+      title: 'Total Monthly Spend',
+      type: 'StatCard',
+      description: 'Current total spend for the month across all accounts.',
+      tags: ['Cost', 'Overall'],
+      layout: { w: 4, h: 1 }
+    },
+    {
+      widgetId: 'forecasted-spend',
+      title: 'Forecasted Spend',
+      type: 'StatCard',
+      description: 'AI-based forecast of this month\'s total spend.',
+      tags: ['Cost', 'Overall', 'Forecast'],
+      layout: { w: 4, h: 1 }
+    },
+    {
+      widgetId: 'cost-breakdown-service',
+      title: 'Cost Breakdown by Service',
+      type: 'DonutChart',
+      description: 'Spend breakdown by service (e.g., Warehouse, Storage).',
+      tags: ['Cost', 'Overall'],
+      layout: { w: 4, h: 2 }
+    },
+    {
+      widgetId: 'top-costly-queries',
+      title: 'Top 5 Costly Queries',
+      type: 'Table',
+      description: 'Lists the top 5 most expensive queries for an account.',
+      tags: ['Cost', 'Performance', 'Account Specific'],
+      layout: { w: 8, h: 2 }
+    },
+    {
+      widgetId: 'warehouse-utilization',
+      title: 'Warehouse Utilization',
+      type: 'BarChart',
+      description: 'Shows average and peak utilization for warehouses.',
+      tags: ['Performance', 'Account Specific'],
+      layout: { w: 6, h: 2 }
+    },
+    {
+      widgetId: 'storage-usage',
+      title: 'Storage Usage (GB)',
+      type: 'StatCard',
+      description: 'Total active storage used for a specific account.',
+      tags: ['Storage', 'Account Specific'],
+      layout: { w: 4, h: 1 }
+    },
+    {
+      widgetId: 'storage-growth-trend',
+      title: 'Storage Growth Trend',
+      type: 'LineChart',
+      description: 'Historical storage growth over the last 6 months.',
+      tags: ['Storage', 'Account Specific'],
+      layout: { w: 6, h: 2 }
+    },
+    {
+      widgetId: 'unused-tables',
+      title: 'Unused Tables',
+      type: 'Table',
+      description: 'List of tables not accessed in the last 90 days.',
+      tags: ['Storage', 'Cost', 'Account Specific'],
+      layout: { w: 6, h: 2 }
+    },
+    {
+      widgetId: 'login-failures',
+      title: 'Login Failures',
+      type: 'LineChart',
+      description: 'Trend of failed login attempts over time.',
+      tags: ['Security', 'Overall'],
+      layout: { w: 6, h: 2 }
+    },
+    {
+      widgetId: 'new-roles-created',
+      title: 'New Roles Created',
+      type: 'Table',
+      description: 'A log of recently created roles and their permissions.',
+      tags: ['Security', 'Overall'],
+      layout: { w: 6, h: 2 }
+    },
+    {
+      widgetId: 'active-users',
+      title: 'Active Users',
+      type: 'StatCard',
+      description: 'Number of active users in the last 24 hours.',
+      tags: ['Usage', 'Overall'],
+      layout: { w: 4, h: 1 }
+    },
+    {
+      widgetId: 'failed-queries-count',
+      title: 'Failed Queries Count',
+      type: 'StatCard',
+      description: 'Total number of failed queries today.',
+      tags: ['Performance', 'Account Specific'],
+      layout: { w: 4, h: 1 }
+    },
+    {
+      widgetId: 'p95-query-latency',
+      title: 'P95 Query Latency',
+      type: 'LineChart',
+      description: '95th percentile for query execution time.',
+      tags: ['Performance', 'Account Specific'],
+      layout: { w: 6, h: 2 }
+    },
+    {
+      widgetId: 'data-freshness',
+      title: 'Data Freshness',
+      type: 'Table',
+      description: 'Last load times for key tables.',
+      tags: ['Performance', 'Account Specific'],
+      layout: { w: 6, h: 2 }
+    },
+    {
+      widgetId: 'snowpipe-credits',
+      title: 'Snowpipe Credits',
+      type: 'StatCard',
+      description: 'Total credits consumed by Snowpipe this month.',
+      tags: ['Cost', 'Account Specific'],
+      layout: { w: 4, h: 1 }
+    },
+    {
+      widgetId: 'credit-usage-by-warehouse',
+      title: 'Credit Usage by Warehouse',
+      type: 'BarChart',
+      description: 'Breakdown of credit consumption by warehouse.',
+      tags: ['Cost', 'Performance', 'Account Specific'],
+      layout: { w: 6, h: 2 }
+    },
+    {
+      widgetId: 'most-active-users',
+      title: 'Most Active Users',
+      type: 'Table',
+      description: 'Users with the highest number of queries run.',
+      tags: ['Usage', 'Overall'],
+      layout: { w: 6, h: 2 }
+    },
+    {
+      widgetId: 'slowest-queries',
+      title: 'Slowest Queries',
+      type: 'Table',
+      description: 'Top 5 slowest queries by duration.',
+      tags: ['Performance', 'Account Specific'],
+      layout: { w: 8, h: 2 }
+    },
+    {
+      widgetId: 'credits-used-today',
+      title: 'Credits Used Today',
+      type: 'StatCard',
+      description: 'Total credits consumed in the last 24 hours.',
+      tags: ['Cost', 'Overall'],
+      layout: { w: 4, h: 1 }
+    },
+    {
+      widgetId: 'cost-vs-credits-trend',
+      title: 'Cost vs Credits Trend',
+      type: 'LineChart',
+      description: 'A comparison of cost and credit usage over time.',
+      tags: ['Cost', 'Overall'],
+      layout: { w: 6, h: 2 }
+    },
 ];
 
 export const connectionsData: Account[] = [
