@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     LineChart, Line, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
@@ -9,6 +9,7 @@ import {
     costSavingsProjectionData
 } from '../data/dummyData';
 import { IconExclamationTriangle, IconAIAgent } from '../constants';
+import TimeRangeFilter, { TimeRange } from '../components/TimeRangeFilter';
 
 const WidgetCard: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className = '', title }) => (
     <div className={`bg-surface rounded-3xl shadow-sm border border-border-color p-4 break-inside-avoid mb-4 ${className}`}>
@@ -96,12 +97,19 @@ const SavingsProjectionWidget: React.FC = () => (
 );
 
 const CostForecastingView: React.FC = () => {
+    const [timeRange, setTimeRange] = useState<TimeRange>('day');
     return (
-        <div className="columns-1 md:columns-2 gap-4">
-            <SpendVsForecastWidget />
-            <ForecastByTierWidget />
-            <AnomalyDetectionWidget />
-            <SavingsProjectionWidget />
+        <div className="space-y-4">
+            <div className="flex justify-between items-center">
+                <h1 className="text-2xl font-bold text-text-primary">Cost Forecasting</h1>
+                <TimeRangeFilter value={timeRange} onChange={setTimeRange} />
+            </div>
+            <div className="columns-1 md:columns-2 gap-4">
+                <SpendVsForecastWidget />
+                <ForecastByTierWidget />
+                <AnomalyDetectionWidget />
+                <SavingsProjectionWidget />
+            </div>
         </div>
     );
 };

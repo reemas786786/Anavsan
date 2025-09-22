@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import {
     totalStorageMetrics,
     storageGrowthForecast,
@@ -8,6 +8,7 @@ import {
 } from '../data/dummyData';
 import { IconSearch, IconDotsVertical } from '../constants';
 import { TopStorageConsumer } from '../types';
+import TimeRangeFilter, { TimeRange } from '../components/TimeRangeFilter';
 import InfoTooltip from '../components/InfoTooltip';
 
 // Widget Card wrapper for consistent styling
@@ -45,7 +46,7 @@ const TotalStorageWidget: React.FC<WidgetProps> = ({ handleMenuClick, openMenu, 
     <WidgetCard>
         <div className="flex justify-between items-start mb-4">
             <div className="flex items-center">
-                <h3 className="text-base font-semibold text-text-strong">Total Storage & Forecast</h3>
+                <h3 className="text-base font-semibold text-text-strong">Total Storage</h3>
                 <InfoTooltip text="Total active storage usage and the forecasted usage for the next month." />
             </div>
             <div className="relative" ref={openMenu === 'total-storage' ? menuRef : null}>
@@ -85,7 +86,7 @@ const StorageCostWidget: React.FC<WidgetProps> = ({ handleMenuClick, openMenu, m
     <WidgetCard>
          <div className="flex justify-between items-start mb-4">
             <div className="flex items-center">
-                <h3 className="text-base font-semibold text-text-strong">Storage Cost & Forecast</h3>
+                <h3 className="text-base font-semibold text-text-strong">Storage Cost</h3>
                 <InfoTooltip text="Estimated monthly storage cost based on current usage and the forecasted cost for next month." />
             </div>
             <div className="relative" ref={openMenu === 'storage-cost' ? menuRef : null}>
@@ -164,7 +165,7 @@ const StorageAnalysisTableWidget: React.FC<WidgetProps> = ({ handleMenuClick, op
     };
 
     return (
-        <WidgetCard className="lg:col-span-2">
+        <WidgetCard>
             <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center">
                     <h3 className="text-base font-semibold text-text-strong">Table Storage Analysis</h3>
@@ -204,17 +205,17 @@ const StorageAnalysisTableWidget: React.FC<WidgetProps> = ({ handleMenuClick, op
                     <thead className="text-left text-xs text-text-secondary uppercase sticky top-0 bg-surface z-10">
                         <tr>
                             <th scope="col" className="py-2 px-3 font-medium">
-                                <button onClick={() => requestSort('name')} className="group flex items-center w-full text-left focus:outline-none focus:text-text-primary">
+                                <button onClick={() => requestSort('name')} className="group flex items-center w-full text-left focus:outline-none focus:text-text-primary" aria-sort={sortConfig?.key === 'name' ? sortConfig.direction : 'none'}>
                                     Table Name {getSortIndicator('name')}
                                 </button>
                             </th>
                             <th scope="col" className="py-2 px-3 font-medium text-right">
-                                <button onClick={() => requestSort('size')} className="group flex items-center w-full justify-end focus:outline-none focus:text-text-primary">
+                                <button onClick={() => requestSort('size')} className="group flex items-center w-full justify-end focus:outline-none focus:text-text-primary" aria-sort={sortConfig?.key === 'size' ? sortConfig.direction : 'none'}>
                                     Size (GB) {getSortIndicator('size')}
                                 </button>
                             </th>
                             <th scope="col" className="py-2 px-3 font-medium text-right">
-                                 <button onClick={() => requestSort('rows')} className="group flex items-center w-full justify-end focus:outline-none focus:text-text-primary">
+                                 <button onClick={() => requestSort('rows')} className="group flex items-center w-full justify-end focus:outline-none focus:text-text-primary" aria-sort={sortConfig?.key === 'rows' ? sortConfig.direction : 'none'}>
                                     Rows {getSortIndicator('rows')}
                                 </button>
                             </th>
@@ -237,11 +238,11 @@ const StorageAnalysisTableWidget: React.FC<WidgetProps> = ({ handleMenuClick, op
 
 // 4. Storage Growth Trends Widget
 const StorageGrowthTrendsWidget: React.FC<WidgetProps> = ({ handleMenuClick, openMenu, menuRef }) => (
-    <WidgetCard className="lg:col-span-2">
+    <WidgetCard>
          <div className="flex justify-between items-start mb-4">
             <div className="flex items-center">
                 <h3 className="text-base font-semibold text-text-strong">Storage Growth Trends</h3>
-                <InfoTooltip text="Historical storage usage growth over the last 6 months, separating active storage from time-travel data." />
+                <InfoTooltip text="Historical storage usage growth." />
             </div>
             <div className="relative" ref={openMenu === 'storage-growth' ? menuRef : null}>
                  <button onClick={() => handleMenuClick('storage-growth')} className="p-1 rounded-full text-text-secondary hover:bg-surface-hover hover:text-primary focus:outline-none">
@@ -266,19 +267,13 @@ const StorageGrowthTrendsWidget: React.FC<WidgetProps> = ({ handleMenuClick, ope
                         labelStyle={{ color: '#1E1E2D', fontWeight: 'bold' }}
                         formatter={(value: number, name: string) => [`${value.toLocaleString()} GB`, name]}
                     />
-                    <Legend verticalAlign="top" align="right" height={36} iconSize={10} />
                     <defs>
                         <linearGradient id="colorActive" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="#6932D5" stopOpacity={0.7}/>
                             <stop offset="95%" stopColor="#6932D5" stopOpacity={0}/>
                         </linearGradient>
-                         <linearGradient id="colorTimeTravel" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#A78BFA" stopOpacity={0.6}/>
-                            <stop offset="95%" stopColor="#A78BFA" stopOpacity={0}/>
-                        </linearGradient>
                     </defs>
                     <Area type="monotone" dataKey="Active Storage (GB)" stroke="#6932D5" strokeWidth={2} fillOpacity={1} fill="url(#colorActive)" />
-                    <Area type="monotone" dataKey="Time Travel (GB)" stroke="#A78BFA" strokeWidth={2} fillOpacity={1} fill="url(#colorTimeTravel)" />
                 </AreaChart>
             </ResponsiveContainer>
         </div>
@@ -289,6 +284,7 @@ const StorageGrowthTrendsWidget: React.FC<WidgetProps> = ({ handleMenuClick, ope
 const StorageOptimizationView: React.FC = () => {
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+    const [timeRange, setTimeRange] = useState<TimeRange>('day');
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -308,11 +304,17 @@ const StorageOptimizationView: React.FC = () => {
 
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <TotalStorageWidget handleMenuClick={handleMenuClick} openMenu={openMenu} menuRef={menuRef} />
-            <StorageCostWidget handleMenuClick={handleMenuClick} openMenu={openMenu} menuRef={menuRef} />
-            <StorageAnalysisTableWidget handleMenuClick={handleMenuClick} openMenu={openMenu} menuRef={menuRef} />
-            <StorageGrowthTrendsWidget handleMenuClick={handleMenuClick} openMenu={openMenu} menuRef={menuRef} />
+        <div className="space-y-4">
+            <div className="flex justify-between items-center">
+                <h1 className="text-2xl font-bold text-text-primary">Storage Optimization</h1>
+                <TimeRangeFilter value={timeRange} onChange={setTimeRange} />
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <TotalStorageWidget handleMenuClick={handleMenuClick} openMenu={openMenu} menuRef={menuRef} />
+                <StorageCostWidget handleMenuClick={handleMenuClick} openMenu={openMenu} menuRef={menuRef} />
+                <StorageAnalysisTableWidget handleMenuClick={handleMenuClick} openMenu={openMenu} menuRef={menuRef} />
+                <StorageGrowthTrendsWidget handleMenuClick={handleMenuClick} openMenu={openMenu} menuRef={menuRef} />
+            </div>
         </div>
     );
 };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import {
     dataAgeDistributionData,
@@ -6,6 +6,7 @@ import {
     tieringOpportunitiesData,
     policyComplianceData
 } from '../data/dummyData';
+import TimeRangeFilter, { TimeRange } from '../components/TimeRangeFilter';
 
 const WidgetCard: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className = '', title }) => (
     <div className={`bg-surface rounded-3xl shadow-sm border border-border-color p-4 break-inside-avoid mb-4 ${className}`}>
@@ -181,12 +182,19 @@ const PolicyComplianceWidget: React.FC = () => {
 };
 
 const DataTieringView: React.FC = () => {
+    const [timeRange, setTimeRange] = useState<TimeRange>('day');
     return (
-        <div className="columns-1 md:columns-2 gap-4">
-            <DataAgeDistributionWidget />
-            <StorageByTierWidget />
-            <TieringOpportunitiesWidget />
-            <PolicyComplianceWidget />
+        <div className="space-y-4">
+            <div className="flex justify-between items-center">
+                <h1 className="text-2xl font-bold text-text-primary">Data Tiering</h1>
+                <TimeRangeFilter value={timeRange} onChange={setTimeRange} />
+            </div>
+            <div className="columns-1 md:columns-2 gap-4">
+                <DataAgeDistributionWidget />
+                <StorageByTierWidget />
+                <TieringOpportunitiesWidget />
+                <PolicyComplianceWidget />
+            </div>
         </div>
     );
 };

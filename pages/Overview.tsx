@@ -6,6 +6,7 @@ import { IconDotsVertical } from '../constants';
 import SidePanel from '../components/SidePanel';
 import TableView from '../components/TableView';
 import InfoTooltip from '../components/InfoTooltip';
+import TimeRangeFilter, { TimeRange } from '../components/TimeRangeFilter';
 
 interface OverviewProps {
     onSelectAccount: (account: Account) => void;
@@ -84,6 +85,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
     const [displayMode, setDisplayMode] = useState<'cost' | 'credits'>('cost');
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+    const [timeRange, setTimeRange] = useState<TimeRange>('day');
     
     const [tableViewData, setTableViewData] = useState<{
         title: string;
@@ -255,25 +257,28 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-text-primary">Data Cloud Overview</h1>
-                <div className="bg-gray-200 rounded-full p-1 flex items-center" aria-label="Switch between Cost and Credits view">
-                    <button
-                        onClick={() => setDisplayMode('cost')}
-                        aria-pressed={displayMode === 'cost'}
-                        className={`px-4 py-1 text-sm font-semibold rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-                            displayMode === 'cost' ? 'bg-white shadow text-text-primary' : 'text-text-secondary'
-                        }`}
-                    >
-                        Cost
-                    </button>
-                    <button
-                        onClick={() => setDisplayMode('credits')}
-                        aria-pressed={displayMode === 'credits'}
-                        className={`px-4 py-1 text-sm font-semibold rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-                            displayMode === 'credits' ? 'bg-white shadow text-text-primary' : 'text-text-secondary'
-                        }`}
-                    >
-                        Credits
-                    </button>
+                <div className="flex items-center gap-4">
+                    <TimeRangeFilter value={timeRange} onChange={setTimeRange} />
+                    <div className="bg-gray-200 rounded-full p-1 flex items-center" aria-label="Switch between Cost and Credits view">
+                        <button
+                            onClick={() => setDisplayMode('cost')}
+                            aria-pressed={displayMode === 'cost'}
+                            className={`px-4 py-1 text-sm font-semibold rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+                                displayMode === 'cost' ? 'bg-white shadow text-text-primary' : 'text-text-secondary'
+                            }`}
+                        >
+                            Cost
+                        </button>
+                        <button
+                            onClick={() => setDisplayMode('credits')}
+                            aria-pressed={displayMode === 'credits'}
+                            className={`px-4 py-1 text-sm font-semibold rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+                                displayMode === 'credits' ? 'bg-white shadow text-text-primary' : 'text-text-secondary'
+                            }`}
+                        >
+                            Credits
+                        </button>
+                    </div>
                 </div>
             </div>
 
