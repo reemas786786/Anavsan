@@ -127,12 +127,12 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
 
         switch (widgetType) {
             case 'spend-breakdown':
-                fileName = 'Spend_Breakdown';
+                fileName = 'spend_breakdown';
                 headers = ["Entity", "Cost", "Credits", "Percentage", "Timestamp"];
                 dataRows = accountCostBreakdown.map(item => [item.name, item.cost, item.credits, item.percentage, timestamp]);
                 break;
             case 'top-warehouses':
-                fileName = 'Top_Warehouses';
+                fileName = 'top_warehouses';
                 headers = ["Warehouse Name", "Cost", "Credits", "Timestamp"];
                 dataRows = warehousesData.map(item => [item.name, item.cost, item.credits, timestamp]);
                 break;
@@ -160,7 +160,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
             credits: item.credits,
             percentage: displayMode === 'cost' ? (item.cost/totalCost * 100) : (item.credits/totalCredits * 100),
         }));
-        setTableViewData({ title: "Spend Breakdown", data });
+        setTableViewData({ title: "Spend breakdown", data });
     };
 
     const handleEditDashboard = () => {
@@ -209,12 +209,12 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
         return (
              <Card>
                 <div className="flex items-center mb-4">
-                    <h4 className="text-base font-semibold text-text-strong">Current Month Spend & Forecast</h4>
+                    <h4 className="text-base font-semibold text-text-strong">Current month spend and forecast</h4>
                     <InfoTooltip text="The total cost or credits consumed by this account this month, and the projected spend by the end of the month based on current usage patterns." />
                 </div>
                 <div className="space-y-4">
                     <div className="bg-surface-nested p-4 rounded-3xl">
-                        <p className="text-text-secondary text-sm">Current Spend</p>
+                        <p className="text-text-secondary text-sm">Current spend</p>
                         <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
                             {displayMode === 'cost' ? (
                                 `$${monthlySpend.toLocaleString()}`
@@ -227,7 +227,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                         </div>
                     </div>
                     <div className="bg-surface-nested p-4 rounded-3xl">
-                        <p className="text-text-secondary text-sm">Forecasted Spend</p>
+                        <p className="text-text-secondary text-sm">Forecasted spend</p>
                         <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
                            {displayMode === 'cost' ? (
                                 `$${forecastedSpend.toLocaleString()}`
@@ -250,7 +250,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
             <Card>
                 <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center">
-                        <h4 className="text-base font-semibold text-text-strong">Spend Breakdown</h4>
+                        <h4 className="text-base font-semibold text-text-strong">Spend breakdown</h4>
                         <InfoTooltip text="A breakdown of this account's monthly spend by the primary cost categories: compute (Warehouse) and storage." />
                     </div>
                     <div className="relative" ref={openMenu === 'spend-breakdown' ? menuRef : null}>
@@ -338,7 +338,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
         return (
             <Card>
                 <div className="flex items-center mb-4">
-                    <h4 className="text-base font-semibold text-text-strong">Top Queries in This Account</h4>
+                    <h4 className="text-base font-semibold text-text-strong">Top queries in this account</h4>
                     <InfoTooltip text="Lists the most expensive queries in this account based on cost or credits consumed." />
                 </div>
                     <div style={{ height: 360 }}>
@@ -361,7 +361,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
             <Card>
                 <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center">
-                        <h4 className="text-base font-semibold text-text-strong">Top Warehouses in This Account</h4>
+                        <h4 className="text-base font-semibold text-text-strong">Top warehouses in this account</h4>
                         <InfoTooltip text="Lists the most resource-intensive warehouses in this account, ranked by cost or credits." />
                     </div>
                     <div className="relative" ref={openMenu === 'top-warehouses' ? menuRef : null}>

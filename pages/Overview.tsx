@@ -132,7 +132,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
 
         switch (widgetType) {
             case 'cost-forecast':
-                fileName = 'Current_Month_Spend_Forecast';
+                fileName = 'current_month_spend_and_forecast';
                 headers = ['Metric', 'Cost', 'Credits', 'Timestamp'];
                 dataRows = [
                     ['Current Spend', overviewMetrics.cost.current, overviewMetrics.credits.current, timestamp],
@@ -140,22 +140,22 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                 ];
                 break;
             case 'resource-summary':
-                fileName = 'Resource_Summary';
+                fileName = 'resource_summary';
                 headers = ['Metric', 'Value', 'Timestamp'];
                 dataRows = resourceSummaryData.map(item => [`"${item.title}"`, `"${item.value}"`, timestamp]);
                 break;
             case 'spend-breakdown':
-                fileName = 'Spend_Breakdown';
+                fileName = 'spend_breakdown';
                 headers = ['Entity', 'Cost', 'Credits', 'Timestamp'];
                 dataRows = costBreakdownData.map(item => [item.name, item.cost, item.credits, timestamp]);
                 break;
             case 'top-spend-account':
-                fileName = 'Top_Spend_by_Account';
+                fileName = 'top_spend_by_account';
                 headers = ['Entity', 'Cost', 'Credits', 'Timestamp'];
                 dataRows = accounts.map(item => [`"${item.name}"`, item.cost, item.credits, timestamp]);
                 break;
             case 'top-spend-user':
-                fileName = 'Top_Spend_by_User';
+                fileName = 'top_spend_by_user';
                 headers = ['Entity', 'Cost', 'Credits', 'Timestamp'];
                 dataRows = users.map(item => [`"${item.name}"`, item.cost, item.credits, timestamp]);
                 break;
@@ -184,7 +184,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
         }));
 
         setTableViewData({
-            title: "Spend Breakdown",
+            title: "Spend breakdown",
             data: data,
         });
     };
@@ -201,7 +201,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
         }));
 
         setTableViewData({
-            title: "Top Spend by Account",
+            title: "Top spend by account",
             data: data,
         });
     };
@@ -218,7 +218,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
         }));
 
         setTableViewData({
-            title: "Top Spend by User",
+            title: "Top spend by user",
             data: data,
         });
     };
@@ -287,7 +287,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                 <Card>
                      <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center">
-                            <h4 className="text-base font-semibold text-text-strong">Current Month Spend & Forecast</h4>
+                            <h4 className="text-base font-semibold text-text-strong">Current month spend and forecast</h4>
                             <InfoTooltip text="The total cost or credits consumed this month, and the projected spend by the end of the month based on current usage patterns." />
                         </div>
                         <div className="relative" ref={openMenu === 'cost-forecast' ? menuRef : null}>
@@ -309,9 +309,9 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                             )}
                         </div>
                     </div>
-                    <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="bg-surface-nested p-4 rounded-3xl">
-                            <p className="text-text-secondary text-sm">Current Spend</p>
+                            <p className="text-text-secondary text-sm">Current spend</p>
                             <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
                                 {displayMode === 'cost' ? (
                                     `$${currentSpend.toLocaleString()}.00`
@@ -324,7 +324,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                             </div>
                         </div>
                         <div className="bg-surface-nested p-4 rounded-3xl">
-                            <p className="text-text-secondary text-sm">Forecasted Spend</p>
+                            <p className="text-text-secondary text-sm">Forecasted spend</p>
                             <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
                                 {displayMode === 'cost' ? (
                                     `$${forecastedSpend.toLocaleString()}.00`
@@ -342,7 +342,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                 <Card>
                     <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center">
-                            <h4 className="text-base font-semibold text-text-strong">Resource Summary</h4>
+                            <h4 className="text-base font-semibold text-text-strong">Resource summary</h4>
                             <InfoTooltip text="A high-level summary of monitored resources and activities within the current month." />
                         </div>
                         <div className="relative" ref={openMenu === 'resource-summary' ? menuRef : null}>
@@ -377,7 +377,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                 <Card>
                     <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center">
-                            <h4 className="text-base font-semibold text-text-strong">Spend Breakdown</h4>
+                            <h4 className="text-base font-semibold text-text-strong">Spend breakdown</h4>
                             <InfoTooltip text="A breakdown of monthly spend by the primary cost categories: compute (Warehouse) and storage." />
                         </div>
                         <div className="relative" ref={openMenu === 'spend-breakdown' ? menuRef : null}>
@@ -393,7 +393,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                              {openMenu === 'spend-breakdown' && (
                                 <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
                                     <div className="py-1" role="menu" aria-orientation="vertical">
-                                        <button onClick={() => { onSetBigScreenWidget({ type: 'spend_breakdown', title: 'Spend Breakdown' }); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">View in Big Screen</button>
+                                        <button onClick={() => { onSetBigScreenWidget({ type: 'spend_breakdown', title: 'Spend breakdown' }); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">View in Big Screen</button>
                                         <button onClick={() => { handleOpenSpendBreakdownTable(); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Table View</button>
                                         <button onClick={() => handleDownloadCSV('spend-breakdown')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
                                     </div>
@@ -468,7 +468,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                 <Card>
                     <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center">
-                            <h4 className="text-base font-semibold text-text-strong">Top Spend by Account</h4>
+                            <h4 className="text-base font-semibold text-text-strong">Top spend by account</h4>
                             <InfoTooltip text="Displays the top 10 accounts ranked by their total cost or credit consumption for the current period." />
                         </div>
                         <div className="relative" ref={openMenu === 'top-spend-account' ? menuRef : null}>
@@ -484,7 +484,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                              {openMenu === 'top-spend-account' && (
                                 <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
                                     <div className="py-1" role="menu" aria-orientation="vertical">
-                                        <button onClick={() => { onSetBigScreenWidget({ type: 'account', title: 'Top Spend by Account' }); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">View in Big Screen</button>
+                                        <button onClick={() => { onSetBigScreenWidget({ type: 'account', title: 'Top spend by account' }); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">View in Big Screen</button>
                                         <button onClick={() => { handleOpenTopAccountTable(); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Table View</button>
                                         <button onClick={() => handleDownloadCSV('top-spend-account')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
                                     </div>
@@ -541,7 +541,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                 <Card>
                     <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center">
-                            <h4 className="text-base font-semibold text-text-strong">Top Spend by User</h4>
+                            <h4 className="text-base font-semibold text-text-strong">Top spend by user</h4>
                             <InfoTooltip text="Displays the top 10 users ranked by their total cost or credit consumption for the current period." />
                         </div>
                          <div className="relative" ref={openMenu === 'top-spend-user' ? menuRef : null}>
@@ -557,7 +557,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                              {openMenu === 'top-spend-user' && (
                                 <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
                                     <div className="py-1" role="menu" aria-orientation="vertical">
-                                        <button onClick={() => { onSetBigScreenWidget({ type: 'user', title: 'Top Spend by User' }); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">View in Big Screen</button>
+                                        <button onClick={() => { onSetBigScreenWidget({ type: 'user', title: 'Top spend by user' }); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">View in Big Screen</button>
                                         <button onClick={() => { handleOpenTopUserTable(); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Table View</button>
                                         <button onClick={() => handleDownloadCSV('top-spend-user')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
                                     </div>

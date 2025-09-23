@@ -54,13 +54,13 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
 
     return (
         <div className="space-y-4">
-            <h1 className="text-2xl font-bold text-text-primary">Account(s)</h1>
+            <h1 className="text-2xl font-bold text-text-primary">Accounts</h1>
             
             <div className="columns-1 md:columns-2 gap-4">
-                <MetricCard title="Total Accounts" value={accounts.length.toString()} />
-                <MetricCard title="Active Accounts" value={activeAccounts.toString()} />
-                <MetricCard title="Last Sync Status" value="Healthy" />
-                <MetricCard title="Total Queries Synced" value="1.2M" />
+                <MetricCard title="Total accounts" value={accounts.length.toString()} />
+                <MetricCard title="Active accounts" value={activeAccounts.toString()} />
+                <MetricCard title="Last sync status" value="Healthy" />
+                <MetricCard title="Total queries synced" value="1.2M" />
             </div>
 
             <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm">

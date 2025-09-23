@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { NavItem } from './types';
 
@@ -17,9 +18,7 @@ export const IconOverview: React.FC<{ className?: string }> = ({ className }) =>
 );
 export const IconConnections: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M11.39 4.632A3.75 3.75 0 0113.125 6H15a3.75 3.75 0 013.75 3.75v2.25M12.61 19.368A3.75 3.75 0 0110.875 18H9a3.75 3.75 0 01-3.75-3.75V12m1.125 1.125a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5zM12.75 12.75a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12.61 19.368a3.75 3.75 0 01-1.732-3.268M11.39 4.632a3.75 3.75 0 011.732 3.268" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 9.75a2.25 2.25 0 012.25 2.25v.016a2.25 2.25 0 01-2.25 2.25H15a2.25 2.25 0 01-2.25-2.25v-.016a2.25 2.25 0 012.25-2.25H15zM9 14.25a2.25 2.25 0 01-2.25-2.25v-.016a2.25 2.25 0 012.25-2.25H9a2.25 2.25 0 012.25 2.25v.016a2.25 2.25 0 01-2.25 2.25H9z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
     </svg>
 );
 export const IconAIAgent: React.FC<{ className?: string }> = ({ className }) => (
@@ -50,7 +49,12 @@ export const IconSettings: React.FC<{ className?: string }> = ({ className }) =>
 );
 export const IconSupport: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15a3 3 0 110-6 3 3 0 010 6z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464L13.414 10.586" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.464 15.536L10.586 13.414" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.464 8.464L10.586 10.586" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.536 15.536L13.414 13.414" />
     </svg>
 );
 
@@ -168,6 +172,16 @@ export const IconDragHandle: React.FC<{ className?: string }> = ({ className }) 
 );
 
 // Contextual Sidebar Icons
+export const IconActivity: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h3l2.25-6L12 18l2.25-6 3 6h3" />
+    </svg>
+);
+export const IconBrain: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+    </svg>
+);
 export const IconList: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h7.5M8.25 12h7.5m-7.5 5.25h7.5M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 17.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
@@ -196,8 +210,9 @@ export const IconCode: React.FC<{ className?: string }> = ({ className }) => (
 );
 export const IconWand: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v.01a6 6 0 01-5.84-7.38l-2.06-8.24a1.5 1.5 0 011.66-1.88l8.24 2.06a6 6 0 017.38 5.84v.01z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v.001M16.5 3.75v.001M10.5 13.5v.001M4.5 9.75v.001" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904a6.386 6.386 0 01-5.232-2.368 1.5 1.5 0 01.8-2.583l6-2.5a1.5 1.5 0 011.984 1.984l-2.5 6a1.5 1.5 0 01-2.583.8z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12.386 12.386l-1.772 1.772a.75.75 0 01-1.06 0l-1.06-1.06a.75.75 0 010-1.06l1.772-1.772" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v.001M16.5 3.75v.001M4.5 12.75v.001M3.75 17.25v.001" />
     </svg>
 );
 export const IconLayers: React.FC<{ className?: string }> = ({ className }) => (
@@ -210,6 +225,13 @@ export const IconLayers: React.FC<{ className?: string }> = ({ className }) => (
 export const IconTrendingUp: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-3.182 3.182m3.182-3.182v4.5" />
+    </svg>
+);
+
+export const IconSummary: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v18h18" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 18.375L15 13.125l-2.625 2.625L8.25 12l-4.5 4.5" />
     </svg>
 );
 
@@ -237,7 +259,7 @@ export const NAV_ITEMS_BOTTOM: NavItem[] = [
         icon: IconSettings,
         subItems: [
             { name: 'User Management' },
-            { name: 'Budgets & Alerts' },
+            { name: 'Budgets and Alerts' },
         ]
     },
     { name: 'Support', icon: IconSupport },

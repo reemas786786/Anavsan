@@ -101,7 +101,11 @@ const NavItem: React.FC<{
             } else { // ArrowUp
                 nextIndex = activeIndex <= 0 ? items.length - 1 : activeIndex - 1;
             }
-            items[nextIndex]?.focus();
+            // FIX: Use `instanceof HTMLElement` as a type guard to ensure the element has the `focus` method before calling it.
+            const itemToFocus = items[nextIndex];
+            if (itemToFocus instanceof HTMLElement) {
+                itemToFocus.focus();
+            }
         }
     };
     

@@ -62,7 +62,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ dashboard, onEditClick, o
 
 const EmptyState: React.FC<{ onAddDashboardClick: () => void }> = ({ onAddDashboardClick }) => (
     <div className="text-center py-20 px-4 bg-surface rounded-3xl border border-border-color shadow-sm">
-        <h2 className="text-xl font-bold text-text-primary">No Dashboards Found</h2>
+        <h2 className="text-xl font-bold text-text-primary">No dashboards found</h2>
         <p className="mt-2 text-text-secondary max-w-md mx-auto">It looks like you haven't created any dashboards yet. Get started by clicking the "Create Dashboard" button.</p>
         <button
             onClick={onAddDashboardClick}

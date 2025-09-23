@@ -115,7 +115,7 @@ export interface User {
     credits: number;
 }
 
-export type BigScreenWidgetType = 'account' | 'user' | 'spend_breakdown';
+export type BigScreenWidgetType = 'account' | 'user' | 'spend_breakdown' | 'top_spend_by_db' | 'storage_by_type' | 'storage_growth_trend';
 
 export interface BigScreenWidget {
   type: BigScreenWidgetType;
@@ -249,4 +249,29 @@ export interface AnomalyAlertItem {
 export interface SavingsProjection {
     message: string;
     savingsPercentage: number;
+}
+
+export interface DatabaseTable {
+    id: string;
+    name: string;
+    sizeGB: number;
+    rows: number;
+    monthlyGrowth: number; // percentage
+}
+
+export interface Database {
+    id: string;
+    name: string;
+    sizeGB: number;
+    cost: number;
+    tableCount: number;
+    userCount: number;
+    users: { id: string, name: string }[];
+}
+
+export interface StorageByTypeItem {
+  type: string;
+  storageGB: number;
+  cost: number;
+  color: string;
 }

@@ -1,8 +1,6 @@
-
-
 import React, { useState, useRef, useEffect } from 'react';
 import { User } from '../types';
-import { IconEdit, IconUser, IconLockClosed, IconPhoto } from '../constants';
+import { IconEdit, IconUser, IconLockClosed, IconPhoto, IconChevronLeft, IconChevronRight } from '../constants';
 
 interface ProfileSettingsPageProps {
   user: User;
@@ -10,22 +8,9 @@ interface ProfileSettingsPageProps {
   onBack: () => void;
   brandLogo: string | null;
   onUpdateBrandLogo: (logoUrl: string) => void;
+  activeSection: string;
+  onSectionChange: (section: string) => void;
 }
-
-const Breadcrumb: React.FC<{ items: { label: string; onClick?: () => void }[] }> = ({ items }) => (
-    <nav className="text-sm text-text-secondary">
-        {items.map((item, index) => (
-            <span key={index}>
-                {index > 0 && <span className="mx-2">/</span>}
-                {item.onClick ? (
-                    <button onClick={item.onClick} className="hover:underline text-link">{item.label}</button>
-                ) : (
-                    <span className="text-text-primary font-medium">{item.label}</span>
-                )}
-            </span>
-        ))}
-    </nav>
-);
 
 const ProfileCard: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
     <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm break-inside-avoid mb-4">
@@ -68,7 +53,7 @@ const UserInfoSection: React.FC<{ user: User; onSave: (updatedUser: User) => voi
     );
     
     return (
-        <ProfileCard title="User Info">
+        <ProfileCard title="User info">
             <div className="space-y-4">
                 <InfoField label="Display Name" name="name" value={userInfo.name} isEditing={isEditingInfo} onChange={handleInfoChange} />
                 <InfoField label="Email" name="email" value={userInfo.email} isEditing={isEditingInfo} onChange={handleInfoChange} />
@@ -111,7 +96,7 @@ const ChangePasswordSection: React.FC = () => {
     };
 
     return (
-        <ProfileCard title="Change Password">
+        <ProfileCard title="Change password">
              <>
                 <div className="space-y-4">
                     <div>
@@ -186,7 +171,7 @@ const BrandSettingsSection: React.FC<{ currentLogo: string | null; onSaveLogo: (
     const isSaveDisabled = !previewLogo;
 
     return (
-        <ProfileCard title="Brand Settings">
+        <ProfileCard title="Brand settings">
             <p className="text-sm text-text-secondary mb-4">Recommended: Size 200×200px · Max 2MB · PNG, JPG, or SVG.</p>
             <div className="flex flex-col md:flex-row items-center gap-4">
                 <div className="w-[300px] h-[100px] border border-border-color bg-input-bg rounded-xl flex items-center justify-center overflow-hidden">
@@ -231,9 +216,9 @@ const BrandSettingsSection: React.FC<{ currentLogo: string | null; onSaveLogo: (
 };
 
 
-const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, onSave, onBack, brandLogo, onUpdateBrandLogo }) => {
-    const [activeSection, setActiveSection] = useState('User Info');
-    
+const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, onSave, onBack, brandLogo, onUpdateBrandLogo, activeSection, onSectionChange }) => {
+    const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+
     const settingsNavItems = [
         { name: 'User Info', icon: IconUser },
         { name: 'Change Password', icon: IconLockClosed },
@@ -241,23 +226,58 @@ const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, onSave,
     ];
     
     const renderContent = () => {
-        // Render all sections for masonry layout
-        return (
-            <>
-                <UserInfoSection user={user} onSave={onSave} />
-                <ChangePasswordSection />
-                <BrandSettingsSection currentLogo={brandLogo} onSaveLogo={onUpdateBrandLogo} />
-            </>
-        );
+        switch (activeSection) {
+            case 'User Info':
+                return <UserInfoSection user={user} onSave={onSave} />;
+            case 'Change Password':
+                return <ChangePasswordSection />;
+            case 'Brand Settings':
+                return <BrandSettingsSection currentLogo={brandLogo} onSaveLogo={onUpdateBrandLogo} />;
+            default:
+                return <UserInfoSection user={user} onSave={onSave} />;
+        }
     };
 
     return (
-        <div className="flex flex-col h-full bg-background">
-            <div className="bg-surface w-full py-4 px-6 border-b border-border-color flex-shrink-0">
-                <Breadcrumb items={[{ label: 'Dashboard', onClick: onBack }, { label: 'Profile Settings' }]} />
-            </div>
+        <div className="flex h-full bg-background">
+            <aside className={`bg-surface flex-shrink-0 border-r border-border-color flex flex-col transition-all duration-300 ease-in-out ${isSidebarExpanded ? 'w-64' : 'w-16'}`}>
+                <div className="flex-grow overflow-y-auto p-4">
+                    <nav>
+                        <ul className="space-y-1">
+                            {settingsNavItems.map(item => (
+                                <li key={item.name}>
+                                    <button
+                                        onClick={() => onSectionChange(item.name)}
+                                        className={`w-full flex items-center text-left px-3 py-2 rounded-full text-sm font-medium transition-colors ${activeSection === item.name ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'}`}
+                                        aria-label={item.name}
+                                        title={isSidebarExpanded ? '' : item.name}
+                                    >
+                                        <item.icon className={`h-5 w-5 shrink-0 ${activeSection === item.name ? 'text-primary' : 'text-text-secondary'}`} />
+                                        {isSidebarExpanded && <span className="ml-3">{item.name}</span>}
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
+                </div>
+                <div className="flex-shrink-0 mt-auto p-2">
+                    <div className={`border-t border-border-light ${isSidebarExpanded ? 'mx-2' : ''}`}></div>
+                    <div className={`flex mt-2 ${isSidebarExpanded ? 'justify-end' : 'justify-center'}`}>
+                        <button
+                            onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+                            className="p-1.5 rounded-full hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-primary"
+                            aria-label={isSidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+                        >
+                            {isSidebarExpanded 
+                                ? <IconChevronLeft className="h-5 w-5 text-text-secondary" /> 
+                                : <IconChevronRight className="h-5 w-5 text-text-secondary" />
+                            }
+                        </button>
+                    </div>
+                </div>
+            </aside>
             <main className="flex-1 overflow-y-auto p-4">
-                <div className="columns-1 md:columns-2 gap-4">
+                <div className="max-w-4xl mx-auto space-y-4">
                     {renderContent()}
                 </div>
             </main>

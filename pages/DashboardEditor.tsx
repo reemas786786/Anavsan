@@ -257,7 +257,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                 {/* Left Panel: Widget Library */}
                 {isEditMode && (
                     <aside className="lg:col-span-4 xl:col-span-3 bg-surface rounded-3xl border border-border-color p-4 flex flex-col self-start sticky top-4 max-h-[calc(100vh-80px)]">
-                        <h3 className="text-lg font-semibold text-text-strong mb-4 px-2">Select Views</h3>
+                        <h3 className="text-lg font-semibold text-text-strong mb-4 px-2">Select views</h3>
                         
                         <div className="flex flex-col space-y-4 px-2 flex-shrink-0">
                             <div className="space-y-3">

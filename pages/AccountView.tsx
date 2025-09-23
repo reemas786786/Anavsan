@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Account, SQLFile } from '../types';
+import { Account, SQLFile, BigScreenWidget } from '../types';
 import QueryWorkspace from './QueryWorkspace';
 import AccountOverviewDashboard from './AccountOverviewDashboard';
 import QueryPerformanceView, { SimilarQueryPatternsView } from './QueryPerformanceView';
@@ -7,7 +7,10 @@ import {
     IconChevronDown, 
     IconChevronLeft, 
     IconChevronRight,
-    IconOverview,
+    IconActivity,
+    IconTrendingUp,
+    IconWand,
+    IconBrain,
     IconList,
     IconClock,
     IconSearch,
@@ -15,14 +18,12 @@ import {
     IconBeaker,
     IconDatabase,
     IconCode,
-    IconWand,
-    IconLayers,
-    IconTrendingUp
+    IconSummary,
 } from '../constants';
 import QueryListView from './QueryListView';
-import StorageOptimizationView from './StorageOptimizationView';
-import DataTieringView from './DataTieringView';
-import CostForecastingView from './CostForecastingView';
+import StorageSummaryView from './StorageSummaryView';
+import DatabasesView from './DatabasesView';
+
 
 interface AccountViewProps {
     account: Account;
@@ -31,13 +32,16 @@ interface AccountViewProps {
     onSwitchAccount: (account: Account) => void;
     sqlFiles: SQLFile[];
     onSaveQueryClick: () => void;
+    onSetBigScreenWidget: (widget: BigScreenWidget) => void;
+    activePage: string;
+    onPageChange: (page: string) => void;
 }
 
 const accountNavItems = [
-    { name: 'Overview', icon: IconOverview, children: [] },
+    { name: 'Account Overview', icon: IconActivity, children: [] },
     { 
         name: 'Query Performance', 
-        icon: IconOverview, 
+        icon: IconTrendingUp, 
         children: [
             { name: 'Query List', icon: IconList },
             { name: 'Slow Queries', icon: IconClock },
@@ -46,7 +50,7 @@ const accountNavItems = [
     },
     { 
         name: 'Optimization',
-        icon: IconAIAgent,
+        icon: IconWand,
         children: [
             { name: 'Query Analyzer', icon: IconSearch },
             { name: 'Query Optimizer', icon: IconAIAgent },
@@ -57,215 +61,261 @@ const accountNavItems = [
         name: 'Storage & Cost', 
         icon: IconDatabase, 
         children: [
-            { name: 'Storage Optimization', icon: IconWand },
-            { name: 'Data Tiering', icon: IconLayers },
-            { name: 'Cost Forecasting', icon: IconTrendingUp }
+            { name: 'Storage Summary', icon: IconSummary },
+            { name: 'Databases', icon: IconList },
         ] 
     },
-    { name: 'AI & Insights', icon: IconAIAgent, children: [] },
+    { name: 'AI & Insights', icon: IconBrain, children: [] },
     { name: 'Query Workspace', icon: IconCode, children: [] },
 ];
 
-const Breadcrumb: React.FC<{ items: { label: string; onClick?: () => void }[] }> = ({ items }) => (
-    <nav className="text-sm text-text-secondary">
-        {items.map((item, index) => (
-            <span key={index}>
-                {index > 0 && <span className="mx-2">/</span>}
-                {item.onClick ? (
-                    <button onClick={item.onClick} className="hover:underline text-link">{item.label}</button>
-                ) : (
-                    <span className="text-text-primary font-medium">{item.label}</span>
-                )}
+const CompactAccountNavItem: React.FC<{
+    item: { name: string; icon: React.FC<{ className?: string }> };
+    isActive: boolean;
+    onClick: () => void;
+}> = ({ item, isActive, onClick }) => (
+    <li>
+        <button
+            onClick={onClick}
+            className={`group relative flex justify-center items-center h-10 w-10 rounded-lg transition-colors
+                ${
+                    isActive
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'
+                }
+                focus:outline-none focus:ring-2 focus:ring-primary
+            `}
+            aria-label={item.name}
+            title={item.name}
+        >
+            <item.icon className="h-5 w-5" />
+            <span className="absolute left-full ml-3 w-auto p-2 min-w-max rounded-md shadow-md text-white bg-gray-900 text-xs font-bold transition-all duration-100 scale-0 origin-left group-hover:scale-100 z-50">
+                {item.name}
             </span>
-        ))}
-    </nav>
+        </button>
+    </li>
 );
 
-const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, onSwitchAccount, sqlFiles, onSaveQueryClick }) => {
-    const [activeSubPage, setActiveSubPage] = useState('Overview');
-    
-    const [openSections, setOpenSections] = useState<Set<string>>(new Set(['Query Performance', 'Optimization', 'Storage & Cost']));
-    const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
-    const [isAccountSidebarExpanded, setIsAccountSidebarExpanded] = useState(true);
-    const switcherRef = useRef<HTMLDivElement>(null);
+const AccountAvatar: React.FC<{ name: string }> = ({ name }) => {
+    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    return (
+        <div className="h-8 w-8 rounded-full bg-primary/20 text-primary text-xs font-semibold flex items-center justify-center flex-shrink-0">
+            {initials}
+        </div>
+    );
+};
 
-    const toggleSection = (sectionName: string) => {
-        setOpenSections(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(sectionName)) {
-                newSet.delete(sectionName);
-            } else {
-                newSet.add(sectionName);
-            }
-            return newSet;
-        });
-    };
-    
-    const handleNavClick = (pageName: string) => {
-        setActiveSubPage(pageName);
-    }
 
-    useEffect(() => {
-        // When account changes, reset to its overview page
-        setActiveSubPage('Overview');
-    }, [account]);
-
-    useEffect(() => {
-        const parent = accountNavItems.find(item => item.children.some(child => child.name === activeSubPage) || item.name === activeSubPage);
-        if (parent && parent.children.length > 0) {
-            setOpenSections(prev => new Set(prev).add(parent.name));
-        }
-    }, [activeSubPage]);
+const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, onSwitchAccount, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange }) => {
+    const [selectedDatabaseId, setSelectedDatabaseId] = useState<string | null>(null);
+    const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+    const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
+    const accountSwitcherRef = useRef<HTMLDivElement>(null);
+    const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({
+        'Query Performance': true,
+        'Optimization': false,
+        'Storage & Cost': true,
+    });
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (switcherRef.current && !switcherRef.current.contains(event.target as Node)) {
-                setIsSwitcherOpen(false);
+            if (accountSwitcherRef.current && !accountSwitcherRef.current.contains(event.target as Node)) {
+                setIsAccountSwitcherOpen(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
     }, []);
 
-    const renderSubPage = () => {
-        switch(activeSubPage) {
-            case 'Overview':
+    const handleSubMenuToggle = (itemName: string) => {
+        setOpenSubMenus(prev => ({ ...prev, [itemName]: !prev[itemName] }));
+    };
+
+    const handleSelectDatabaseFromSummary = (databaseId: string) => {
+        onPageChange('Databases');
+        if (databaseId === '__view_all__') {
+            setSelectedDatabaseId(null);
+        } else {
+            setSelectedDatabaseId(databaseId);
+        }
+    };
+
+    const handleBackToDbList = () => {
+        setSelectedDatabaseId(null);
+    };
+    
+    const renderContent = () => {
+        if (activePage.includes("Similar Query Patterns")) {
+            return <SimilarQueryPatternsView />;
+        }
+
+        switch (activePage) {
+            case 'Account Overview':
                 return <AccountOverviewDashboard account={account} />;
             case 'Query Workspace':
                 return <QueryWorkspace sqlFiles={sqlFiles} onSaveQueryClick={onSaveQueryClick} />;
-            case 'Query Performance':
             case 'Query List':
-                return <QueryListView />;
             case 'Slow Queries':
-                return <QueryPerformanceView />;
-            case 'Similar Query Patterns':
-                return <SimilarQueryPatternsView />;
-            case 'Storage Optimization':
-                return <StorageOptimizationView />;
-            case 'Data Tiering':
-                return <DataTieringView />;
-            case 'Cost Forecasting':
-                return <CostForecastingView />;
+                 return <QueryListView />;
+            case 'Storage Summary':
+                return <StorageSummaryView onSelectDatabase={handleSelectDatabaseFromSummary} onSetBigScreenWidget={onSetBigScreenWidget} />;
+            case 'Databases':
+                return <DatabasesView selectedDatabaseId={selectedDatabaseId} onSelectDatabase={setSelectedDatabaseId} onBackToList={handleBackToDbList} />;
             default:
-                return (
-                    <div className="p-4 bg-surface rounded-lg border border-border-color">
-                        <h2 className="text-xl font-semibold text-text-primary">{activeSubPage}</h2>
-                        <p className="mt-2 text-text-secondary">Content for {activeSubPage} will be displayed here.</p>
-                    </div>
-                );
+                return <div className="p-4"><h1 className="text-xl font-bold">{activePage}</h1><p>Content for this page is under construction.</p></div>;
         }
     };
     
-    const breadcrumbItems: { label: string; onClick?: () => void }[] = [
-        { label: 'Account(s)', onClick: onBack },
-        { label: account.name },
-    ];
-    if (activeSubPage !== 'Overview') {
-       breadcrumbItems.push({ label: activeSubPage });
-    }
+    const getActiveParent = () => {
+        for (const item of accountNavItems) {
+            if (item.name === activePage) return item.name;
+            if (item.children.some(child => child.name === activePage)) {
+                return item.name;
+            }
+        }
+        return 'Account Overview';
+    };
+
+    const activeParent = getActiveParent();
 
     return (
-        <div className="flex flex-col h-full bg-background">
-            <div className="bg-surface w-full py-4 px-6 border-b border-border-color flex-shrink-0">
-                <Breadcrumb items={breadcrumbItems} />
-            </div>
-
-            <div className="flex flex-1 overflow-hidden">
-                <aside className={`bg-surface flex-shrink-0 border-r border-border-color flex flex-col transition-all duration-300 ease-in-out ${isAccountSidebarExpanded ? 'w-64' : 'w-16'}`}>
-                    {/* Main scrollable content area */}
-                    <div className="flex-grow overflow-y-auto">
-                        {isAccountSidebarExpanded && (
-                            <div className="p-4">
-                                <div className="relative" ref={switcherRef}>
-                                    <button onClick={() => setIsSwitcherOpen(!isSwitcherOpen)} className="w-full bg-background border border-border-color rounded-full px-4 py-3 flex items-center justify-between text-left hover:border-primary">
-                                        <h2 className="font-semibold text-text-primary text-sm truncate">{account.name}</h2>
-                                        <IconChevronDown className={`w-5 h-5 text-text-secondary transition-transform flex-shrink-0 ${isSwitcherOpen ? 'rotate-180' : ''}`} />
-                                    </button>
-                                    {isSwitcherOpen && (
-                                        <div className="absolute top-full mt-1 w-full bg-surface rounded-lg shadow-lg border border-border-color z-10 max-h-60 overflow-y-auto">
-                                            <ul>
-                                                {accounts.map(acc => (
-                                                    <li key={acc.id}>
-                                                        <button onClick={() => { onSwitchAccount(acc); setIsSwitcherOpen(false); }} className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover ${account.id === acc.id ? 'text-primary font-semibold' : 'text-text-secondary'}`}>
-                                                            {acc.name}
-                                                        </button>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
-                                </div>
-                                
-                                <nav className="mt-4">
-                                    <ul className="space-y-1">
-                                        {accountNavItems.map(item => (
-                                            <li key={item.name}>
-                                                {item.children.length === 0 ? (
-                                                    <button 
-                                                        onClick={() => handleNavClick(item.name)}
-                                                        className={`w-full text-left px-3 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${activeSubPage === item.name ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'}`}
-                                                    >
-                                                        <item.icon className={`h-4 w-4 shrink-0 ${activeSubPage === item.name ? 'text-primary' : 'text-text-secondary'}`} />
-                                                        {item.name}
-                                                    </button>
-                                                ) : (
-                                                    <div>
-                                                        <button onClick={() => toggleSection(item.name)} className="w-full flex justify-between items-center text-left px-3 py-2 rounded-full text-sm font-medium text-text-secondary hover:bg-surface-hover hover:text-text-primary">
-                                                            <span className="flex items-center gap-2">
-                                                                <item.icon className="h-4 w-4 shrink-0 text-text-secondary" />
-                                                                {item.name}
-                                                            </span>
-                                                            <IconChevronDown className={`w-4 h-4 transition-transform ${openSections.has(item.name) ? 'rotate-180' : ''}`} />
-                                                        </button>
-                                                        {openSections.has(item.name) && (
-                                                            <ul className="pl-3 mt-1 space-y-1">
-                                                                {item.children.map(child => (
-                                                                    <li key={child.name}>
-                                                                        <button 
-                                                                            onClick={() => handleNavClick(child.name)}
-                                                                            className={`w-full text-left px-3 py-2 rounded-full text-sm transition-colors flex items-center gap-2 ${activeSubPage === child.name ? 'text-primary font-semibold' : 'text-text-secondary hover:text-text-primary'}`}
-                                                                        >
-                                                                            <child.icon className={`h-4 w-4 shrink-0 ${activeSubPage === child.name ? 'text-primary' : 'text-text-secondary'}`} />
-                                                                            {child.name}
-                                                                        </button>
-                                                                    </li>
-                                                                ))}
-                                                            </ul>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </nav>
+        <div className="flex h-full bg-background">
+            {/* Contextual Sidebar */}
+            <aside className={`bg-surface flex-shrink-0 border-r border-border-color flex flex-col transition-all duration-300 ease-in-out ${isSidebarExpanded ? 'w-64' : 'w-16'}`}>
+                <div ref={accountSwitcherRef} className="relative p-2 border-b border-border-color">
+                    {isSidebarExpanded ? (
+                        <button
+                            onClick={() => setIsAccountSwitcherOpen(!isAccountSwitcherOpen)}
+                            className="w-full flex items-center justify-between text-left p-2 rounded-lg hover:bg-surface-hover transition-colors"
+                            aria-haspopup="true"
+                            aria-expanded={isAccountSwitcherOpen}
+                        >
+                            <div className="flex items-center gap-2 overflow-hidden">
+                                <AccountAvatar name={account.name} />
+                                <span className="text-sm font-semibold text-text-primary truncate">{account.name}</span>
                             </div>
-                        )}
-                    </div>
-
-                    {/* Bottom fixed part: Divider and Toggle Button */}
-                    <div className="flex-shrink-0 mt-auto p-2">
-                        <div className={`border-t border-border-light ${isAccountSidebarExpanded ? 'mx-2' : ''}`}></div>
-                        <div className={`flex mt-2 ${isAccountSidebarExpanded ? 'justify-end' : 'justify-center'}`}>
+                            <IconChevronDown className={`h-5 w-5 text-text-secondary transition-transform ${isAccountSwitcherOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                    ) : (
+                        <div className="flex justify-center group relative">
                             <button
-                                onClick={() => setIsAccountSidebarExpanded(!isAccountSidebarExpanded)}
-                                className="p-1.5 rounded-full hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-primary"
-                                aria-label={isAccountSidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+                                onClick={() => setIsAccountSwitcherOpen(!isAccountSwitcherOpen)}
+                                className="p-1 rounded-full hover:bg-surface-hover transition-colors"
+                                aria-label={`Switch account from ${account.name}`}
+                                aria-haspopup="true"
+                                aria-expanded={isAccountSwitcherOpen}
                             >
-                                {isAccountSidebarExpanded 
-                                    ? <IconChevronLeft className="h-5 w-5 text-text-secondary" /> 
-                                    : <IconChevronRight className="h-5 w-5 text-text-secondary" />
-                                }
+                                <AccountAvatar name={account.name} />
                             </button>
+                            <span className="absolute left-full ml-3 w-auto p-2 min-w-max rounded-md shadow-md text-white bg-gray-900 text-xs font-bold transition-all duration-100 scale-0 origin-left group-hover:scale-100 z-50">
+                                {account.name}
+                            </span>
                         </div>
+                    )}
+                    {isAccountSwitcherOpen && (
+                        <div className={`absolute z-20 mt-2 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 p-2 ${
+                            isSidebarExpanded ? 'w-full' : 'left-full top-0 ml-2 w-64'
+                        }`}>
+                            <div className="text-xs font-semibold text-text-muted px-2 py-1 mb-1">Switch Account</div>
+                            <ul className="max-h-60 overflow-y-auto">
+                                {accounts.map(acc => (
+                                    <li key={acc.id}>
+                                        <button
+                                            onClick={() => { onSwitchAccount(acc); setIsAccountSwitcherOpen(false); }}
+                                            className="w-full text-left flex items-center gap-2 p-2 rounded-lg text-sm font-medium hover:bg-surface-hover text-text-secondary hover:text-text-primary"
+                                        >
+                                            <AccountAvatar name={acc.name} />
+                                            <span className="truncate">{acc.name}</span>
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+
+                <nav className="flex-grow overflow-y-auto p-2">
+                    <ul className="space-y-1">
+                        {accountNavItems.map(item => {
+                            if (!isSidebarExpanded) {
+                                return (
+                                    <CompactAccountNavItem
+                                        key={item.name}
+                                        item={item}
+                                        isActive={activeParent === item.name && item.children.length === 0}
+                                        onClick={() => {
+                                            if (item.children.length > 0) {
+                                                setIsSidebarExpanded(true);
+                                                setOpenSubMenus(prev => ({ ...prev, [item.name]: true }));
+                                            } else {
+                                                onPageChange(item.name);
+                                            }
+                                        }}
+                                    />
+                                );
+                            }
+
+                            const isActive = activeParent === item.name;
+                            const hasChildren = item.children.length > 0;
+                            const isSubMenuOpen = openSubMenus[item.name];
+
+                            return (
+                                <li key={item.name}>
+                                    <button
+                                        onClick={() => hasChildren ? handleSubMenuToggle(item.name) : onPageChange(item.name)}
+                                        className={`w-full flex items-center justify-between text-left p-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'}`}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <item.icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-primary' : ''}`} />
+                                            <span>{item.name}</span>
+                                        </div>
+                                        {hasChildren && <IconChevronDown className={`h-4 w-4 transition-transform ${isSubMenuOpen ? 'rotate-180' : ''}`} />}
+                                    </button>
+                                    {hasChildren && isSubMenuOpen && (
+                                        <ul className="pl-5 mt-1 space-y-1">
+                                            {item.children.map(child => (
+                                                <li key={child.name}>
+                                                    <button
+                                                        onClick={() => onPageChange(child.name)}
+                                                        className={`w-full text-left flex items-center gap-2 p-2 rounded-lg text-sm font-medium transition-colors ${activePage === child.name ? 'text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+                                                    >
+                                                        <child.icon className={`h-4 w-4 shrink-0 ${activePage === child.name ? 'text-primary' : ''}`} />
+                                                        <span>{child.name}</span>
+                                                    </button>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </nav>
+
+                <div className="p-2 border-t border-border-color">
+                    <div className={`flex ${isSidebarExpanded ? 'justify-end' : 'justify-center'}`}>
+                        <button
+                            onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+                            className="p-1.5 rounded-full hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-primary"
+                            aria-label={isSidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+                        >
+                            {isSidebarExpanded
+                                ? <IconChevronLeft className="h-5 w-5 text-text-secondary" />
+                                : <IconChevronRight className="h-5 w-5 text-text-secondary" />
+                            }
+                        </button>
                     </div>
-                </aside>
-                
-                <main className="flex-1 overflow-y-auto bg-background">
-                    <div className="p-4">
-                        {renderSubPage()}
-                    </div>
-                </main>
-            </div>
+                </div>
+            </aside>
+
+            {/* Main Content */}
+            <main className="flex-1 overflow-y-auto">
+                <div className="p-4">
+                    {renderContent()}
+                </div>
+            </main>
         </div>
     );
 };

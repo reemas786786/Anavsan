@@ -60,7 +60,7 @@ export const SimilarQueryPatternsView: React.FC = () => {
                 <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm">
                     <div className="flex justify-between items-center mb-4">
                         <div className="flex items-center gap-2">
-                            <h2 className="text-base font-semibold text-text-strong">Queries for Pattern:</h2>
+                            <h2 className="text-base font-semibold text-text-strong">Queries for pattern:</h2>
                             <PatternTag pattern={viewingDetailsOf} />
                         </div>
                         <button onClick={() => setViewingDetailsOf(null)} className="text-sm font-semibold text-link hover:underline">
@@ -99,7 +99,7 @@ export const SimilarQueryPatternsView: React.FC = () => {
     return (
         <div className="space-y-4">
             <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm">
-                <h2 className="text-base font-semibold text-text-strong mb-4">Similar Query Patterns</h2>
+                <h2 className="text-base font-semibold text-text-strong mb-4">Similar query patterns</h2>
                  <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-text-secondary">
                         <thead className="bg-background text-xs text-text-secondary uppercase font-medium">
@@ -186,7 +186,7 @@ const QueryPerformanceView: React.FC = () => {
         <div className="space-y-4">
             <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm">
                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-base font-semibold text-text-strong">Similar Queries</h2>
+                    <h2 className="text-base font-semibold text-text-strong">Similar queries</h2>
                     <div className="relative w-full max-w-sm">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <IconSearch className="h-5 w-5 text-text-muted" />

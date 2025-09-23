@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Connections from './pages/Connections';
@@ -26,6 +25,7 @@ import SettingsPage from './pages/SettingsPage';
 import Dashboards from './pages/Dashboards';
 import DashboardEditor from './pages/DashboardEditor';
 import ProfileSettingsPage from './pages/ProfileSettingsPage';
+import Breadcrumb from './components/Breadcrumb';
 
 const App: React.FC = () => {
   const [activePage, setActivePage] = useState<Page>('Data Cloud Overview');
@@ -68,9 +68,12 @@ const App: React.FC = () => {
   const [bigScreenWidget, setBigScreenWidget] = useState<BigScreenWidget | null>(null);
 
   const [isProfileSettingsPageActive, setIsProfileSettingsPageActive] = useState(false);
-  // Mock current user - assuming the first user is the logged-in user
   const [currentUser, setCurrentUser] = useState<User | null>(users.length > 0 ? users[0] : null);
   const [brandLogo, setBrandLogo] = useState<string | null>(null);
+
+  // Lifted state for sub-pages to control global breadcrumb
+  const [activeAccountSubPage, setActiveAccountSubPage] = useState('Account Overview');
+  const [activeProfileSubPage, setActiveProfileSubPage] = useState('User Info');
 
 
   useEffect(() => {
@@ -168,7 +171,6 @@ const App: React.FC = () => {
                 const newVersion = {
                     id: `v-${Date.now()}`,
                     version: newVersionNumber,
-                    // FIX: Corrected typo `new D ate()` to `new Date()`.
                     date: new Date().toISOString().split('T')[0],
                     description,
                     tag
@@ -191,6 +193,7 @@ const App: React.FC = () => {
     setIsSettingsViewActive(false);
     setIsProfileSettingsPageActive(false);
     setActivePage('Account(s)');
+    setActiveAccountSubPage('Account Overview'); // Reset sub-page on account change
   };
 
   const handleSelectUser = (user: User) => {
@@ -289,9 +292,7 @@ const App: React.FC = () => {
   };
 
   const handleUpdateUserProfile = (updatedUser: User) => {
-    // Update the current user state
     setCurrentUser(updatedUser);
-    // Also update the main users list to reflect changes elsewhere
     setUsers(prevUsers => 
         prevUsers.map(user => 
             user.id === updatedUser.id ? updatedUser : user
@@ -307,9 +308,57 @@ const App: React.FC = () => {
 
   const handleLogout = () => {
     showToast('You have been logged out.');
-    // In a real app, you'd clear session/token here
+  };
+  
+  const handleOpenProfileSettings = () => {
+    setIsSidebarOpen(false);
+    setSelectedAccount(null);
+    setSelectedUser(null);
+    setIsSettingsViewActive(false);
+    setIsProfileSettingsPageActive(true);
+    setActiveProfileSubPage('User Info'); // Reset to default section
   };
 
+  const breadcrumbItems = useMemo(() => {
+      if (isProfileSettingsPageActive) {
+          return [
+              { label: 'Dashboard', onClick: handleLogoClick },
+              { label: 'Profile Settings', onClick: () => setActiveProfileSubPage('User Info') },
+              { label: activeProfileSubPage }
+          ];
+      }
+
+      if (isSettingsViewActive) {
+          return [
+              { label: 'Dashboard', onClick: handleLogoClick },
+              { label: 'Settings', onClick: () => setActiveSettingsSubPage('User Management') },
+              { label: activeSettingsSubPage }
+          ];
+      }
+      
+      if (selectedAccount) {
+            return [
+              { label: 'Accounts', onClick: handleBackToAccounts },
+              { label: selectedAccount.name, onClick: () => setActiveAccountSubPage('Account Overview') },
+              { label: activeAccountSubPage }
+          ];
+      }
+
+      if(selectedUser) {
+          return [
+              { label: 'Data Cloud Overview', onClick: handleLogoClick },
+              { label: selectedUser.name }
+          ]
+      }
+      
+      if (activePage && activePage !== 'Data Cloud Overview') {
+          return [{ label: 'Dashboard', onClick: handleLogoClick }, { label: activePage }];
+      }
+
+      return [];
+  }, [activePage, selectedAccount, activeAccountSubPage, selectedUser, isSettingsViewActive, activeSettingsSubPage, isProfileSettingsPageActive, activeProfileSubPage]);
+
+  const showBreadcrumb = breadcrumbItems.length > 0;
 
   const renderContent = () => {
     switch (activePage) {
@@ -342,8 +391,6 @@ const App: React.FC = () => {
       case 'Docs':
         return <Docs />;
       case 'Settings':
-         // This case is now handled by the isSettingsViewActive flag, 
-         // but we keep a placeholder for direct navigation logic if needed.
         return <Settings />;
       case 'Support':
         return <Support />;
@@ -378,15 +425,16 @@ const App: React.FC = () => {
             onLogoClick={handleLogoClick}
             isSidebarOpen={isSidebarOpen}
             brandLogo={brandLogo}
-            onOpenProfileSettings={() => {
-              setIsSidebarOpen(false);
-              setSelectedAccount(null);
-              setSelectedUser(null);
-              setIsSettingsViewActive(false);
-              setIsProfileSettingsPageActive(true);
-            }}
+            onOpenProfileSettings={handleOpenProfileSettings}
             onLogout={handleLogout}
           />
+          
+          {showBreadcrumb && (
+              <div className="bg-surface w-full py-3 px-6 border-b border-border-color flex-shrink-0">
+                  <Breadcrumb items={breadcrumbItems} />
+              </div>
+          )}
+
           <div className="flex flex-1 overflow-hidden">
             <Sidebar
                 isOpen={isSidebarOpen}
@@ -405,6 +453,9 @@ const App: React.FC = () => {
                   onSwitchAccount={handleSelectAccount}
                   sqlFiles={sqlFiles}
                   onSaveQueryClick={() => setIsSavingQuery(true)}
+                  onSetBigScreenWidget={setBigScreenWidget}
+                  activePage={activeAccountSubPage}
+                  onPageChange={setActiveAccountSubPage}
                   />
               ) : selectedUser ? (
                   <UserView user={selectedUser} onBack={() => setSelectedUser(null)} />
@@ -430,6 +481,8 @@ const App: React.FC = () => {
                       onBack={() => setIsProfileSettingsPageActive(false)}
                       brandLogo={brandLogo}
                       onUpdateBrandLogo={handleUpdateBrandLogo}
+                      activeSection={activeProfileSubPage}
+                      onSectionChange={setActiveProfileSubPage}
                   />
               ) : (
                   <div className={activePage === 'Dashboards' && editingDashboard ? '' : 'p-4'}>
@@ -441,103 +494,38 @@ const App: React.FC = () => {
         </>
       )}
 
-
       <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
 
-      <SidePanel
-        isOpen={isAddingAccount}
-        onClose={handleCancelAddAccount}
-        title="Connect Snowflake Account"
-      >
-        <AddAccountFlow
-          onCancel={handleCancelAddAccount}
-          onAddAccount={handleAddAccount}
-        />
+      <SidePanel isOpen={isAddingAccount} onClose={handleCancelAddAccount} title="Connect Snowflake Account">
+        <AddAccountFlow onCancel={handleCancelAddAccount} onAddAccount={handleAddAccount} />
       </SidePanel>
 
-      <SidePanel
-        isOpen={isSavingQuery}
-        onClose={handleCancelSaveQuery}
-        title="Save Query Version"
-      >
-        <SaveQueryFlow 
-          files={sqlFiles}
-          onCancel={handleCancelSaveQuery}
-          onSave={handleSaveQuery}
-        />
+      <SidePanel isOpen={isSavingQuery} onClose={handleCancelSaveQuery} title="Save Query Version">
+        <SaveQueryFlow files={sqlFiles} onCancel={handleCancelSaveQuery} onSave={handleSaveQuery} />
       </SidePanel>
       
-      <SidePanel
-          isOpen={isAddingUser}
-          onClose={() => setIsAddingUser(false)}
-          title="Add User"
-      >
-          <InviteUserFlow
-              onCancel={() => setIsAddingUser(false)}
-              onAddUser={handleAddUser}
-          />
+      <SidePanel isOpen={isAddingUser} onClose={() => setIsAddingUser(false)} title="Add User">
+          <InviteUserFlow onCancel={() => setIsAddingUser(false)} onAddUser={handleAddUser} />
       </SidePanel>
 
-      <SidePanel
-        isOpen={!!userToEdit}
-        onClose={() => setUserToEdit(null)}
-        title="Edit User Role"
-      >
-        {userToEdit && (
-            <EditUserRoleFlow
-                user={userToEdit}
-                onCancel={() => setUserToEdit(null)}
-                onSave={handleUpdateUserRole}
-            />
-        )}
+      <SidePanel isOpen={!!userToEdit} onClose={() => setUserToEdit(null)} title="Edit User Role">
+        {userToEdit && (<EditUserRoleFlow user={userToEdit} onCancel={() => setUserToEdit(null)} onSave={handleUpdateUserRole} />)}
       </SidePanel>
       
       {userToSuspend && (
-          <ConfirmationModal
-              isOpen={!!userToSuspend}
-              onClose={() => setUserToSuspend(null)}
-              onConfirm={() => handleSuspendUser(userToSuspend.id)}
-              title="Suspend User"
-              message={`Are you sure you want to suspend ${userToSuspend.name}? They will lose access to the platform.`}
-              confirmText="Suspend"
-              confirmVariant="warning"
-          />
+          <ConfirmationModal isOpen={!!userToSuspend} onClose={() => setUserToSuspend(null)} onConfirm={() => handleSuspendUser(userToSuspend.id)} title="Suspend User" message={`Are you sure you want to suspend ${userToSuspend.name}? They will lose access to the platform.`} confirmText="Suspend" confirmVariant="warning" />
       )}
 
       {userToRemove && (
-          <ConfirmationModal
-              isOpen={!!userToRemove}
-              onClose={() => setUserToRemove(null)}
-              onConfirm={() => handleRemoveUser(userToRemove.id)}
-              title="Remove User"
-              message={`Are you sure you want to remove ${userToRemove.name}? This action cannot be undone.`}
-              confirmText="Remove"
-              confirmVariant="danger"
-          />
+          <ConfirmationModal isOpen={!!userToRemove} onClose={() => setUserToRemove(null)} onConfirm={() => handleRemoveUser(userToRemove.id)} title="Remove User" message={`Are you sure you want to remove ${userToRemove.name}? This action cannot be undone.`} confirmText="Remove" confirmVariant="danger" />
       )}
 
       {userToActivate && (
-          <ConfirmationModal
-              isOpen={!!userToActivate}
-              onClose={() => setUserToActivate(null)}
-              onConfirm={() => handleConfirmActivateUser(userToActivate.id)}
-              title="Activate User"
-              message={`Are you sure you want to activate ${userToActivate.name}? They will regain access to the platform.`}
-              confirmText="Activate"
-              confirmVariant="primary"
-          />
+          <ConfirmationModal isOpen={!!userToActivate} onClose={() => setUserToActivate(null)} onConfirm={() => handleConfirmActivateUser(userToActivate.id)} title="Activate User" message={`Are you sure you want to activate ${userToActivate.name}? They will regain access to the platform.`} confirmText="Activate" confirmVariant="primary" />
       )}
 
       {dashboardToDelete && (
-          <ConfirmationModal
-              isOpen={!!dashboardToDelete}
-              onClose={() => setDashboardToDelete(null)}
-              onConfirm={() => handleDeleteDashboard(dashboardToDelete.id)}
-              title="Delete Dashboard"
-              message={`Are you sure you want to delete the "${dashboardToDelete.title}" dashboard? This action cannot be undone.`}
-              confirmText="Delete"
-              confirmVariant="danger"
-          />
+          <ConfirmationModal isOpen={!!dashboardToDelete} onClose={() => setDashboardToDelete(null)} onConfirm={() => handleDeleteDashboard(dashboardToDelete.id)} title="Delete Dashboard" message={`Are you sure you want to delete the "${dashboardToDelete.title}" dashboard? This action cannot be undone.`} confirmText="Delete" confirmVariant="danger" />
       )}
     </div>
   );

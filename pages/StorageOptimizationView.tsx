@@ -70,11 +70,11 @@ const TotalStorageWidget: React.FC<WidgetProps> = ({ handleMenuClick, openMenu, 
         </div>
         <div className="space-y-4 flex-grow flex flex-col">
             <div className="bg-surface-nested p-4 rounded-3xl">
-                <p className="text-text-secondary text-sm">Total Storage</p>
+                <p className="text-text-secondary text-sm">Total storage</p>
                 <p className="text-[22px] leading-7 font-bold text-text-primary mt-1">{totalStorageMetrics.totalSizeGB.toLocaleString()} GB</p>
             </div>
             <div className="bg-surface-nested p-4 rounded-3xl">
-                <p className="text-text-secondary text-sm">Forecasted Storage</p>
+                <p className="text-text-secondary text-sm">Forecasted storage</p>
                 <p className="text-[22px] leading-7 font-bold text-text-primary mt-1">{storageGrowthForecast.nextMonthSizeGB.toLocaleString()} GB</p>
             </div>
         </div>
@@ -110,11 +110,11 @@ const StorageCostWidget: React.FC<WidgetProps> = ({ handleMenuClick, openMenu, m
         </div>
         <div className="space-y-4 flex-grow flex flex-col">
             <div className="bg-surface-nested p-4 rounded-3xl">
-                <p className="text-text-secondary text-sm">Current Storage Cost</p>
+                <p className="text-text-secondary text-sm">Current storage cost</p>
                 <p className="text-[22px] leading-7 font-bold text-text-primary mt-1">${totalStorageMetrics.totalCost.toLocaleString()}.00</p>
             </div>
             <div className="bg-surface-nested p-4 rounded-3xl">
-                <p className="text-text-secondary text-sm">Forecasted Cost</p>
+                <p className="text-text-secondary text-sm">Forecasted cost</p>
                 <p className="text-[22px] leading-7 font-bold text-text-primary mt-1">${storageGrowthForecast.nextMonthCost.toLocaleString()}.00</p>
             </div>
         </div>

@@ -196,7 +196,7 @@ const QueryListView: React.FC = () => {
                     </div>
                 </div>
                 <div className="columns-1 md:columns-2 lg:columns-3 gap-4">
-                    <MetricCard title="Total Queries" value={totalQueries.toLocaleString()} />
+                    <MetricCard title="Total queries" value={totalQueries.toLocaleString()} />
                     <MetricCard title="Success" value={successQueries.toLocaleString()} valueColor="text-status-success" />
                     <MetricCard title="Failed" value={failedQueries.toLocaleString()} valueColor="text-status-error" />
                 </div>
@@ -280,7 +280,7 @@ const QueryListView: React.FC = () => {
             </main>
 
             {previewQuery && (
-                <Modal isOpen={!!previewQuery} onClose={() => setPreviewQuery(null)} title="Query Preview">
+                <Modal isOpen={!!previewQuery} onClose={() => setPreviewQuery(null)} title="Query preview">
                     <div className="p-6">
                         <div className="text-sm space-y-2 mb-4">
                             <p><strong>Query ID:</strong> <span className="font-mono text-xs">{previewQuery.id}</span></p>

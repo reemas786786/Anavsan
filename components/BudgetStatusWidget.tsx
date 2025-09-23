@@ -24,7 +24,6 @@ const BudgetStatusWidget: React.FC<BudgetStatusWidgetProps> = ({ displayMode = '
     let status: 'healthy' | 'warning' | 'error' = 'healthy';
     let progressBarColor = 'bg-status-success';
     let textColor = 'text-status-success-dark';
-    let alertIcon = null;
 
     if (consumedPercentage > 95) {
         status = 'error';
@@ -36,6 +35,8 @@ const BudgetStatusWidget: React.FC<BudgetStatusWidgetProps> = ({ displayMode = '
         textColor = 'text-status-warning-dark';
     }
     
+    // FIX: Declare alertIcon before conditional assignment.
+    let alertIcon: React.ReactNode = null;
     if (status === 'warning' || status === 'error') {
         alertIcon = <IconExclamationTriangle className={`w-4 h-4 ml-2 ${textColor}`} />;
     }
@@ -53,7 +54,7 @@ const BudgetStatusWidget: React.FC<BudgetStatusWidgetProps> = ({ displayMode = '
         <Card>
             <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center">
-                    <h4 className="text-base font-semibold text-text-strong">Monthly Budget Status</h4>
+                    <h4 className="text-base font-semibold text-text-strong">Monthly budget status</h4>
                     <InfoTooltip text="Tracks the consumed budget against the allocated monthly amount, showing the remaining percentage and value." />
                 </div>
                 {alertIcon}
