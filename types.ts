@@ -1,9 +1,10 @@
+
 import React from 'react';
 
 export type Page = 
   | 'Data Cloud Overview'
   | 'Dashboards'
-  | 'Account(s)' 
+  | 'Snowflake Accounts' 
   | 'AI Agent' 
   | 'Reports' 
   | 'Book a Demo'

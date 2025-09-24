@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Connections from './pages/Connections';
@@ -117,14 +118,14 @@ const App: React.FC = () => {
     setIsSidebarOpen(false);
   };
 
-  const handleLogoClick = () => {
+  const handleLogoClick = useCallback(() => {
     setActivePage('Data Cloud Overview');
     setSelectedAccount(null);
     setSelectedUser(null);
     setIsSettingsViewActive(false);
     setIsProfileSettingsPageActive(false);
     setIsSidebarOpen(false);
-  };
+  }, []);
 
   const handleAddAccount = (data: { name: string }) => {
     const newCost = Math.floor(Math.random() * 500) + 50;
@@ -192,7 +193,7 @@ const App: React.FC = () => {
     setSelectedUser(null);
     setIsSettingsViewActive(false);
     setIsProfileSettingsPageActive(false);
-    setActivePage('Account(s)');
+    setActivePage('Snowflake Accounts');
     setActiveAccountSubPage('Account Overview'); // Reset sub-page on account change
   };
 
@@ -203,10 +204,10 @@ const App: React.FC = () => {
       setIsProfileSettingsPageActive(false);
   };
 
-  const handleBackToAccounts = () => {
+  const handleBackToAccounts = useCallback(() => {
     setSelectedAccount(null);
-    setActivePage('Account(s)');
-  };
+    setActivePage('Snowflake Accounts');
+  }, []);
   
   const handleAddUser = (data: { name: string; role: UserRole; }) => {
     const newCost = Math.floor(Math.random() * 3000);
@@ -338,10 +339,10 @@ const App: React.FC = () => {
       
       if (selectedAccount) {
             return [
-              { label: 'Accounts', onClick: handleBackToAccounts },
+              { label: 'Snowflake Accounts', onClick: handleBackToAccounts },
               { label: selectedAccount.name, onClick: () => setActiveAccountSubPage('Account Overview') },
               { label: activeAccountSubPage }
-          ];
+            ];
       }
 
       if(selectedUser) {
@@ -350,13 +351,9 @@ const App: React.FC = () => {
               { label: selectedUser.name }
           ]
       }
-      
-      if (activePage && activePage !== 'Data Cloud Overview') {
-          return [{ label: 'Dashboard', onClick: handleLogoClick }, { label: activePage }];
-      }
 
       return [];
-  }, [activePage, selectedAccount, activeAccountSubPage, selectedUser, isSettingsViewActive, activeSettingsSubPage, isProfileSettingsPageActive, activeProfileSubPage]);
+  }, [activePage, selectedAccount, activeAccountSubPage, selectedUser, isSettingsViewActive, activeSettingsSubPage, isProfileSettingsPageActive, activeProfileSubPage, handleLogoClick, handleBackToAccounts]);
 
   const showBreadcrumb = breadcrumbItems.length > 0;
 
@@ -380,7 +377,7 @@ const App: React.FC = () => {
                 onEditDashboardClick={(dashboard) => setEditingDashboard(dashboard)}
             />
         );
-      case 'Account(s)':
+      case 'Snowflake Accounts':
         return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setIsAddingAccount(true)} onDeleteAccount={handleDeleteAccount} />;
       case 'AI Agent':
         return <AIAgent />;

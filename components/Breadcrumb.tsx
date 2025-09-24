@@ -18,7 +18,9 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
         <nav aria-label="breadcrumb" className="text-sm text-text-secondary">
             {items.map((item, index) => (
                 <span key={index} className="inline-flex items-center">
-                    {index > 0 && <span className="mx-2">/</span>}
+                    {index > 0 && (
+                        <span className="mx-2">/</span>
+                    )}
                     {item.onClick && index < items.length - 1 ? (
                         <button onClick={item.onClick} className="hover:underline text-link transition-colors">
                             {item.label}

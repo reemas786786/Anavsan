@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { NavItem } from './types';
 
@@ -239,7 +238,7 @@ export const IconSummary: React.FC<{ className?: string }> = ({ className }) => 
 export const NAV_ITEMS_TOP: NavItem[] = [
     { name: 'Data Cloud Overview', icon: IconOverview },
     { name: 'Dashboards', icon: IconDashboard },
-    { name: 'Account(s)', icon: IconConnections },
+    { name: 'Snowflake Accounts', icon: IconConnections },
     { name: 'AI Agent', icon: IconAIAgent },
     { 
         name: 'Reports', 

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Database, DatabaseTable, User } from '../types';
 import { databasesData, databaseTablesData, usersData } from '../data/dummyData';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { IconChevronLeft } from '../constants';
 
 const WidgetCard: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className = '', title }) => (
     <div className={`bg-surface rounded-3xl shadow-sm border border-border-color p-4 break-inside-avoid mb-4 ${className}`}>
@@ -21,75 +22,65 @@ const UserAvatar: React.FC<{ name: string; avatarUrl?: string }> = ({ name, avat
 
 
 const DatabaseDetailView: React.FC<{ database: Database, onBack: () => void }> = ({ database, onBack }) => {
-    const tables = useMemo(() => databaseTablesData.slice(0, 5 + Math.floor(Math.random() * 5)), [database.id]); 
-    const topTables = useMemo(() => [...tables].sort((a,b) => b.sizeGB - a.sizeGB).slice(0, 5), [tables]);
     const users = useMemo(() => database.users.map(u => usersData.find(ud => ud.id === u.id)).filter((u): u is User => !!u), [database.users]);
+
+    const tablesWithUsers = useMemo(() => {
+        const tables = databaseTablesData.slice(0, 10 + Math.floor(Math.random() * 10));
+        if (users.length === 0) {
+            return tables.map(table => ({...table, user: null}));
+        }
+        return tables.map(table => ({
+            ...table,
+            user: users[Math.floor(Math.random() * users.length)]
+        }));
+    }, [database.id, users]);
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-text-primary">{database.name}</h1>
-                <button onClick={onBack} className="text-sm font-semibold text-link hover:underline">
-                    &larr; Back to Databases
+            <div className="flex items-center gap-2">
+                <button 
+                    onClick={onBack} 
+                    className="p-2 rounded-full hover:bg-surface-hover text-text-secondary hover:text-text-primary transition-colors"
+                    aria-label="Back to databases list"
+                >
+                    <IconChevronLeft className="h-6 w-6" />
                 </button>
+                <h1 className="text-2xl font-bold text-text-primary">{database.name}</h1>
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <WidgetCard title="Top tables by storage">
-                    <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={topTables} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                                <XAxis type="number" stroke="#9A9AB2" fontSize={12} unit=" GB"/>
-                                <YAxis dataKey="name" type="category" stroke="#9A9AB2" fontSize={12} width={120} tick={{width: 110}} tickFormatter={(val) => val.length > 15 ? `${val.substring(0,15)}...` : val}/>
-                                <Tooltip formatter={(value: number) => [`${value.toLocaleString()} GB`, 'Size']}/>
-                                <Bar dataKey="sizeGB" fill="#6932D5" barSize={15} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </WidgetCard>
-                
-                <WidgetCard title="Associated users">
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                        {users.map(user => (
-                            <div key={user.id} className="flex items-center gap-3 p-2 bg-surface-nested rounded-xl">
-                                <UserAvatar name={user.name} />
-                                <div>
-                                    <p className="text-sm font-semibold text-text-primary">{user.name}</p>
-                                    <p className="text-xs text-text-secondary">{user.role}</p>
-                                </div>
-                            </div>
-                        ))}
-                         {users.length === 0 && <p className="text-sm text-text-secondary text-center py-4">No users found for this database.</p>}
-                    </div>
-                </WidgetCard>
-
-                <div className="lg:col-span-2">
-                    <WidgetCard title="Table storage analysis">
-                         <div className="overflow-auto max-h-96">
-                            <table className="w-full text-sm">
-                                <thead className="text-left text-xs text-text-secondary uppercase sticky top-0 bg-surface">
-                                    <tr>
-                                        <th className="py-2 px-3 font-medium">Table Name</th>
-                                        <th className="py-2 px-3 font-medium text-right">Size (GB)</th>
-                                        <th className="py-2 px-3 font-medium text-right">Rows</th>
-                                        <th className="py-2 px-3 font-medium text-right">Growth (30d)</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-border-color">
-                                    {tables.map(table => (
-                                        <tr key={table.id} className="hover:bg-surface-hover">
-                                            <td className="py-2.5 px-3 font-mono text-xs text-text-primary">{table.name}</td>
-                                            <td className="py-2.5 px-3 text-right font-semibold text-text-primary">{table.sizeGB.toLocaleString()}</td>
-                                            <td className="py-2.5 px-3 text-right text-text-secondary">{table.rows.toLocaleString()}</td>
-                                            <td className={`py-2.5 px-3 text-right font-semibold ${table.monthlyGrowth >= 0 ? 'text-status-error' : 'text-status-success'}`}>{table.monthlyGrowth >= 0 ? '+' : ''}{table.monthlyGrowth.toFixed(1)}%</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </WidgetCard>
+            <WidgetCard title="Table storage analysis">
+                 <div className="overflow-auto max-h-[calc(100vh-300px)]">
+                    <table className="w-full text-sm">
+                        <thead className="text-left text-xs text-text-secondary uppercase sticky top-0 bg-surface">
+                            <tr>
+                                <th className="py-2 px-3 font-medium">User</th>
+                                <th className="py-2 px-3 font-medium">Table Name</th>
+                                <th className="py-2 px-3 font-medium text-right">Size (GB)</th>
+                                <th className="py-2 px-3 font-medium text-right">Rows</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border-color">
+                            {tablesWithUsers.map(table => (
+                                <tr key={table.id} className="hover:bg-surface-hover">
+                                     <td className="py-2.5 px-3">
+                                        {table.user ? (
+                                            <div className="flex items-center gap-2">
+                                                <UserAvatar name={table.user.name} />
+                                                <span className="text-xs text-text-primary whitespace-nowrap">{table.user.name}</span>
+                                            </div>
+                                        ) : (
+                                            <span className="text-xs text-text-muted">N/A</span>
+                                        )}
+                                    </td>
+                                    <td className="py-2.5 px-3 font-mono text-xs text-text-primary">{table.name}</td>
+                                    <td className="py-2.5 px-3 text-right font-semibold text-text-primary">{table.sizeGB.toLocaleString()}</td>
+                                    <td className="py-2.5 px-3 text-right text-text-secondary">{table.rows.toLocaleString()}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
-            </div>
+            </WidgetCard>
         </div>
     );
 }
@@ -115,11 +106,11 @@ const DatabaseListView: React.FC<{ onSelectDatabase: (databaseId: string) => voi
                         </thead>
                         <tbody>
                             {databasesData.map(db => (
-                                <tr key={db.id} className="border-t border-border-color hover:bg-surface-hover">
+                                <tr key={db.id} className="border-t border-border-color hover:bg-surface-hover cursor-pointer" onClick={() => onSelectDatabase(db.id)}>
                                     <td className="px-6 py-4">
-                                        <button onClick={() => onSelectDatabase(db.id)} className="font-medium text-link whitespace-nowrap cursor-pointer hover:underline">
+                                        <span className="font-medium text-link whitespace-nowrap">
                                             {db.name}
-                                        </button>
+                                        </span>
                                     </td>
                                     <td className="px-6 py-4">{db.sizeGB.toLocaleString()}</td>
                                     <td className="px-6 py-4">{totalStorage > 0 ? ((db.sizeGB / totalStorage) * 100).toFixed(1) : 0}%</td>
