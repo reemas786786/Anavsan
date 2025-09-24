@@ -1,4 +1,5 @@
-import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget, SimilarQuery, QueryListItem, QueryStatus, QueryType, StorageBreakdownItem, TopStorageConsumer, StorageGrowthPoint, UnusedTable, StorageActivityLogItem, StorageByTeamItem, DuplicateDataPattern, StorageOptimizationOpportunity, DataAgeDistributionItem, StorageTierItem, TieringOpportunityItem, CostForecastPoint, TierForecastPoint, AnomalyAlertItem, SavingsProjection, Database, DatabaseTable, StorageByTypeItem } from '../types';
+
+import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget, SimilarQuery, QueryListItem, QueryStatus, QueryType, StorageBreakdownItem, TopStorageConsumer, StorageGrowthPoint, UnusedTable, StorageActivityLogItem, StorageByTeamItem, DuplicateDataPattern, StorageOptimizationOpportunity, DataAgeDistributionItem, StorageTierItem, TieringOpportunityItem, CostForecastPoint, TierForecastPoint, AnomalyAlertItem, SavingsProjection, Database, DatabaseTable, StorageByTypeItem, AssignedQuery } from '../types';
 
 export const availableWidgetsData: Omit<Widget, 'id' | 'dataSource' | 'imageUrl'>[] = [
     { 
@@ -326,4 +327,33 @@ export const storageByTypeData: StorageByTypeItem[] = [
   { type: 'Time Travel', storageGB: 456.8, cost: 685.20, color: '#A78BFA' },
   { type: 'Failsafe', storageGB: 231.5, cost: 347.25, color: '#C4B5FD' },
   { type: 'Staging', storageGB: 120.0, cost: 180.00, color: '#E9D5FF' },
+];
+
+export const assignedQueriesData: AssignedQuery[] = [
+    {
+        id: 'aq-1',
+        queryId: queryListData[0].id,
+        queryText: queryListData[0].queryText,
+        assignedBy: 'Alice Johnson',
+        assignedTo: 'Bob Williams',
+        priority: 'High',
+        status: 'Pending',
+        message: 'This query is consuming 12k credits, check for joins. It runs every hour and is blocking other processes.',
+        assignedOn: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        cost: queryListData[0].costUSD,
+        credits: queryListData[0].costCredits,
+    },
+    {
+        id: 'aq-2',
+        queryId: queryListData[5].id,
+        queryText: queryListData[5].queryText,
+        assignedBy: 'Alice Johnson',
+        assignedTo: 'Frank White',
+        priority: 'Medium',
+        status: 'In Progress',
+        message: 'Seeing high execution time on this one. Can we optimize the WHERE clause?',
+        assignedOn: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        cost: queryListData[5].costUSD,
+        credits: queryListData[5].costCredits,
+    },
 ];

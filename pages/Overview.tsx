@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { costBreakdownData, overviewMetrics, resourceSummaryData as initialResourceSummaryData } from '../data/dummyData';
@@ -14,10 +15,11 @@ interface OverviewProps {
     accounts: Account[];
     users: User[];
     onSetBigScreenWidget: (widget: BigScreenWidget) => void;
+    displayMode: 'cost' | 'credits';
 }
 
 const Card: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className, title }) => (
-    <div className={`bg-surface p-4 rounded-3xl border border-border-color shadow-sm break-inside-avoid mb-4 ${className}`}>
+    <div className={`bg-surface p-4 rounded-3xl break-inside-avoid mb-4 ${className}`}>
         {title && <h4 className="text-base font-semibold text-text-strong mb-4">{title}</h4>}
         {children}
     </div>
@@ -61,7 +63,7 @@ const CustomTooltip = ({ active, payload, label, displayMode }: any) => {
     if (active && payload && payload.length) {
         const value = payload[0].value;
         return (
-            <div className="bg-surface p-2 rounded-lg border border-border-color shadow-sm">
+            <div className="bg-surface p-2 rounded-lg shadow-lg">
                 <p className="text-sm font-semibold text-text-strong mb-1">{label}</p>
                 <div className="text-sm text-primary flex items-baseline">
                     <span className="font-semibold text-text-secondary mr-2">{displayMode === 'cost' ? 'Spend:' : 'Credits:'}</span>
@@ -81,8 +83,7 @@ const CustomTooltip = ({ active, payload, label, displayMode }: any) => {
 };
 
 
-const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, accounts, users, onSetBigScreenWidget }) => {
-    const [displayMode, setDisplayMode] = useState<'cost' | 'credits'>('cost');
+const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, accounts, users, onSetBigScreenWidget, displayMode }) => {
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const [timeRange, setTimeRange] = useState<TimeRange>('day');
@@ -259,26 +260,6 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                 <h1 className="text-2xl font-bold text-text-primary">Data Cloud Overview</h1>
                 <div className="flex items-center gap-4">
                     <TimeRangeFilter value={timeRange} onChange={setTimeRange} />
-                    <div className="bg-gray-200 rounded-full p-1 flex items-center" aria-label="Switch between Cost and Credits view">
-                        <button
-                            onClick={() => setDisplayMode('cost')}
-                            aria-pressed={displayMode === 'cost'}
-                            className={`px-4 py-1 text-sm font-semibold rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-                                displayMode === 'cost' ? 'bg-white shadow text-text-primary' : 'text-text-secondary'
-                            }`}
-                        >
-                            Cost
-                        </button>
-                        <button
-                            onClick={() => setDisplayMode('credits')}
-                            aria-pressed={displayMode === 'credits'}
-                            className={`px-4 py-1 text-sm font-semibold rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-                                displayMode === 'credits' ? 'bg-white shadow text-text-primary' : 'text-text-secondary'
-                            }`}
-                        >
-                            Credits
-                        </button>
-                    </div>
                 </div>
             </div>
 
@@ -301,7 +282,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                                 <IconDotsVertical className="h-5 w-5" />
                             </button>
                              {openMenu === 'cost-forecast' && (
-                                <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                                <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg bg-surface shadow-lg z-10">
                                     <div className="py-1" role="menu" aria-orientation="vertical">
                                         <button onClick={() => handleDownloadCSV('cost-forecast')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
                                     </div>
@@ -356,7 +337,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                                 <IconDotsVertical className="h-5 w-5" />
                             </button>
                              {openMenu === 'resource-summary' && (
-                                <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                                <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg bg-surface shadow-lg z-10">
                                     <div className="py-1" role="menu" aria-orientation="vertical">
                                         <button onClick={() => handleDownloadCSV('resource-summary')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
                                     </div>
@@ -391,7 +372,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                                 <IconDotsVertical className="h-5 w-5" />
                             </button>
                              {openMenu === 'spend-breakdown' && (
-                                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg bg-surface shadow-lg z-10">
                                     <div className="py-1" role="menu" aria-orientation="vertical">
                                         <button onClick={() => { onSetBigScreenWidget({ type: 'spend_breakdown', title: 'Spend breakdown' }); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">View in Big Screen</button>
                                         <button onClick={() => { handleOpenSpendBreakdownTable(); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Table View</button>
@@ -450,7 +431,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                             );
                         })}
                     </div>
-                    <div className="text-center mt-4 pt-4 border-t border-border-light flex items-baseline justify-center">
+                    <div className="text-center mt-4 pt-4 flex items-baseline justify-center">
                         <span className="text-sm text-text-secondary mr-1">Current Spend:</span>
                         <span className="text-sm font-semibold text-text-primary">
                              {displayMode === 'cost' ? (
@@ -482,7 +463,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                                 <IconDotsVertical className="h-5 w-5" />
                             </button>
                              {openMenu === 'top-spend-account' && (
-                                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg bg-surface shadow-lg z-10">
                                     <div className="py-1" role="menu" aria-orientation="vertical">
                                         <button onClick={() => { onSetBigScreenWidget({ type: 'account', title: 'Top spend by account' }); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">View in Big Screen</button>
                                         <button onClick={() => { handleOpenTopAccountTable(); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Table View</button>
@@ -555,7 +536,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                                 <IconDotsVertical className="h-5 w-5" />
                             </button>
                              {openMenu === 'top-spend-user' && (
-                                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg bg-surface shadow-lg z-10">
                                     <div className="py-1" role="menu" aria-orientation="vertical">
                                         <button onClick={() => { onSetBigScreenWidget({ type: 'user', title: 'Top spend by user' }); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">View in Big Screen</button>
                                         <button onClick={() => { handleOpenTopUserTable(); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Table View</button>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import {
@@ -9,7 +10,7 @@ import {
 import TimeRangeFilter, { TimeRange } from '../components/TimeRangeFilter';
 
 const WidgetCard: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className = '', title }) => (
-    <div className={`bg-surface rounded-3xl shadow-sm border border-border-color p-4 break-inside-avoid mb-4 ${className}`}>
+    <div className={`bg-surface rounded-3xl border border-border-color p-4 break-inside-avoid mb-4 ${className}`}>
         {title && <h3 className="text-base font-semibold text-text-strong mb-4">{title}</h3>}
         {children}
     </div>

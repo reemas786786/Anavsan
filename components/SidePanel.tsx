@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { IconClose } from '../constants';
 
 interface SidePanelProps {
@@ -10,43 +10,77 @@ interface SidePanelProps {
 }
 
 const SidePanel: React.FC<SidePanelProps> = ({ isOpen, onClose, title, children }) => {
-  
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
+  const panelRef = useRef<HTMLDivElement>(null);
 
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!isOpen || !panel) return;
+
+    const focusableElements = panel.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+            onClose();
+        }
+
+        if (event.key === 'Tab') {
+            if (focusableElements.length === 1) {
+                event.preventDefault();
+                return;
+            }
+            if (event.shiftKey) { // Shift+Tab
+                if (document.activeElement === firstElement) {
+                    lastElement.focus();
+                    event.preventDefault();
+                }
+            } else { // Tab
+                if (document.activeElement === lastElement) {
+                    firstElement.focus();
+                    event.preventDefault();
+                }
+            }
+        }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+
+    if (firstElement) {
+      firstElement.focus();
+    } else {
+      panel.focus();
     }
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+        document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onClose]);
 
 
   return (
     <div 
-        className={`fixed inset-0 z-50 overflow-hidden transition-all duration-500 ${isOpen ? 'visible' : 'invisible'}`} 
+        ref={panelRef}
+        tabIndex={-1}
+        className={`fixed inset-0 z-30 overflow-hidden transition-all duration-500 ${isOpen ? 'visible' : 'invisible'}`} 
         role="dialog" 
         aria-modal="true"
     >
       {/* Overlay */}
       <div 
-        className={`fixed inset-0 bg-black/40 transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+        className={`fixed top-12 inset-x-0 bottom-0 bg-black/40 transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
         aria-hidden="true"
         onClick={onClose}
       ></div>
 
       {/* Side Panel Container */}
-      <div className={`fixed inset-y-0 right-0 flex max-w-full pl-10 transform transition-transform duration-500 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed top-12 bottom-0 right-0 flex max-w-full pl-10 transform transition-transform duration-500 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="w-screen max-w-2xl">
-          <div className="flex h-full flex-col bg-surface shadow-2xl">
+          <div className="flex h-full flex-col bg-surface">
             {/* Header */}
-            <div className="bg-background p-6 border-b border-border-color flex-shrink-0">
+            <div className="bg-background p-6 flex-shrink-0">
               <div className="flex items-start justify-between">
                 <h2 className="text-lg font-semibold text-text-primary" id="slide-over-title">
                   {title}

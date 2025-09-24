@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 
 interface AddAccountFlowProps {
@@ -86,7 +87,7 @@ const AddAccountFlow: React.FC<AddAccountFlowProps> = ({ onCancel, onAddAccount 
                 {step === 2 && <Step2 />}
             </div>
 
-            <div className="p-6 bg-background border-t border-border-color flex justify-between items-center flex-shrink-0">
+            <div className="p-6 bg-background flex justify-between items-center flex-shrink-0">
                 <div>
                     <button onClick={onCancel} className="text-sm font-semibold text-text-secondary hover:text-text-primary">Cancel</button>
                 </div>

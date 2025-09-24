@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { SQLFile } from '../types';
 
@@ -49,7 +50,7 @@ const QueryWorkspace: React.FC<QueryWorkspaceProps> = ({ sqlFiles, onSaveQueryCl
             <h1 className="text-2xl font-bold text-text-primary">Query Workspace</h1>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
                 {/* File List */}
-                <div className="lg:col-span-1 bg-surface rounded-3xl border border-border-color p-4">
+                <div className="lg:col-span-1 bg-surface rounded-3xl p-4">
                     <h4 className="font-semibold text-text-strong px-2 mb-4 text-base">Saved Queries</h4>
                     <ul>
                         {/* FIX: Used `sqlFiles` from props instead of `sqlFilesData`. */}
@@ -67,7 +68,7 @@ const QueryWorkspace: React.FC<QueryWorkspaceProps> = ({ sqlFiles, onSaveQueryCl
                 </div>
 
                 {/* Version List */}
-                <div className="lg:col-span-2 bg-surface rounded-3xl border border-border-color p-4">
+                <div className="lg:col-span-2 bg-surface rounded-3xl p-4">
                     <div className="flex justify-between items-center mb-4">
                         <div>
                             <h4 className="text-base font-semibold text-text-strong">{selectedFile?.name}</h4>
@@ -94,7 +95,7 @@ const QueryWorkspace: React.FC<QueryWorkspaceProps> = ({ sqlFiles, onSaveQueryCl
                             </thead>
                             <tbody>
                                 {selectedFile?.versions.map(v => (
-                                    <tr key={v.id} className="border-t border-border-color hover:bg-surface-hover">
+                                    <tr key={v.id} className="even:bg-surface-nested hover:bg-surface-hover">
                                         <td className="p-2">
                                             <input 
                                                 type="checkbox" 

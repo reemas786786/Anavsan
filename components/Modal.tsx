@@ -1,4 +1,5 @@
 
+
 import React, { useEffect, useRef } from 'react';
 import { IconClose } from '../constants';
 
@@ -85,11 +86,11 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
       <div
         ref={modalRef}
         tabIndex={-1}
-        className={`relative bg-surface rounded-3xl shadow-xl w-full m-4 transform transition-all duration-300 ease-in-out scale-100 flex flex-col ${sizeClasses[size]}`}
+        className={`relative bg-surface rounded-3xl w-full m-4 transform transition-all duration-300 ease-in-out scale-100 flex flex-col ${sizeClasses[size]}`}
         style={{maxHeight: '90vh'}}
       >
         {/* Header */}
-        <div className="p-6 flex items-center justify-between border-b border-border-color flex-shrink-0">
+        <div className="p-6 flex items-center justify-between flex-shrink-0">
             <h2 id="modal-title" className="text-xl font-semibold text-text-primary">{title}</h2>
             <button
                 type="button"

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { IconSearch, IconChevronLeft, IconChevronRight, IconShare } from '../constants';
 
@@ -130,7 +131,7 @@ const TableView: React.FC<TableViewProps> = ({ title, data }) => {
 
     return (
         <div className="flex flex-col h-full">
-            <div className="p-6 border-b border-border-color">
+            <div className="p-6">
                  <div className="flex justify-between items-center">
                     <h3 className="text-lg font-semibold text-text-primary">{title}</h3>
                     <button 
@@ -176,7 +177,7 @@ const TableView: React.FC<TableViewProps> = ({ title, data }) => {
                     </thead>
                     <tbody className="bg-surface">
                         {paginatedData.map((item, index) => (
-                            <tr key={`${item.name}-${index}`} className="border-t border-border-color hover:bg-surface-hover">
+                            <tr key={`${item.name}-${index}`} className="even:bg-surface-nested hover:bg-surface-hover">
                                 <td className="px-6 py-4 font-medium text-text-primary whitespace-nowrap">{item.name}</td>
                                 <td className="px-6 py-4">${item.cost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                                 <td className="px-6 py-4">{item.credits.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
@@ -187,7 +188,7 @@ const TableView: React.FC<TableViewProps> = ({ title, data }) => {
                 </table>
             </div>
             {totalPages > 1 && (
-                <div className="p-4 bg-background border-t border-border-color flex justify-between items-center text-sm flex-shrink-0">
+                <div className="p-4 bg-background flex justify-between items-center text-sm flex-shrink-0">
                     <div>
                         <p className="text-text-secondary">
                             Showing{' '}

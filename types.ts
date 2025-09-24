@@ -7,6 +7,7 @@ export type Page =
   | 'Snowflake Accounts' 
   | 'AI Agent' 
   | 'Reports' 
+  | 'Assigned Queries'
   | 'Book a Demo'
   | 'Docs'
   | 'Settings' 
@@ -275,4 +276,21 @@ export interface StorageByTypeItem {
   storageGB: number;
   cost: number;
   color: string;
+}
+
+export type AssignmentPriority = 'Low' | 'Medium' | 'High';
+export type AssignmentStatus = 'Pending' | 'In Progress' | 'Optimized' | 'Needs Info';
+
+export interface AssignedQuery {
+    id: string;
+    queryId: string;
+    queryText: string;
+    assignedBy: string; // User name
+    assignedTo: string; // User name
+    priority: AssignmentPriority;
+    status: AssignmentStatus;
+    message: string;
+    assignedOn: string; // ISO string
+    cost: number;
+    credits: number;
 }

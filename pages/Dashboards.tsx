@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { IconAdd, IconDotsVertical, IconEdit, IconDelete, IconShare } from '../constants';
 import { DashboardItem } from '../types';
@@ -24,7 +25,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ dashboard, onEditClick, o
     }, []);
 
     return (
-        <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm flex flex-col h-full">
+        <div className="bg-surface p-4 rounded-3xl flex flex-col h-full">
             <div className="flex justify-between items-start mb-2">
                 <h3 className="text-base font-semibold text-text-strong pr-4">{dashboard.title}</h3>
                 <div className="relative flex-shrink-0" ref={menuRef}>
@@ -38,7 +39,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ dashboard, onEditClick, o
                         <IconDotsVertical className="h-5 w-5" />
                     </button>
                     {isMenuOpen && (
-                        <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                        <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg bg-surface shadow-lg z-10">
                             <div className="py-1" role="menu" aria-orientation="vertical">
                                 <button onClick={() => { onEditClick(); setIsMenuOpen(false); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
                                     <IconEdit className="h-4 w-4" /> Edit
@@ -61,7 +62,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ dashboard, onEditClick, o
 };
 
 const EmptyState: React.FC<{ onAddDashboardClick: () => void }> = ({ onAddDashboardClick }) => (
-    <div className="text-center py-20 px-4 bg-surface rounded-3xl border border-border-color shadow-sm">
+    <div className="text-center py-20 px-4 bg-surface rounded-3xl">
         <h2 className="text-xl font-bold text-text-primary">No dashboards found</h2>
         <p className="mt-2 text-text-secondary max-w-md mx-auto">It looks like you haven't created any dashboards yet. Get started by clicking the "Create Dashboard" button.</p>
         <button

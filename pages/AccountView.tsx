@@ -1,5 +1,6 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { Account, SQLFile, BigScreenWidget } from '../types';
+import { Account, SQLFile, BigScreenWidget, QueryListItem } from '../types';
 import QueryWorkspace from './QueryWorkspace';
 import AccountOverviewDashboard from './AccountOverviewDashboard';
 import QueryPerformanceView, { SimilarQueryPatternsView } from './QueryPerformanceView';
@@ -35,6 +36,8 @@ interface AccountViewProps {
     onSetBigScreenWidget: (widget: BigScreenWidget) => void;
     activePage: string;
     onPageChange: (page: string) => void;
+    onShareQueryClick: (query: QueryListItem) => void;
+    displayMode: 'cost' | 'credits';
 }
 
 const accountNavItems = [
@@ -106,7 +109,7 @@ const AccountAvatar: React.FC<{ name: string }> = ({ name }) => {
 };
 
 
-const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, onSwitchAccount, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange }) => {
+const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, onSwitchAccount, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, displayMode }) => {
     const [selectedDatabaseId, setSelectedDatabaseId] = useState<string | null>(null);
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
     const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
@@ -155,12 +158,12 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
 
         switch (activePage) {
             case 'Account Overview':
-                return <AccountOverviewDashboard account={account} />;
+                return <AccountOverviewDashboard account={account} displayMode={displayMode} />;
             case 'Query Workspace':
                 return <QueryWorkspace sqlFiles={sqlFiles} onSaveQueryClick={onSaveQueryClick} />;
             case 'Query List':
             case 'Slow Queries':
-                 return <QueryListView />;
+                 return <QueryListView onShareQuery={onShareQueryClick} />;
             case 'Storage Summary':
                 return <StorageSummaryView onSelectDatabase={handleSelectDatabaseFromSummary} onSetBigScreenWidget={onSetBigScreenWidget} />;
             case 'Databases':
@@ -186,8 +189,8 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
         <div className="flex h-full bg-background">
             {/* Contextual Sidebar */}
             {!isDatabaseDetailView && (
-                <aside className={`bg-surface flex-shrink-0 border-r border-border-color flex flex-col transition-all duration-300 ease-in-out ${isSidebarExpanded ? 'w-64' : 'w-16'}`}>
-                    <div ref={accountSwitcherRef} className="relative p-2 border-b border-border-color">
+                <aside className={`bg-surface flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out ${isSidebarExpanded ? 'w-64' : 'w-16'}`}>
+                    <div ref={accountSwitcherRef} className="relative p-2">
                         {isSidebarExpanded ? (
                             <button
                                 onClick={() => setIsAccountSwitcherOpen(!isAccountSwitcherOpen)}
@@ -218,7 +221,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                             </div>
                         )}
                         {isAccountSwitcherOpen && (
-                            <div className={`absolute z-20 mt-2 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 p-2 ${
+                            <div className={`absolute z-20 mt-2 rounded-lg bg-surface shadow-lg p-2 ${
                                 isSidebarExpanded ? 'w-full' : 'left-full top-0 ml-2 w-64'
                             }`}>
                                 <div className="text-xs font-semibold text-text-muted px-2 py-1 mb-1">Switch Account</div>
@@ -297,7 +300,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                         </ul>
                     </nav>
 
-                    <div className="p-2 border-t border-border-color">
+                    <div className="p-2 mt-auto">
                         <div className={`flex ${isSidebarExpanded ? 'justify-end' : 'justify-center'}`}>
                             <button
                                 onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}

@@ -1,3 +1,4 @@
+
 // FIX: Corrected import statement for React hooks.
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, TopQuery, Warehouse } from '../types';
@@ -11,7 +12,7 @@ import InfoTooltip from '../components/InfoTooltip';
 import TimeRangeFilter, { TimeRange } from '../components/TimeRangeFilter';
 
 const Card: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className, title }) => (
-    <div className={`bg-surface p-4 rounded-3xl border border-border-color shadow-sm break-inside-avoid mb-4 ${className}`}>
+    <div className={`bg-surface p-4 rounded-3xl break-inside-avoid mb-4 ${className}`}>
         {title && <h4 className="text-base font-semibold text-text-strong mb-4">{title}</h4>}
         {children}
     </div>
@@ -52,7 +53,7 @@ const CustomTooltip = ({ active, payload, label, displayMode }: any) => {
     if (active && payload && payload.length) {
         const value = payload[0].value;
         return (
-            <div className="bg-surface p-2 rounded-lg border border-border-color shadow-sm">
+            <div className="bg-surface p-2 rounded-lg shadow-lg">
                 <p className="font-mono text-xs mb-1 max-w-xs break-words">{label}</p>
                 <div className="text-sm text-primary flex items-baseline">
                     <span className="font-semibold text-text-secondary mr-2">{displayMode === 'cost' ? 'Cost:' : 'Credits:'}</span>
@@ -73,6 +74,7 @@ const CustomTooltip = ({ active, payload, label, displayMode }: any) => {
 
 interface AccountOverviewDashboardProps {
     account: Account;
+    displayMode: 'cost' | 'credits';
 }
 
 type WidgetConfig = {
@@ -81,8 +83,7 @@ type WidgetConfig = {
 
 const kpiWidgetIds: WidgetConfig['id'][] = ['spend', 'budget'];
 
-const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ account }) => {
-    const [displayMode, setDisplayMode] = useState<'cost' | 'credits'>('cost');
+const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ account, displayMode }) => {
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const [timeRange, setTimeRange] = useState<TimeRange>('day');
@@ -258,7 +259,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                             <IconDotsVertical className="h-5 w-5" />
                         </button>
                         {openMenu === 'spend-breakdown' && (
-                            <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                            <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg bg-surface shadow-lg z-10">
                                 <div className="py-1" role="menu" aria-orientation="vertical">
                                     <button onClick={() => { handleOpenSpendBreakdownTable(); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Table View</button>
                                     <button onClick={() => handleDownloadCSV('spend-breakdown')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
@@ -316,7 +317,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                         );
                     })}
                 </div>
-                 <div className="text-center mt-4 pt-4 border-t border-border-light flex items-baseline justify-center">
+                 <div className="text-center mt-4 pt-4 flex items-baseline justify-center">
                     <span className="text-sm text-text-secondary mr-1">Total Monthly Spend:</span>
                     <span className="text-sm font-semibold text-text-primary">
                          {displayMode === 'cost' ? (
@@ -375,7 +376,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                             <IconDotsVertical className="h-5 w-5" />
                         </button>
                         {openMenu === 'top-warehouses' && (
-                            <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                            <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg bg-surface shadow-lg z-10">
                                 <div className="py-1" role="menu" aria-orientation="vertical">
                                     <button onClick={() => handleDownloadCSV('top-warehouses')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
                                 </div>
@@ -454,12 +455,8 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                 <h1 className="text-2xl font-bold text-text-primary">Account Overview</h1>
                 <div className="flex items-center gap-4">
                     <TimeRangeFilter value={timeRange} onChange={setTimeRange} />
-                    <div className="bg-gray-200 rounded-full p-1 flex items-center" aria-label="Switch between Cost and Credits view">
-                        <button onClick={() => setDisplayMode('cost')} aria-pressed={displayMode === 'cost'} className={`px-4 py-1 text-sm font-semibold rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${ displayMode === 'cost' ? 'bg-white shadow text-text-primary' : 'text-text-secondary' }`}>Cost</button>
-                        <button onClick={() => setDisplayMode('credits')} aria-pressed={displayMode === 'credits'} className={`px-4 py-1 text-sm font-semibold rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${ displayMode === 'credits' ? 'bg-white shadow text-text-primary' : 'text-text-secondary' }`}>Credits</button>
-                    </div>
                      {!isEditMode && (
-                        <button onClick={handleEditDashboard} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-text-primary bg-white border border-border-color rounded-full shadow-sm hover:bg-gray-50">
+                        <button onClick={handleEditDashboard} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-text-primary bg-white rounded-full shadow-sm hover:bg-gray-50">
                             <IconEdit className="h-4 w-4" />
                             Edit Dashboard
                         </button>
@@ -472,7 +469,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
             </div>
 
             {isEditMode && (
-                <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm p-4 border-t border-border-color flex justify-between items-center z-20">
+                <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm p-4 flex justify-between items-center z-20">
                     <div>
                         <button 
                             onClick={handleResetLayout} 

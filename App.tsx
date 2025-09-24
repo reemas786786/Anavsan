@@ -20,13 +20,18 @@ import EditUserRoleFlow from './components/EditUserRoleFlow';
 import ConfirmationModal from './components/ConfirmationModal';
 import Toast from './components/Toast';
 import BigScreenView from './components/BigScreenView';
-import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem, BigScreenWidget } from './types';
-import { connectionsData, sqlFilesData as initialSqlFiles, usersData, dashboardsData as initialDashboardsData } from './data/dummyData';
+import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem, BigScreenWidget, QueryListItem, AssignedQuery, AssignmentPriority, AssignmentStatus } from './types';
+import { connectionsData, sqlFilesData as initialSqlFiles, usersData, dashboardsData as initialDashboardsData, assignedQueriesData } from './data/dummyData';
 import SettingsPage from './pages/SettingsPage';
 import Dashboards from './pages/Dashboards';
 import DashboardEditor from './pages/DashboardEditor';
 import ProfileSettingsPage from './pages/ProfileSettingsPage';
 import Breadcrumb from './components/Breadcrumb';
+import AssignQueryFlow from './components/AssignQueryFlow';
+import AssignedQueries from './pages/AssignedQueries';
+
+type SidePanelType = 'addAccount' | 'saveQuery' | 'addUser' | 'editUser' | 'assignQuery';
+type Theme = 'light' | 'dark';
 
 const App: React.FC = () => {
   const [activePage, setActivePage] = useState<Page>('Data Cloud Overview');
@@ -35,8 +40,6 @@ const App: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [isAddingAccount, setIsAddingAccount] = useState(false);
-  const [isSavingQuery, setIsSavingQuery] = useState(false);
   const [sqlFiles, setSqlFiles] = useState<SQLFile[]>(initialSqlFiles);
   const [users, setUsers] = useState<User[]>(() => {
     try {
@@ -58,8 +61,6 @@ const App: React.FC = () => {
   const [isSettingsViewActive, setIsSettingsViewActive] = useState(false);
   const [activeSettingsSubPage, setActiveSettingsSubPage] = useState('User Management');
   
-  const [isAddingUser, setIsAddingUser] = useState(false);
-  const [userToEdit, setUserToEdit] = useState<User | null>(null);
   const [userToSuspend, setUserToSuspend] = useState<User | null>(null);
   const [userToRemove, setUserToRemove] = useState<User | null>(null);
   const [userToActivate, setUserToActivate] = useState<User | null>(null);
@@ -72,13 +73,19 @@ const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(users.length > 0 ? users[0] : null);
   const [brandLogo, setBrandLogo] = useState<string | null>(null);
 
-  // Lifted state for sub-pages to control global breadcrumb
   const [activeAccountSubPage, setActiveAccountSubPage] = useState('Account Overview');
   const [activeProfileSubPage, setActiveProfileSubPage] = useState('User Info');
+  
+  const [assignedQueries, setAssignedQueries] = useState<AssignedQuery[]>(assignedQueriesData);
+  const [hasNewAssignment, setHasNewAssignment] = useState(true);
+
+  const [activeSidePanel, setActiveSidePanel] = useState<{ type: SidePanelType; props?: any } | null>(null);
+  const [displayMode, setDisplayMode] = useState<'cost' | 'credits'>('cost');
+  const [theme, setTheme] = useState<Theme>('light');
 
 
   useEffect(() => {
-    if (accounts.length === 0 && !isAddingAccount) {
+    if (accounts.length === 0) {
         setAccounts(connectionsData);
     }
   }, []);
@@ -90,6 +97,15 @@ const App: React.FC = () => {
         console.error("Failed to save users to localStorage:", error);
     }
   }, [users]);
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -115,6 +131,10 @@ const App: React.FC = () => {
         setIsSettingsViewActive(false);
     }
 
+    if (page === 'Assigned Queries') {
+        setHasNewAssignment(false);
+    }
+
     setIsSidebarOpen(false);
   };
 
@@ -126,6 +146,8 @@ const App: React.FC = () => {
     setIsProfileSettingsPageActive(false);
     setIsSidebarOpen(false);
   }, []);
+
+  const handleCloseSidePanel = () => setActiveSidePanel(null);
 
   const handleAddAccount = (data: { name: string }) => {
     const newCost = Math.floor(Math.random() * 500) + 50;
@@ -140,7 +162,7 @@ const App: React.FC = () => {
       credits: parseFloat((newCost * 0.4).toFixed(2)),
     };
     setAccounts(prevAccounts => [...prevAccounts, newAccount]);
-    setIsAddingAccount(false);
+    handleCloseSidePanel();
     showToast("Account added (mock data)");
   };
   
@@ -181,12 +203,9 @@ const App: React.FC = () => {
             return file;
         }));
     }
-    setIsSavingQuery(false);
+    handleCloseSidePanel();
     showToast("Query saved successfully!");
   };
-  
-  const handleCancelAddAccount = () => setIsAddingAccount(false);
-  const handleCancelSaveQuery = () => setIsSavingQuery(false);
 
   const handleSelectAccount = (account: Account) => {
     setSelectedAccount(account);
@@ -223,7 +242,7 @@ const App: React.FC = () => {
     };
     
     setUsers(prevUsers => [newUser, ...prevUsers]);
-    setIsAddingUser(false);
+    handleCloseSidePanel();
     showToast('User added (mock data)');
   };
 
@@ -233,7 +252,7 @@ const App: React.FC = () => {
             user.id === userId ? { ...user, role: newRole } : user
         )
     );
-    setUserToEdit(null);
+    handleCloseSidePanel();
     showToast('User role updated successfully!');
   };
 
@@ -317,7 +336,45 @@ const App: React.FC = () => {
     setSelectedUser(null);
     setIsSettingsViewActive(false);
     setIsProfileSettingsPageActive(true);
-    setActiveProfileSubPage('User Info'); // Reset to default section
+    setActiveProfileSubPage('User Info');
+  };
+
+  const handleOpenAssignQuery = (query: QueryListItem) => {
+    setActiveSidePanel({ type: 'assignQuery', props: { query } });
+  };
+
+  const handleAssignQuery = (details: { assigneeId: string; priority: AssignmentPriority; message: string; }) => {
+    if (!activeSidePanel || activeSidePanel.type !== 'assignQuery' || !currentUser) return;
+    const { query } = activeSidePanel.props;
+
+    const assignee = users.find(u => u.id === details.assigneeId);
+    if (!assignee) return;
+
+    const newAssignment: AssignedQuery = {
+        id: `aq-${Date.now()}`,
+        queryId: query.id,
+        queryText: query.queryText,
+        assignedBy: currentUser.name,
+        assignedTo: assignee.name,
+        priority: details.priority,
+        status: 'Pending',
+        message: details.message,
+        assignedOn: new Date().toISOString(),
+        cost: query.costUSD,
+        credits: query.costCredits,
+    };
+
+    setAssignedQueries(prev => [newAssignment, ...prev]);
+    handleCloseSidePanel();
+    setHasNewAssignment(true);
+    showToast(`Query assigned to ${assignee.name}`);
+  };
+
+  const handleUpdateAssignmentStatus = (assignmentId: string, status: AssignmentStatus) => {
+    setAssignedQueries(prev => prev.map(aq =>
+        aq.id === assignmentId ? { ...aq, status } : aq
+    ));
+    showToast(`Assignment status updated to "${status}"`);
   };
 
   const breadcrumbItems = useMemo(() => {
@@ -360,7 +417,7 @@ const App: React.FC = () => {
   const renderContent = () => {
     switch (activePage) {
       case 'Data Cloud Overview':
-        return <Overview onSelectAccount={handleSelectAccount} onSelectUser={handleSelectUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} />;
+        return <Overview onSelectAccount={handleSelectAccount} onSelectUser={handleSelectUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} displayMode={displayMode} />;
       case 'Dashboards':
         return editingDashboard ? (
             <DashboardEditor
@@ -378,7 +435,9 @@ const App: React.FC = () => {
             />
         );
       case 'Snowflake Accounts':
-        return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setIsAddingAccount(true)} onDeleteAccount={handleDeleteAccount} />;
+        return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setActiveSidePanel({ type: 'addAccount' })} onDeleteAccount={handleDeleteAccount} />;
+      case 'Assigned Queries':
+        return <AssignedQueries assignedQueries={assignedQueries} onUpdateStatus={handleUpdateAssignmentStatus} />;
       case 'AI Agent':
         return <AIAgent />;
       case 'Reports':
@@ -392,7 +451,7 @@ const App: React.FC = () => {
       case 'Support':
         return <Support />;
       default:
-        return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setIsAddingAccount(true)} onDeleteAccount={handleDeleteAccount} />;
+        return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setActiveSidePanel({ type: 'addAccount' })} onDeleteAccount={handleDeleteAccount} />;
     }
   };
   
@@ -414,6 +473,7 @@ const App: React.FC = () => {
                   setBigScreenWidget(null);
                   handleSelectUser(user);
               }}
+              displayMode={displayMode}
           />
       ) : (
         <>
@@ -424,10 +484,15 @@ const App: React.FC = () => {
             brandLogo={brandLogo}
             onOpenProfileSettings={handleOpenProfileSettings}
             onLogout={handleLogout}
+            hasNewAssignment={hasNewAssignment}
+            displayMode={displayMode}
+            onDisplayModeChange={setDisplayMode}
+            theme={theme}
+            onThemeChange={setTheme}
           />
           
           {showBreadcrumb && (
-              <div className="bg-surface w-full py-3 px-6 border-b border-border-color flex-shrink-0">
+              <div className="bg-surface w-full py-3 px-6 flex-shrink-0">
                   <Breadcrumb items={breadcrumbItems} />
               </div>
           )}
@@ -449,10 +514,12 @@ const App: React.FC = () => {
                   onBack={handleBackToAccounts}
                   onSwitchAccount={handleSelectAccount}
                   sqlFiles={sqlFiles}
-                  onSaveQueryClick={() => setIsSavingQuery(true)}
+                  onSaveQueryClick={() => setActiveSidePanel({ type: 'saveQuery' })}
                   onSetBigScreenWidget={setBigScreenWidget}
                   activePage={activeAccountSubPage}
                   onPageChange={setActiveAccountSubPage}
+                  onShareQueryClick={handleOpenAssignQuery}
+                  displayMode={displayMode}
                   />
               ) : selectedUser ? (
                   <UserView user={selectedUser} onBack={() => setSelectedUser(null)} />
@@ -465,8 +532,8 @@ const App: React.FC = () => {
                         setIsSettingsViewActive(false);
                         setActivePage('Data Cloud Overview');
                     }}
-                    onAddUserClick={() => setIsAddingUser(true)}
-                    onEditUserRoleClick={(user) => setUserToEdit(user)}
+                    onAddUserClick={() => setActiveSidePanel({ type: 'addUser' })}
+                    onEditUserRoleClick={(user) => setActiveSidePanel({ type: 'editUser', props: { user } })}
                     onSuspendUserClick={(user) => setUserToSuspend(user)}
                     onActivateUserClick={(user) => setUserToActivate(user)}
                     onRemoveUserClick={(user) => setUserToRemove(user)}
@@ -493,22 +560,26 @@ const App: React.FC = () => {
 
       <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
 
-      <SidePanel isOpen={isAddingAccount} onClose={handleCancelAddAccount} title="Connect Snowflake Account">
-        <AddAccountFlow onCancel={handleCancelAddAccount} onAddAccount={handleAddAccount} />
+      <SidePanel isOpen={activeSidePanel?.type === 'addAccount'} onClose={handleCloseSidePanel} title="Connect Snowflake Account">
+        <AddAccountFlow onCancel={handleCloseSidePanel} onAddAccount={handleAddAccount} />
       </SidePanel>
 
-      <SidePanel isOpen={isSavingQuery} onClose={handleCancelSaveQuery} title="Save Query Version">
-        <SaveQueryFlow files={sqlFiles} onCancel={handleCancelSaveQuery} onSave={handleSaveQuery} />
+      <SidePanel isOpen={activeSidePanel?.type === 'saveQuery'} onClose={handleCloseSidePanel} title="Save Query Version">
+        <SaveQueryFlow files={sqlFiles} onCancel={handleCloseSidePanel} onSave={handleSaveQuery} />
       </SidePanel>
       
-      <SidePanel isOpen={isAddingUser} onClose={() => setIsAddingUser(false)} title="Add User">
-          <InviteUserFlow onCancel={() => setIsAddingUser(false)} onAddUser={handleAddUser} />
+      <SidePanel isOpen={activeSidePanel?.type === 'addUser'} onClose={handleCloseSidePanel} title="Add User">
+          <InviteUserFlow onCancel={handleCloseSidePanel} onAddUser={handleAddUser} />
       </SidePanel>
 
-      <SidePanel isOpen={!!userToEdit} onClose={() => setUserToEdit(null)} title="Edit User Role">
-        {userToEdit && (<EditUserRoleFlow user={userToEdit} onCancel={() => setUserToEdit(null)} onSave={handleUpdateUserRole} />)}
+      <SidePanel isOpen={activeSidePanel?.type === 'editUser'} onClose={handleCloseSidePanel} title="Edit User Role">
+        {activeSidePanel?.type === 'editUser' && <EditUserRoleFlow user={activeSidePanel.props.user} onCancel={handleCloseSidePanel} onSave={handleUpdateUserRole} />}
       </SidePanel>
       
+      <SidePanel isOpen={activeSidePanel?.type === 'assignQuery'} onClose={handleCloseSidePanel} title="Assign Query for Optimization">
+          {activeSidePanel?.type === 'assignQuery' && <AssignQueryFlow query={activeSidePanel.props.query} users={users} onCancel={handleCloseSidePanel} onAssign={handleAssignQuery} />}
+      </SidePanel>
+
       {userToSuspend && (
           <ConfirmationModal isOpen={!!userToSuspend} onClose={() => setUserToSuspend(null)} onConfirm={() => handleSuspendUser(userToSuspend.id)} title="Suspend User" message={`Are you sure you want to suspend ${userToSuspend.name}? They will lose access to the platform.`} confirmText="Suspend" confirmVariant="warning" />
       )}

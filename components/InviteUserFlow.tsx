@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { UserRole } from '../types';
 
@@ -58,7 +59,7 @@ const InviteUserFlow: React.FC<InviteUserFlowProps> = ({ onCancel, onAddUser }) 
                 </div>
             </div>
 
-            <div className="p-6 bg-background border-t border-border-color flex justify-end items-center gap-3 flex-shrink-0">
+            <div className="p-6 bg-background flex justify-end items-center gap-3 flex-shrink-0">
                 <button
                     onClick={onCancel}
                     className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-gray-50"

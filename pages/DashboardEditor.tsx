@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef } from 'react';
 import { DashboardItem, Widget, Account, WidgetType } from '../types';
 import { availableWidgetsData } from '../data/dummyData';
@@ -24,7 +25,7 @@ const DummyLineChart: React.FC = () => (
             <XAxis dataKey="name" fontSize={10} stroke="#9A9AB2" axisLine={false} tickLine={false} />
             <YAxis fontSize={10} stroke="#9A9AB2" axisLine={false} tickLine={false} />
             <Tooltip
-                contentStyle={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px', border: '1px solid #E5E5E0' }} 
+                contentStyle={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px' }} 
             />
             <Line type="monotone" dataKey="value" stroke="#6932D5" strokeWidth={2} dot={false} />
         </LineChart>
@@ -44,7 +45,7 @@ const DummyBarChart: React.FC = () => (
             <XAxis dataKey="name" fontSize={10} stroke="#9A9AB2" axisLine={false} tickLine={false} />
             <YAxis fontSize={10} stroke="#9A9AB2" axisLine={false} tickLine={false} />
             <Tooltip
-                contentStyle={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px', border: '1px solid #E5E5E0' }} 
+                contentStyle={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px' }} 
             />
             <Bar dataKey="value" fill="#6932D5" />
         </BarChart>
@@ -59,7 +60,7 @@ const DummyDonutChart: React.FC = () => (
                      <Cell fill="#6932D5" />
                      <Cell fill="#E0E7FF" />
                 </Pie>
-                 <Tooltip contentStyle={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px', border: '1px solid #E5E5E0' }} />
+                 <Tooltip contentStyle={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px' }} />
             </PieChart>
         </ResponsiveContainer>
     </div>
@@ -76,7 +77,7 @@ const DummyTable: React.FC = () => (
     <div className="text-[10px] text-text-secondary w-full h-full p-2">
         <table className="w-full">
             <thead>
-                <tr className="border-b border-border-light text-left">
+                <tr className="text-left">
                     <th className="font-medium p-1">EVENT</th>
                     <th className="font-medium p-1">TIME</th>
                     <th className="font-medium p-1">DETAILS</th>
@@ -84,7 +85,7 @@ const DummyTable: React.FC = () => (
             </thead>
             <tbody>
                 {dummyTableData.map((row, i) => (
-                    <tr key={i} className="border-b border-border-light">
+                    <tr key={i}>
                         <td className="p-1">{row.event}</td>
                         <td className="p-1">{row.time}</td>
                         <td className={`p-1 font-semibold ${row.status === 'passing' ? 'text-status-success-dark' : 'text-status-error-dark'}`}>{row.details}</td>
@@ -236,7 +237,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
     return (
         <div className="flex flex-col bg-background">
             {/* Header */}
-            <header className="bg-surface px-6 py-3 border-b border-border-color flex items-center justify-between flex-shrink-0">
+            <header className="bg-surface px-6 py-3 flex items-center justify-between flex-shrink-0">
                 <div>
                     <input type="text" value={editedDashboard.title} onChange={handleTitleChange} className="text-xl font-bold bg-transparent focus:outline-none focus:ring-1 focus:ring-primary rounded-md -ml-2 px-2 py-1" placeholder="Dashboard Title" />
                     <input type="text" value={editedDashboard.description} onChange={handleDescriptionChange} className="text-sm text-text-secondary w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-primary rounded-md -ml-2 px-2" placeholder="Dashboard description (optional)" />
@@ -256,7 +257,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
             <div className={`flex-1 grid grid-cols-1 ${isEditMode ? 'lg:grid-cols-12' : ''} gap-4 p-4`}>
                 {/* Left Panel: Widget Library */}
                 {isEditMode && (
-                    <aside className="lg:col-span-4 xl:col-span-3 bg-surface rounded-3xl border border-border-color p-4 flex flex-col self-start sticky top-4 max-h-[calc(100vh-80px)]">
+                    <aside className="lg:col-span-4 xl:col-span-3 bg-surface rounded-3xl p-4 flex flex-col self-start sticky top-4 max-h-[calc(100vh-80px)]">
                         <h3 className="text-lg font-semibold text-text-strong mb-4 px-2">Select views</h3>
                         
                         <div className="flex flex-col space-y-4 px-2 flex-shrink-0">
@@ -310,8 +311,8 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                         <div className="flex-1 overflow-y-auto space-y-2 pr-2 -mr-2 pt-2 mt-4">
                              <div className="grid grid-cols-1 gap-4">
                                 {filteredWidgets.map(widget => (
-                                    <div key={widget.widgetId} className="bg-background p-4 rounded-2xl border border-border-light flex flex-col gap-3">
-                                        <div className="w-full h-24 object-cover rounded-lg bg-white border border-border-color overflow-hidden relative">
+                                    <div key={widget.widgetId} className="bg-background p-4 rounded-2xl flex flex-col gap-3">
+                                        <div className="w-full h-24 object-cover rounded-lg bg-white overflow-hidden relative">
                                             <div className="transform scale-[0.6] origin-top-left w-[166.66%] h-[166.66%]">
                                                 <WidgetRenderer type={widget.type} />
                                             </div>
@@ -336,7 +337,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                 )}
 
                 {/* Right Panel: Dashboard Canvas */}
-                <main className={`${isEditMode ? 'lg:col-span-8 xl:col-span-9' : 'col-span-1'} bg-background rounded-3xl border border-border-color p-4`}>
+                <main className={`${isEditMode ? 'lg:col-span-8 xl:col-span-9' : 'col-span-1'} bg-background rounded-3xl p-4`}>
                     <h3 className="text-lg font-semibold text-text-strong mb-4 px-2">Layout</h3>
                     {editedDashboard.widgets.length > 0 ? (
                        <div className="columns-1 md:columns-2 gap-4">
@@ -347,7 +348,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                                 return (
                                 <div
                                     key={widget.id}
-                                    className={`bg-surface rounded-3xl shadow-sm border border-border-light flex flex-col group p-4 relative break-inside-avoid mb-4 ${isEditMode ? 'cursor-move' : ''}`}
+                                    className={`bg-surface rounded-3xl flex flex-col group p-4 relative break-inside-avoid mb-4 ${isEditMode ? 'cursor-move' : ''}`}
                                     draggable={isEditMode}
                                     onDragStart={isEditMode ? () => (dragItem.current = index) : undefined}
                                     onDragEnter={isEditMode ? () => (dragOverItem.current = index) : undefined}

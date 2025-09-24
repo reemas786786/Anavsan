@@ -1,4 +1,5 @@
 
+
 import React, { useEffect, useRef } from 'react';
 import { IconClose } from '../constants';
 
@@ -81,10 +82,10 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
       <div
         ref={modalRef}
         tabIndex={-1}
-        className="relative bg-surface rounded-3xl shadow-xl w-full max-w-lg m-4 transform transition-all duration-300 ease-in-out scale-100 flex flex-col"
+        className="relative bg-surface rounded-3xl w-full max-w-lg m-4 transform transition-all duration-300 ease-in-out scale-100 flex flex-col"
       >
         {/* Header */}
-        <div className="p-6 flex items-center justify-between border-b border-border-color flex-shrink-0">
+        <div className="p-6 flex items-center justify-between flex-shrink-0">
           <h2 id="modal-title" className="text-xl font-semibold text-text-primary">{title}</h2>
           <button
             type="button"
@@ -102,7 +103,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
         </div>
         
         {/* Footer */}
-        <div className="p-6 bg-background border-t border-border-color flex justify-end items-center gap-3 flex-shrink-0">
+        <div className="p-6 bg-background flex justify-end items-center gap-3 flex-shrink-0">
           <button
             type="button"
             onClick={onClose} 

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { queryListData as initialData, warehousesData } from '../data/dummyData';
 import { QueryListItem, QueryType } from '../types';
@@ -6,13 +7,17 @@ import Modal from '../components/Modal';
 import TimeRangeFilter, { TimeRange } from '../components/TimeRangeFilter';
 
 const MetricCard: React.FC<{ title: string; value: string; valueColor?: string }> = ({ title, value, valueColor = 'text-text-primary' }) => (
-    <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm break-inside-avoid mb-4">
+    <div className="bg-surface p-4 rounded-3xl border border-border-color break-inside-avoid mb-4">
         <h4 className="text-sm font-medium text-text-secondary">{title}</h4>
         <p className={`text-2xl font-bold mt-2 ${valueColor}`}>{value}</p>
     </div>
 );
 
-const QueryListView: React.FC = () => {
+interface QueryListViewProps {
+    onShareQuery: (query: QueryListItem) => void;
+}
+
+const QueryListView: React.FC<QueryListViewProps> = ({ onShareQuery }) => {
     const [isFilterPanelCollapsed, setIsFilterPanelCollapsed] = useState(false);
     const [search, setSearch] = useState('');
     const [dateFilter, setDateFilter] = useState('All');
@@ -201,13 +206,13 @@ const QueryListView: React.FC = () => {
                     <MetricCard title="Failed" value={failedQueries.toLocaleString()} valueColor="text-status-error" />
                 </div>
                 
-                <div className="bg-surface rounded-3xl border border-border-color shadow-sm flex-1 flex flex-col overflow-hidden">
+                <div className="bg-surface rounded-3xl border border-border-color flex-1 flex flex-col overflow-hidden">
                     <div className="p-4 flex justify-end relative" ref={exportMenuRef}>
                         <button onClick={() => setIsExportMenuOpen(!isExportMenuOpen)} className="px-4 py-2 text-sm font-semibold text-text-primary bg-background border border-border-color rounded-full flex items-center gap-2">
                             Export <IconChevronDown className="h-4 w-4" />
                         </button>
                         {isExportMenuOpen && (
-                             <div className="origin-top-right absolute right-4 top-14 mt-2 w-32 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                             <div className="origin-top-right absolute right-4 top-14 mt-2 w-32 rounded-lg bg-surface border border-border-color z-10">
                                 <div className="py-1" role="menu">
                                     <button onClick={() => handleExport('csv')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">CSV</button>
                                     <button onClick={() => handleExport('json')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">JSON</button>
@@ -242,9 +247,10 @@ const QueryListView: React.FC = () => {
                                             <div className="relative" ref={openMenuId === q.id ? menuRef : null}>
                                                 <button onClick={() => setOpenMenuId(q.id)}><IconDotsVertical className="h-5 w-5"/></button>
                                                 {openMenuId === q.id && (
-                                                     <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                                                     <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg bg-surface border border-border-color z-10">
                                                         <div className="py-1" role="menu">
                                                             <button onClick={() => {setPreviewQuery(q); setOpenMenuId(null)}} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Query Preview</button>
+                                                            <button onClick={() => { onShareQuery(q); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Share for Optimization</button>
                                                             <button className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Open in Analyzer</button>
                                                             <button className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Open in Optimizer</button>
                                                             <button className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Open in Simulator</button>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Account, ConnectionStatus } from '../types';
 import { IconDotsVertical, IconSearch, IconView, IconEdit, IconDelete, IconAdd } from '../constants';
@@ -49,21 +50,12 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
     if (accounts.length === 0) {
         return <EmptyConnections onAdd={onAddAccountClick} />;
     }
-  
-    const activeAccounts = accounts.filter(a => a.status === 'Connected' || a.status === 'Syncing').length;
 
     return (
         <div className="space-y-4">
             <h1 className="text-2xl font-bold text-text-primary">Accounts</h1>
-            
-            <div className="columns-1 md:columns-2 gap-4">
-                <MetricCard title="Total accounts" value={accounts.length.toString()} />
-                <MetricCard title="Active accounts" value={activeAccounts.toString()} />
-                <MetricCard title="Last sync status" value="Healthy" />
-                <MetricCard title="Total queries synced" value="1.2M" />
-            </div>
 
-            <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm">
+            <div className="bg-surface p-4 rounded-3xl">
                 <div className="flex justify-between items-center mb-4">
                     <div className="relative w-full max-w-sm">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -91,7 +83,7 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
                         </thead>
                         <tbody>
                             {accounts.map(account => (
-                                <tr key={account.id} className="border-t border-border-color hover:bg-surface-hover">
+                                <tr key={account.id} className="even:bg-surface-nested hover:bg-surface-hover">
                                     <td onClick={() => onSelectAccount(account)} className="px-6 py-4 font-medium text-link whitespace-nowrap cursor-pointer">{account.name}</td>
                                     <td className="px-6 py-4">{account.identifier}</td>
                                     <td className="px-6 py-4">{account.role}</td>
@@ -103,7 +95,7 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
                                           <IconDotsVertical className="h-5 w-5"/>
                                         </button>
                                         {openMenuId === account.id && (
-                                            <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                                            <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg bg-surface shadow-lg z-10">
                                                 <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
                                                     <a href="#" onClick={(e) => { e.preventDefault(); onSelectAccount(account); setOpenMenuId(null); }} className="flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
                                                         <IconView className="h-4 w-4"/> View
@@ -128,13 +120,6 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
         </div>
     );
 };
-
-const MetricCard: React.FC<{ title: string, value: string }> = ({ title, value }) => (
-    <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm break-inside-avoid mb-4">
-        <h4 className="text-base font-semibold text-text-strong">{title}</h4>
-        <p className="text-[22px] leading-7 font-bold text-text-primary mt-6">{value}</p>
-    </div>
-);
 
 const EmptyConnections: React.FC<{ onAdd: () => void }> = ({ onAdd }) => (
     <div className="w-full text-center max-w-lg mx-auto mt-16">

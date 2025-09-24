@@ -12,6 +12,7 @@ interface BigScreenViewProps {
     onClose: () => void;
     onSelectAccount: (account: Account) => void;
     onSelectUser: (user: User) => void;
+    displayMode: 'cost' | 'credits';
 }
 
 const AccessibleBar = (props: any) => {
@@ -79,8 +80,7 @@ const CustomTooltip = ({ active, payload, label, displayMode }: any) => {
 };
 
 
-const BigScreenView: React.FC<BigScreenViewProps> = ({ widget, accounts, users, onClose, onSelectAccount, onSelectUser }) => {
-    const [displayMode, setDisplayMode] = useState<'cost' | 'credits'>('cost');
+const BigScreenView: React.FC<BigScreenViewProps> = ({ widget, accounts, users, onClose, onSelectAccount, onSelectUser, displayMode }) => {
 
     const handleBarClick = (data: any) => {
         const account = accounts.find(acc => acc.id === data.id);
@@ -277,26 +277,6 @@ const BigScreenView: React.FC<BigScreenViewProps> = ({ widget, accounts, users, 
             <header className="flex justify-between items-center mb-4 flex-shrink-0">
                 <h2 id="big-screen-title" className="text-xl font-bold text-text-primary">{widget.title}</h2>
                 <div className="flex items-center gap-4">
-                    <div className="bg-gray-200 rounded-full p-1 flex items-center" aria-label="Switch between Cost and Credits view">
-                        <button
-                            onClick={() => setDisplayMode('cost')}
-                            aria-pressed={displayMode === 'cost'}
-                            className={`px-4 py-1 text-sm font-semibold rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-                                displayMode === 'cost' ? 'bg-white shadow text-text-primary' : 'text-text-secondary'
-                            }`}
-                        >
-                            Cost
-                        </button>
-                        <button
-                            onClick={() => setDisplayMode('credits')}
-                            aria-pressed={displayMode === 'credits'}
-                            className={`px-4 py-1 text-sm font-semibold rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-                                displayMode === 'credits' ? 'bg-white shadow text-text-primary' : 'text-text-secondary'
-                            }`}
-                        >
-                            Credits
-                        </button>
-                    </div>
                     <button onClick={onClose} className="p-2 rounded-full hover:bg-surface-hover" aria-label="Close full-screen view">
                         <IconClose className="h-6 w-6 text-text-secondary" />
                     </button>

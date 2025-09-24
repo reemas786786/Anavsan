@@ -9,34 +9,101 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --color-primary: #6932D5;
+        --color-primary-hover: #5A28BE;
+        --color-background: #F4F1F9;
+        --color-sidebar-topbar: #150A2B;
+        --color-surface: #FFFFFF;
+        --color-surface-hover: #F1EDF9;
+        --color-surface-nested: #F9F7FE;
+        --color-border-color: #E2DDEB;
+        --color-border-light: #EAE6F2;
+        --color-text-primary: #1E1E2D;
+        --color-text-secondary: #5A5A72;
+        --color-text-muted: #9A9AB2;
+        --color-text-strong: #161616;
+        --color-link: #0F62FE;
+        --color-input-bg: #FFFFFF;
+        --color-status-success: #16A34A;
+        --color-status-success-light: #D1FAE5;
+        --color-status-success-dark: #059669;
+        --color-status-warning: #F59E0B;
+        --color-status-warning-light: #FEF3C7;
+        --color-status-warning-dark: #92400E;
+        --color-status-error: #DC2626;
+        --color-status-error-light: #FEE2E2;
+        --color-status-error-dark: #991B1B;
+        --color-status-info: #2563EB;
+        --color-status-info-light: #DBEAFE;
+        --color-status-info-dark: #1E40AF;
+        --color-status-paused: #06B6D4;
+        --color-status-paused-light: #CFFAFE;
+        --color-status-paused-dark: #0E7490;
+      }
+      .dark {
+        --color-primary: #8B5CF6;
+        --color-primary-hover: #7C3AED;
+        --color-background: #111827;
+        --color-sidebar-topbar: #1F2937;
+        --color-surface: #1F2937;
+        --color-surface-hover: #374151;
+        --color-surface-nested: #1a222f;
+        --color-border-color: #374151;
+        --color-border-light: #4B5563;
+        --color-text-primary: #F3F4F6;
+        --color-text-secondary: #9CA3AF;
+        --color-text-muted: #6B7280;
+        --color-text-strong: #FFFFFF;
+        --color-link: #60A5FA;
+        --color-input-bg: #374151;
+        --color-status-success: #22C55E;
+        --color-status-success-light: #1F2937;
+        --color-status-success-dark: #4ADE80;
+        --color-status-warning: #FBBF24;
+        --color-status-warning-light: #1F2937;
+        --color-status-warning-dark: #FACC15;
+        --color-status-error: #F87171;
+        --color-status-error-light: #1F2937;
+        --color-status-error-dark: #FCA5A5;
+        --color-status-info: #60A5FA;
+        --color-status-info-light: #1F2937;
+        --color-status-info-dark: #93C5FD;
+        --color-status-paused: #22D3EE;
+        --color-status-paused-light: #1F2937;
+        --color-status-paused-dark: #67E8F9;
+      }
+    </style>
     <script>
       tailwind.config = {
+        darkMode: 'class',
         theme: {
           extend: {
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
             },
             colors: {
-              'primary': '#6932D5',
-              'primary-hover': '#5A28BE',
-              'background': '#F8F8FC',
-              'sidebar-topbar': '#150A2B',
-              'surface': '#FFFFFF',
-              'surface-hover': '#F3F0FA',
-              'surface-nested': '#F9F7FE',
-              'border-color': '#E5E5E0',
-              'border-light': '#E0E0E0',
-              'text-primary': '#1E1E2D',
-              'text-secondary': '#5A5A72',
-              'text-muted': '#9A9AB2',
-              'text-strong': '#161616',
-              'link': '#0F62FE',
-              'input-bg': '#F4F4F4',
-              'status-success': { DEFAULT: '#16A34A', light: '#D1FAE5', dark: '#059669' },
-              'status-warning': { DEFAULT: '#F59E0B', light: '#FEF3C7', dark: '#92400E' },
-              'status-error':   { DEFAULT: '#DC2626', light: '#FEE2E2', dark: '#991B1B' },
-              'status-info':    { DEFAULT: '#2563EB', light: '#DBEAFE', dark: '#1E40AF' },
-              'status-paused':  { DEFAULT: '#06B6D4', light: '#CFFAFE', dark: '#0E7490' },
+              'primary': 'var(--color-primary)',
+              'primary-hover': 'var(--color-primary-hover)',
+              'background': 'var(--color-background)',
+              'sidebar-topbar': 'var(--color-sidebar-topbar)',
+              'surface': 'var(--color-surface)',
+              'surface-hover': 'var(--color-surface-hover)',
+              'surface-nested': 'var(--color-surface-nested)',
+              'border-color': 'var(--color-border-color)',
+              'border-light': 'var(--color-border-light)',
+              'text-primary': 'var(--color-text-primary)',
+              'text-secondary': 'var(--color-text-secondary)',
+              'text-muted': 'var(--color-text-muted)',
+              'text-strong': 'var(--color-text-strong)',
+              'link': 'var(--color-link)',
+              'input-bg': 'var(--color-input-bg)',
+              'status-success': { DEFAULT: 'var(--color-status-success)', light: 'var(--color-status-success-light)', dark: 'var(--color-status-success-dark)' },
+              'status-warning': { DEFAULT: 'var(--color-status-warning)', light: 'var(--color-status-warning-light)', dark: 'var(--color-status-warning-dark)' },
+              'status-error':   { DEFAULT: 'var(--color-status-error)', light: 'var(--color-status-error-light)', dark: 'var(--color-status-error-dark)' },
+              'status-info':    { DEFAULT: 'var(--color-status-info)', light: 'var(--color-status-info-light)', dark: 'var(--color-status-info-dark)' },
+              'status-paused':  { DEFAULT: 'var(--color-status-paused)', light: 'var(--color-status-paused-light)', dark: 'var(--color-status-paused-dark)' },
             }
           },
         },

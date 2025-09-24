@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import {
@@ -13,7 +14,7 @@ import InfoTooltip from '../components/InfoTooltip';
 
 // Widget Card wrapper for consistent styling
 const WidgetCard: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className = '' }) => (
-    <div className={`bg-surface rounded-3xl shadow-sm border border-border-color p-4 break-inside-avoid mb-4 flex flex-col ${className}`}>
+    <div className={`bg-surface rounded-3xl border border-border-color p-4 break-inside-avoid mb-4 flex flex-col ${className}`}>
         {children}
     </div>
 );
@@ -60,7 +61,7 @@ const TotalStorageWidget: React.FC<WidgetProps> = ({ handleMenuClick, openMenu, 
                     <IconDotsVertical className="h-5 w-5" />
                 </button>
                  {openMenu === 'total-storage' && (
-                    <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                    <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg bg-surface border border-border-color z-10">
                         <div className="py-1" role="menu" aria-orientation="vertical">
                             <button onClick={() => {}} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
                         </div>
@@ -100,7 +101,7 @@ const StorageCostWidget: React.FC<WidgetProps> = ({ handleMenuClick, openMenu, m
                     <IconDotsVertical className="h-5 w-5" />
                 </button>
                  {openMenu === 'storage-cost' && (
-                    <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                    <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg bg-surface border border-border-color z-10">
                         <div className="py-1" role="menu" aria-orientation="vertical">
                              <button onClick={() => {}} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
                         </div>
@@ -179,7 +180,7 @@ const StorageAnalysisTableWidget: React.FC<WidgetProps> = ({ handleMenuClick, op
                         <IconDotsVertical className="h-5 w-5" />
                     </button>
                     {openMenu === 'storage-table' && (
-                         <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                         <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg bg-surface border border-border-color z-10">
                             <div className="py-1" role="menu" aria-orientation="vertical">
                                 <button onClick={() => {}} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
                             </div>
@@ -249,7 +250,7 @@ const StorageGrowthTrendsWidget: React.FC<WidgetProps> = ({ handleMenuClick, ope
                     <IconDotsVertical className="h-5 w-5" />
                  </button>
                  {openMenu === 'storage-growth' && (
-                     <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                     <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg bg-surface border border-border-color z-10">
                         <div className="py-1" role="menu" aria-orientation="vertical">
                             <button onClick={() => {}} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
                         </div>

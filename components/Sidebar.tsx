@@ -137,7 +137,7 @@ const NavItem: React.FC<{
 
             {hasSubItems && (
                 <div 
-                    className={`absolute left-full top-0 w-60 bg-surface rounded-lg shadow-lg border border-border-color p-2 z-31 transition-all duration-200 ease-in-out ${isSubMenuOpen ? 'opacity-100 translate-x-0 visible' : 'opacity-0 -translate-x-4 invisible'}`}
+                    className={`absolute left-full top-0 w-60 bg-surface rounded-lg shadow-lg p-2 z-31 transition-all duration-200 ease-in-out ${isSubMenuOpen ? 'opacity-100 translate-x-0 visible' : 'opacity-0 -translate-x-4 invisible'}`}
                     onMouseEnter={showSubMenu}
                     onMouseLeave={hideSubMenu}
                     aria-hidden={!isSubMenuOpen}
@@ -270,7 +270,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
                             ))}
                         </ul>
                         <div className="mt-auto">
-                             <div className="border-t border-border-light my-2 mx-4"></div>
+                             <div className="my-2 mx-4"></div>
                              <ul className="space-y-2">
                                 {NAV_ITEMS_BOTTOM.map((item) => (
                                     <NavItem 
@@ -289,7 +289,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
 
             {/* --- COMPACT SIDEBAR (Desktop only) --- */}
             {showCompact && (
-                <aside className="hidden md:flex flex-col w-12 bg-surface border-r border-border-color items-center py-4">
+                <aside className="hidden md:flex flex-col w-12 bg-surface items-center py-4">
                     <nav className="flex flex-col items-center h-full">
                         <ul className="list-none space-y-2">
                             {NAV_ITEMS_TOP.map((item) => (
