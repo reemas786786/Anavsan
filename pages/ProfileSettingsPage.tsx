@@ -13,7 +13,7 @@ interface ProfileSettingsPageProps {
 }
 
 const ProfileCard: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-    <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm break-inside-avoid mb-4">
+    <div className="bg-surface p-4 rounded-3xl break-inside-avoid mb-4">
         <h3 className="text-lg font-semibold text-text-strong mb-4">{title}</h3>
         {children}
     </div>

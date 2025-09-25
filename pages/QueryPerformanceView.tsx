@@ -57,7 +57,7 @@ export const SimilarQueryPatternsView: React.FC = () => {
         const queriesForPattern = similarQueriesData.filter(q => q.pattern === viewingDetailsOf);
         return (
             <div className="space-y-4">
-                <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm">
+                <div className="bg-surface p-4 rounded-3xl">
                     <div className="flex justify-between items-center mb-4">
                         <div className="flex items-center gap-2">
                             <h2 className="text-base font-semibold text-text-strong">Queries for pattern:</h2>
@@ -98,7 +98,7 @@ export const SimilarQueryPatternsView: React.FC = () => {
 
     return (
         <div className="space-y-4">
-            <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm">
+            <div className="bg-surface p-4 rounded-3xl">
                 <h2 className="text-base font-semibold text-text-strong mb-4">Similar query patterns</h2>
                  <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-text-secondary">
@@ -184,7 +184,7 @@ const QueryPerformanceView: React.FC = () => {
 
     return (
         <div className="space-y-4">
-            <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm">
+            <div className="bg-surface p-4 rounded-3xl">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-base font-semibold text-text-strong">Similar queries</h2>
                     <div className="relative w-full max-w-sm">

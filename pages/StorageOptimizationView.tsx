@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import {
@@ -14,7 +13,7 @@ import InfoTooltip from '../components/InfoTooltip';
 
 // Widget Card wrapper for consistent styling
 const WidgetCard: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className = '' }) => (
-    <div className={`bg-surface rounded-3xl border border-border-color p-4 break-inside-avoid mb-4 flex flex-col ${className}`}>
+    <div className={`bg-surface rounded-3xl p-4 break-inside-avoid mb-4 flex flex-col ${className}`}>
         {children}
     </div>
 );

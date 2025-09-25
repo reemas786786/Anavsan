@@ -75,7 +75,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEdi
                 </button>
             </div>
 
-            <div className="bg-surface p-4 rounded-3xl border border-border-color shadow-sm">
+            <div className="bg-surface p-4 rounded-3xl">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-text-secondary">
                         <thead className="bg-background text-xs text-text-secondary uppercase font-medium">

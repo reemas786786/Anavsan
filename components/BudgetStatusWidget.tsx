@@ -3,7 +3,7 @@ import { IconExclamationTriangle } from '../constants';
 import InfoTooltip from './InfoTooltip';
 
 const Card: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className }) => (
-    <div className={`bg-surface p-4 rounded-3xl border border-border-color shadow-sm break-inside-avoid mb-4 ${className}`}>
+    <div className={`bg-surface p-4 rounded-3xl break-inside-avoid mb-4 ${className}`}>
         {children}
     </div>
 );

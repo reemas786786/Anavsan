@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { queryListData as initialData, warehousesData } from '../data/dummyData';
 import { QueryListItem, QueryType } from '../types';
@@ -7,7 +6,7 @@ import Modal from '../components/Modal';
 import TimeRangeFilter, { TimeRange } from '../components/TimeRangeFilter';
 
 const MetricCard: React.FC<{ title: string; value: string; valueColor?: string }> = ({ title, value, valueColor = 'text-text-primary' }) => (
-    <div className="bg-surface p-4 rounded-3xl border border-border-color break-inside-avoid mb-4">
+    <div className="bg-surface p-4 rounded-3xl break-inside-avoid mb-4">
         <h4 className="text-sm font-medium text-text-secondary">{title}</h4>
         <p className={`text-2xl font-bold mt-2 ${valueColor}`}>{value}</p>
     </div>
@@ -140,7 +139,7 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onShareQuery }) => {
     return (
         <div className="flex gap-4 h-[calc(100vh-140px)]">
             {/* Filter Panel */}
-            <aside className={`bg-surface rounded-3xl border border-border-color p-4 flex flex-col transition-all duration-300 ${isFilterPanelCollapsed ? 'w-16' : 'w-80'}`}>
+            <aside className={`bg-surface rounded-3xl p-4 flex flex-col transition-all duration-300 ${isFilterPanelCollapsed ? 'w-16' : 'w-80'}`}>
                 <div className="flex items-center justify-between mb-4">
                     {!isFilterPanelCollapsed && <h3 className="text-base font-semibold text-text-strong">Filters</h3>}
                     <button onClick={() => setIsFilterPanelCollapsed(!isFilterPanelCollapsed)} className="p-1 rounded-full hover:bg-surface-hover">
@@ -206,7 +205,7 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onShareQuery }) => {
                     <MetricCard title="Failed" value={failedQueries.toLocaleString()} valueColor="text-status-error" />
                 </div>
                 
-                <div className="bg-surface rounded-3xl border border-border-color flex-1 flex flex-col overflow-hidden">
+                <div className="bg-surface rounded-3xl flex-1 flex flex-col overflow-hidden">
                     <div className="p-4 flex justify-end relative" ref={exportMenuRef}>
                         <button onClick={() => setIsExportMenuOpen(!isExportMenuOpen)} className="px-4 py-2 text-sm font-semibold text-text-primary bg-background border border-border-color rounded-full flex items-center gap-2">
                             Export <IconChevronDown className="h-4 w-4" />

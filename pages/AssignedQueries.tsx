@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { AssignedQuery, AssignmentStatus, AssignmentPriority } from '../types';
 import { IconDotsVertical } from '../constants';
@@ -45,7 +44,7 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUp
         <div className="space-y-4">
             <h1 className="text-2xl font-bold text-text-primary">Assigned Queries for Optimization</h1>
 
-            <div className="bg-surface p-4 rounded-3xl border border-border-color">
+            <div className="bg-surface p-4 rounded-3xl">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-text-secondary">
                         <thead className="bg-background text-xs text-text-secondary uppercase font-medium">
