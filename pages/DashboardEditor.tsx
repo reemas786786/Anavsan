@@ -1,8 +1,11 @@
-import React, { useState, useMemo, useRef } from 'react';
+
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { DashboardItem, Widget, Account, WidgetType } from '../types';
-import { availableWidgetsData } from '../data/dummyData';
-import { IconAdd, IconSearch, IconClose, IconChevronDown } from '../constants';
+import { availableWidgetsData, overviewMetrics, accountSpend, costBreakdownData, accountCostBreakdown, warehousesData } from '../data/dummyData';
+import { IconAdd, IconSearch, IconClose, IconChevronDown, IconChevronLeft, IconDotsVertical, IconEdit, IconDelete } from '../constants';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import StatCard from '../components/StatCard';
+
 
 const dummyLineData = [
     { name: 'Jan', value: Math.random() * 100 },
@@ -95,7 +98,7 @@ const DummyTable: React.FC = () => (
     </div>
 );
 
-const WidgetRenderer: React.FC<{type: WidgetType}> = ({ type }) => {
+const WidgetPreviewRenderer: React.FC<{type: WidgetType}> = ({ type }) => {
     switch(type) {
         case 'LineChart':
             return <DummyLineChart />;
@@ -111,6 +114,107 @@ const WidgetRenderer: React.FC<{type: WidgetType}> = ({ type }) => {
             return <div className="text-xs text-text-muted">Preview not available</div>;
     }
 }
+
+const RealTotalSpend: React.FC<{ dataSource: Widget['dataSource'] }> = ({ dataSource }) => {
+    const isOverall = dataSource.type === 'overall';
+    // FIX: Use optional chaining to safely access nested properties, preventing potential runtime errors if `cost` or `monthly` are undefined.
+    const metric = isOverall ? overviewMetrics.cost : accountSpend?.cost;
+    
+    // FIX: Use a type guard to safely access properties on the metric union type.
+    let value = 0;
+    if (metric) {
+        if ('current' in metric) {
+            value = metric.current;
+        } else if ('monthly' in metric) {
+            value = metric.monthly;
+        }
+    }
+    
+    return (
+        <div className="p-4 h-full flex flex-col justify-center">
+            <p className="text-text-secondary text-sm">
+                {isOverall ? 'Total Current Spend' : 'Account Current Spend'}
+            </p>
+            <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
+                ${value.toLocaleString()}
+            </div>
+        </div>
+    );
+};
+
+const RealSpendBreakdown: React.FC<{ dataSource: Widget['dataSource'] }> = ({ dataSource }) => {
+    const data = dataSource.type === 'account' ? accountCostBreakdown : costBreakdownData;
+    const totalSpend = dataSource.type === 'account' ? accountSpend.cost.monthly : overviewMetrics.cost.current;
+
+    return (
+        <div className="space-y-2 p-2 h-full flex flex-col">
+            {data.map(item => {
+                const chartData = [{ value: item.percentage }, { value: 100 - item.percentage }];
+                const value = item.cost;
+                return (
+                    <div key={item.name} className="flex items-center justify-between gap-2">
+                        <div className="bg-surface-nested p-2 rounded-xl flex-grow">
+                            <p className="text-text-secondary text-xs">{item.name}</p>
+                            <div className="text-lg leading-tight font-bold text-text-primary mt-1 flex items-baseline">
+                                ${value.toLocaleString()}
+                            </div>
+                        </div>
+                        <div className="flex-shrink-0">
+                            <div className="relative h-[50px] w-[50px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie data={chartData} dataKey="value" innerRadius="70%" outerRadius="100%" startAngle={90} endAngle={-270} cy="50%" cx="50%" stroke="none">
+                                            <Cell fill={item.color} />
+                                            <Cell fill="var(--color-border-light)" />
+                                        </Pie>
+                                    </ResponsiveContainer>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <span className="text-sm font-bold text-text-primary">{item.percentage}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    );
+            })}
+             <div className="text-center mt-auto pt-2 flex items-baseline justify-center text-xs">
+                <span className="text-text-secondary mr-1">Total:</span>
+                <span className="font-semibold text-text-primary">${totalSpend.toLocaleString()}</span>
+            </div>
+        </div>
+    );
+};
+
+const RealCostByWarehouse: React.FC<{ dataSource: Widget['dataSource'] }> = ({ dataSource }) => {
+    const topWarehouses = [...warehousesData].sort((a, b) => b.cost - a.cost).slice(0, 5);
+    return (
+         <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={topWarehouses} margin={{ top: 15, right: 15, bottom: 5, left: -10 }}>
+                <XAxis dataKey="name" fontSize={12} stroke="var(--color-text-muted)" axisLine={false} tickLine={false} />
+                <YAxis fontSize={12} stroke="var(--color-text-muted)" axisLine={false} tickLine={false} />
+                <Tooltip
+                    contentStyle={{ fontSize: '12px', padding: '4px 10px', borderRadius: '8px', border: '1px solid var(--color-border-light)' }} 
+                    formatter={(value: number) => [`$${value.toLocaleString()}`, 'Cost']}
+                    cursor={{fill: 'var(--color-surface-hover)'}}
+                />
+                <Bar dataKey="cost" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
+            </BarChart>
+        </ResponsiveContainer>
+    );
+};
+
+
+const DashboardWidgetRenderer: React.FC<{ widget: Widget }> = ({ widget }) => {
+    switch (widget.widgetId) {
+        case 'total-spend':
+            return <RealTotalSpend dataSource={widget.dataSource} />;
+        case 'spend-breakdown':
+            return <RealSpendBreakdown dataSource={widget.dataSource} />;
+        case 'cost-by-warehouse':
+            return <RealCostByWarehouse dataSource={widget.dataSource} />;
+        default:
+            return <WidgetPreviewRenderer type={widget.type} />;
+    }
+};
 
 const ToggleSwitch: React.FC<{ enabled: boolean; onChange: (enabled: boolean) => void }> = ({ enabled, onChange }) => (
     <button
@@ -137,9 +241,14 @@ interface DashboardEditorProps {
     accounts: Account[];
     onSave: (dashboard: DashboardItem) => void;
     onCancel: () => void;
+    isViewMode?: boolean;
+    allDashboards?: DashboardItem[];
+    onSwitchDashboard?: (dashboard: DashboardItem) => void;
+    onEditDashboard?: () => void;
+    onDeleteDashboard?: () => void;
 }
 
-const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, onSave, onCancel }) => {
+const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, onSave, onCancel, isViewMode = false, allDashboards = [], onSwitchDashboard, onEditDashboard, onDeleteDashboard }) => {
     const [editedDashboard, setEditedDashboard] = useState<DashboardItem>(
         dashboard || {
             id: `temp-${Date.now()}`,
@@ -150,15 +259,38 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
             dataSourceContext: { type: 'overall' },
         }
     );
+    
+    useEffect(() => {
+        if (dashboard) {
+            setEditedDashboard(dashboard);
+        }
+    }, [dashboard]);
 
     const [searchTerm, setSearchTerm] = useState('');
-    const [isEditMode, setIsEditMode] = useState(true);
+    const [isPreview, setIsPreview] = useState(isViewMode);
+    const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
+    const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
     const [activeFilter, setActiveFilter] = useState<string>('All');
     const [isAggregated, setIsAggregated] = useState(true);
     const [selectedAccountForNewWidgets, setSelectedAccountForNewWidgets] = useState(accounts.length > 0 ? accounts[0].id : '');
     
     const dragItem = useRef<number | null>(null);
     const dragOverItem = useRef<number | null>(null);
+    const switcherRef = useRef<HTMLDivElement>(null);
+    const headerMenuRef = useRef<HTMLDivElement>(null);
+
+     useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (switcherRef.current && !switcherRef.current.contains(event.target as Node)) {
+                setIsSwitcherOpen(false);
+            }
+            if (headerMenuRef.current && !headerMenuRef.current.contains(event.target as Node)) {
+                setIsHeaderMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setEditedDashboard(prev => ({ ...prev, title: e.target.value }));
@@ -236,27 +368,100 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
     return (
         <div className="flex flex-col bg-background">
             {/* Header */}
-            <header className="bg-surface px-6 py-3 flex items-center justify-between flex-shrink-0">
-                <div>
-                    <input type="text" value={editedDashboard.title} onChange={handleTitleChange} className="text-xl font-bold bg-transparent focus:outline-none focus:ring-1 focus:ring-primary rounded-md -ml-2 px-2 py-1" placeholder="Dashboard Title" />
-                    <input type="text" value={editedDashboard.description} onChange={handleDescriptionChange} className="text-sm text-text-secondary w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-primary rounded-md -ml-2 px-2" placeholder="Dashboard description (optional)" />
-                </div>
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                        <span className={`text-sm font-medium ${isEditMode ? 'text-text-primary' : 'text-text-muted'}`}>Edit</span>
-                        <ToggleSwitch enabled={isEditMode} onChange={setIsEditMode} />
+            <header className="p-4 flex items-center justify-between flex-shrink-0">
+                {isViewMode && editedDashboard ? (
+                    <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2">
+                             <button onClick={onCancel} className="p-2 rounded-full text-text-secondary hover:bg-surface-hover" aria-label="Back to dashboards">
+                                <IconChevronLeft className="h-6 w-6" />
+                            </button>
+                            <div className="relative" ref={switcherRef}>
+                                <button
+                                    onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
+                                    className="flex items-center gap-2 p-2 -m-2 rounded-lg hover:bg-surface-hover"
+                                    aria-haspopup="true"
+                                    aria-expanded={isSwitcherOpen}
+                                >
+                                    <h1 className="text-2xl font-bold text-sidebar-topbar">{editedDashboard.title}</h1>
+                                    <IconChevronDown className={`h-5 w-5 text-text-secondary transition-transform ${isSwitcherOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                                {isSwitcherOpen && (
+                                    <div className="origin-top-left absolute left-0 mt-2 w-72 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-20">
+                                        <div className="py-1" role="menu" aria-orientation="vertical">
+                                            {allDashboards
+                                                .filter(d => d.id !== editedDashboard.id)
+                                                .map(d => (
+                                                <button
+                                                    key={d.id}
+                                                    onClick={() => { onSwitchDashboard?.(d); setIsSwitcherOpen(false); }}
+                                                    className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover"
+                                                    role="menuitem"
+                                                >
+                                                    {d.title}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <div className="relative" ref={headerMenuRef}>
+                            <button
+                                onClick={() => setIsHeaderMenuOpen(!isHeaderMenuOpen)}
+                                className="p-2 rounded-full text-text-secondary hover:bg-surface-hover"
+                                aria-label="Dashboard actions"
+                                aria-haspopup="true"
+                                aria-expanded={isHeaderMenuOpen}
+                            >
+                                <IconDotsVertical className="h-6 w-6" />
+                            </button>
+                            {isHeaderMenuOpen && (
+                                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-20">
+                                    <div className="py-1" role="menu" aria-orientation="vertical">
+                                        <button
+                                            onClick={() => { onEditDashboard?.(); setIsHeaderMenuOpen(false); }}
+                                            className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover"
+                                            role="menuitem"
+                                        >
+                                            <IconEdit className="h-4 w-4" /> Edit
+                                        </button>
+                                        <button
+                                            onClick={() => { onDeleteDashboard?.(); setIsHeaderMenuOpen(false); }}
+                                            className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-status-error hover:bg-status-error/10"
+                                            role="menuitem"
+                                        >
+                                           <IconDelete className="h-4 w-4" /> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                    <div className="h-6 w-px bg-border-color"></div>
-                    <button onClick={onCancel} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-gray-50">Cancel</button>
-                    <button onClick={handleSave} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full shadow-sm">Save Dashboard</button>
-                </div>
+                ) : (
+                    <div className="bg-surface rounded-3xl p-4 flex-grow">
+                        <input type="text" value={editedDashboard.title} onChange={handleTitleChange} className="text-xl font-bold bg-transparent focus:outline-none focus:ring-1 focus:ring-primary rounded-md -ml-2 px-2 py-1" placeholder="Dashboard Title" />
+                        <input type="text" value={editedDashboard.description} onChange={handleDescriptionChange} className="text-sm text-text-secondary w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-primary rounded-md -ml-2 px-2" placeholder="Dashboard description (optional)" />
+                    </div>
+                )}
+                
+                {!isViewMode && (
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <span className={`text-sm font-medium ${!isPreview ? 'text-text-muted' : 'text-text-primary'}`}>Preview</span>
+                            <ToggleSwitch enabled={isPreview} onChange={setIsPreview} />
+                        </div>
+                        <div className="h-6 w-px bg-border-color"></div>
+                        <button onClick={onCancel} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-gray-50">Cancel</button>
+                        <button onClick={handleSave} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full shadow-sm">Save Dashboard</button>
+                    </div>
+                )}
             </header>
             
             {/* Main Content */}
-            <div className={`flex-1 grid grid-cols-1 ${isEditMode ? 'lg:grid-cols-12' : ''} gap-4 p-4`}>
+            <div className={`flex-1 grid grid-cols-1 ${!isPreview ? 'lg:grid-cols-12' : ''} gap-4 p-4`}>
                 {/* Left Panel: Widget Library */}
-                {isEditMode && (
-                    <aside className="lg:col-span-4 xl:col-span-3 bg-surface rounded-3xl p-4 flex flex-col self-start sticky top-4 max-h-[calc(100vh-80px)]">
+                {!isPreview && (
+                    <aside className="lg:col-span-4 xl:col-span-3 bg-white rounded-3xl p-4 flex flex-col self-start sticky top-4 max-h-[calc(100vh-80px)]">
                         <h3 className="text-lg font-semibold text-text-strong mb-4 px-2">Select views</h3>
                         
                         <div className="flex flex-col space-y-4 px-2 flex-shrink-0">
@@ -313,7 +518,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                                     <div key={widget.widgetId} className="bg-background p-4 rounded-2xl flex flex-col gap-3">
                                         <div className="w-full h-24 object-cover rounded-lg bg-white overflow-hidden relative">
                                             <div className="transform scale-[0.6] origin-top-left w-[166.66%] h-[166.66%]">
-                                                <WidgetRenderer type={widget.type} />
+                                                <WidgetPreviewRenderer type={widget.type} />
                                             </div>
                                             <div className="absolute inset-0 bg-transparent"></div>
                                         </div>
@@ -336,8 +541,8 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                 )}
 
                 {/* Right Panel: Dashboard Canvas */}
-                <main className={`${isEditMode ? 'lg:col-span-8 xl:col-span-9' : 'col-span-1'} bg-background rounded-3xl p-4`}>
-                    <h3 className="text-lg font-semibold text-text-strong mb-4 px-2">Layout</h3>
+                <main className={`${!isPreview ? 'lg:col-span-8 xl:col-span-9' : 'col-span-1'}`}>
+                    {!isViewMode && <h3 className="text-lg font-semibold text-text-strong mb-4 px-2">Layout</h3>}
                     {editedDashboard.widgets.length > 0 ? (
                        <div className="columns-1 md:columns-2 gap-4">
                             {editedDashboard.widgets.map((widget, index) => {
@@ -347,16 +552,16 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                                 return (
                                 <div
                                     key={widget.id}
-                                    className={`bg-surface rounded-3xl flex flex-col group p-4 relative break-inside-avoid mb-4 ${isEditMode ? 'cursor-move' : ''}`}
-                                    draggable={isEditMode}
-                                    onDragStart={isEditMode ? () => (dragItem.current = index) : undefined}
-                                    onDragEnter={isEditMode ? () => (dragOverItem.current = index) : undefined}
-                                    onDragEnd={isEditMode ? handleDragSort : undefined}
-                                    onDragOver={isEditMode ? (e) => e.preventDefault() : undefined}
+                                    className={`bg-surface rounded-3xl flex flex-col group p-4 relative break-inside-avoid mb-4 ${!isPreview ? 'cursor-move' : ''}`}
+                                    draggable={!isPreview}
+                                    onDragStart={!isPreview ? () => (dragItem.current = index) : undefined}
+                                    onDragEnter={!isPreview ? () => (dragOverItem.current = index) : undefined}
+                                    onDragEnd={!isPreview ? handleDragSort : undefined}
+                                    onDragOver={!isPreview ? (e) => e.preventDefault() : undefined}
                                 >
                                     <div className="flex items-start justify-between">
                                         <h4 className="text-base font-semibold text-text-strong pr-6">{widget.title}</h4>
-                                        {isEditMode && (
+                                        {!isPreview && (
                                             <button onClick={() => handleRemoveWidget(widget.id)} className="absolute top-3 right-3 p-1 rounded-full text-text-muted hover:bg-gray-200 hover:text-status-error opacity-0 group-hover:opacity-100 transition-opacity z-10" aria-label="Remove widget">
                                                 <IconClose className="w-5 h-5" />
                                             </button>
@@ -364,8 +569,8 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                                     </div>
                                     <p className="text-sm text-text-secondary mt-1">{widget.description}</p>
                                     <div className="flex-grow min-h-[200px] mt-4 rounded-2xl relative">
-                                        <WidgetRenderer type={widget.type} />
-                                        <div className="absolute bottom-0 left-0 text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full font-medium z-10">
+                                        <DashboardWidgetRenderer widget={widget} />
+                                        <div className="absolute bottom-1 right-2 text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full font-medium z-10">
                                             {dataSourceText}
                                         </div>
                                     </div>
@@ -375,7 +580,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                     ) : (
                         <div className="h-full flex flex-col items-center justify-center text-center text-text-secondary border-2 border-dashed border-border-color rounded-2xl">
                             <h3 className="text-lg font-semibold">Drag or Add views here</h3>
-                            <p className="max-w-xs">Your dashboard is currently empty. Choose a view from the left panel to get started.</p>
+                            {!isPreview && <p className="max-w-xs">Your dashboard is currently empty. Choose a view from the left panel to get started.</p>}
                         </div>
                     )}
                 </main>

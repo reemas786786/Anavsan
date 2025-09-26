@@ -220,7 +220,8 @@ const BigScreenView: React.FC<BigScreenViewProps> = ({ widget, accounts, users, 
                             <div className="relative w-64 h-64">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
-                                        <Pie data={storageByTypeChartData} dataKey="storageGB" nameKey="type" cx="50%" cy="50%" innerRadius="65%" outerRadius="85%" fill="#8884d8" paddingAngle={5} stroke="none">
+                                        {/* FIX: Mapped data to resolve TypeScript error regarding index signatures in recharts. */}
+                                        <Pie data={storageByTypeChartData.map(item => ({...item}))} dataKey="storageGB" nameKey="type" cx="50%" cy="50%" innerRadius="65%" outerRadius="85%" fill="#8884d8" paddingAngle={5} stroke="none">
                                             {storageByTypeChartData.map((entry) => <Cell key={`cell-${entry.type}`} fill={entry.color} />)}
                                         </Pie>
                                         <Tooltip formatter={(value: number) => [`${value.toLocaleString()} GB`, 'Storage']} contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E0', borderRadius: '1rem' }} />

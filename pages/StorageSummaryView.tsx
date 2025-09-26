@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, Cell, PieChart, Pie } from 'recharts';
 import { storageSummaryData, storageGrowthData, databasesData, storageByTypeData } from '../data/dummyData';
@@ -192,7 +193,8 @@ const StorageSummaryView: React.FC<{ onSelectDatabase: (databaseId: string) => v
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
-                                        data={storageByTypeChartData}
+                                        // FIX: Mapped data to resolve TypeScript error regarding index signatures in recharts.
+                                        data={storageByTypeChartData.map(item => ({...item}))}
                                         dataKey="storageGB"
                                         nameKey="type"
                                         cx="50%"

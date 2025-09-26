@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -67,6 +68,7 @@ const App: React.FC = () => {
   const [dashboardToDelete, setDashboardToDelete] = useState<DashboardItem | null>(null);
   
   const [editingDashboard, setEditingDashboard] = useState<DashboardItem | 'new' | null>(null);
+  const [viewingDashboard, setViewingDashboard] = useState<DashboardItem | null>(null);
   const [bigScreenWidget, setBigScreenWidget] = useState<BigScreenWidget | null>(null);
 
   const [isProfileSettingsPageActive, setIsProfileSettingsPageActive] = useState(false);
@@ -119,6 +121,8 @@ const App: React.FC = () => {
     setSelectedAccount(null);
     setSelectedUser(null);
     setIsProfileSettingsPageActive(false);
+    setViewingDashboard(null);
+    setEditingDashboard(null);
     
     if (page === 'Settings') {
         setIsSettingsViewActive(true);
@@ -144,6 +148,8 @@ const App: React.FC = () => {
     setSelectedUser(null);
     setIsSettingsViewActive(false);
     setIsProfileSettingsPageActive(false);
+    setViewingDashboard(null);
+    setEditingDashboard(null);
     setIsSidebarOpen(false);
   }, []);
 
@@ -285,11 +291,17 @@ const App: React.FC = () => {
   const handleDeleteDashboard = (dashboardId: string) => {
       setDashboards(prevDashboards => prevDashboards.filter(d => d.id !== dashboardId));
       setDashboardToDelete(null);
+      if (viewingDashboard?.id === dashboardId) {
+          setViewingDashboard(null);
+      }
       showToast('Dashboard deleted successfully.');
   };
 
   const handleSaveDashboard = (dashboardToSave: DashboardItem) => {
-    if (dashboardToSave.id.startsWith('temp-')) {
+    const isNew = dashboardToSave.id.startsWith('temp-');
+    let savedDashboard = dashboardToSave;
+
+    if (isNew) {
         const newDashboard: DashboardItem = {
             ...dashboardToSave,
             id: `dash-${Date.now()}`,
@@ -302,13 +314,23 @@ const App: React.FC = () => {
                 hour12: true,
             }),
         };
+        savedDashboard = newDashboard;
         setDashboards(prev => [newDashboard, ...prev]);
         showToast('Dashboard created successfully!');
     } else {
         setDashboards(prev => prev.map(d => d.id === dashboardToSave.id ? dashboardToSave : d));
         showToast('Dashboard updated successfully!');
     }
+
     setEditingDashboard(null);
+
+    if (isNew) {
+        // For a new dashboard, return to the list view
+        setViewingDashboard(null);
+    } else {
+        // For an updated dashboard, show the view mode
+        setViewingDashboard(savedDashboard);
+    }
   };
 
   const handleUpdateUserProfile = (updatedUser: User) => {
@@ -408,9 +430,16 @@ const App: React.FC = () => {
               { label: selectedUser.name }
           ]
       }
+      
+      if (editingDashboard) {
+        return [
+            { label: 'Dashboards', onClick: () => setEditingDashboard(null) },
+            { label: (editingDashboard as DashboardItem)?.title || 'New Dashboard' }
+        ]
+      }
 
       return [];
-  }, [activePage, selectedAccount, activeAccountSubPage, selectedUser, isSettingsViewActive, activeSettingsSubPage, isProfileSettingsPageActive, activeProfileSubPage, handleLogoClick, handleBackToAccounts]);
+  }, [activePage, selectedAccount, activeAccountSubPage, selectedUser, isSettingsViewActive, activeSettingsSubPage, isProfileSettingsPageActive, activeProfileSubPage, handleLogoClick, handleBackToAccounts, viewingDashboard, editingDashboard]);
 
   const showBreadcrumb = breadcrumbItems.length > 0;
 
@@ -419,21 +448,37 @@ const App: React.FC = () => {
       case 'Data Cloud Overview':
         return <Overview onSelectAccount={handleSelectAccount} onSelectUser={handleSelectUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} displayMode={displayMode} />;
       case 'Dashboards':
-        return editingDashboard ? (
-            <DashboardEditor
-                dashboard={editingDashboard === 'new' ? null : editingDashboard}
-                onSave={handleSaveDashboard}
-                onCancel={() => setEditingDashboard(null)}
-                accounts={accounts}
-            />
-        ) : (
-            <Dashboards
-                dashboards={dashboards}
-                onDeleteDashboardClick={(dashboard) => setDashboardToDelete(dashboard)}
-                onAddDashboardClick={() => setEditingDashboard('new')}
-                onEditDashboardClick={(dashboard) => setEditingDashboard(dashboard)}
-            />
-        );
+        if (editingDashboard) {
+          return <DashboardEditor
+            dashboard={editingDashboard === 'new' ? null : editingDashboard}
+            onSave={handleSaveDashboard}
+            onCancel={() => setEditingDashboard(null)}
+            accounts={accounts}
+          />;
+        }
+        if (viewingDashboard) {
+          return <DashboardEditor
+            dashboard={viewingDashboard}
+            onSave={handleSaveDashboard}
+            onCancel={() => setViewingDashboard(null)}
+            accounts={accounts}
+            isViewMode={true}
+            allDashboards={dashboards}
+            onSwitchDashboard={setViewingDashboard}
+            onEditDashboard={() => {
+                setEditingDashboard(viewingDashboard);
+                setViewingDashboard(null);
+            }}
+            onDeleteDashboard={() => setDashboardToDelete(viewingDashboard)}
+          />;
+        }
+        return <Dashboards
+            dashboards={dashboards}
+            onDeleteDashboardClick={(dashboard) => setDashboardToDelete(dashboard)}
+            onAddDashboardClick={() => setEditingDashboard('new')}
+            onEditDashboardClick={(dashboard) => setEditingDashboard(dashboard)}
+            onViewDashboardClick={(dashboard) => setViewingDashboard(dashboard)}
+        />;
       case 'Snowflake Accounts':
         return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setActiveSidePanel({ type: 'addAccount' })} onDeleteAccount={handleDeleteAccount} />;
       case 'Assigned Queries':
@@ -504,7 +549,7 @@ const App: React.FC = () => {
                 activePage={activePage}
                 setActivePage={handlePageChange}
                 activeSettingsSubPage={activeSettingsSubPage}
-                showCompact={!isAccountView && !isSettingsViewActive && !isProfileSettingsPageActive}
+                showCompact={!isAccountView && !isSettingsViewActive && !isProfileSettingsPageActive && !editingDashboard && !viewingDashboard}
             />
             <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background">
               {selectedAccount ? (
@@ -549,7 +594,7 @@ const App: React.FC = () => {
                       onSectionChange={setActiveProfileSubPage}
                   />
               ) : (
-                  <div className={activePage === 'Dashboards' && editingDashboard ? '' : 'p-4'}>
+                  <div className={activePage === 'Dashboards' && (editingDashboard || viewingDashboard) ? '' : 'p-4'}>
                     {renderContent()}
                   </div>
               )}
