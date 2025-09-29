@@ -21,6 +21,7 @@ import {
     IconDatabase,
     IconCode,
     IconSummary,
+    IconCheck,
 } from '../constants';
 import QueryListView from './QueryListView';
 import StorageSummaryView from './StorageSummaryView';
@@ -310,17 +311,27 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                             }`}>
                                 <div className="text-xs font-semibold text-text-muted px-2 py-1 mb-1">Switch Account</div>
                                 <ul className="max-h-60 overflow-y-auto">
-                                    {accounts.map(acc => (
-                                        <li key={acc.id}>
-                                            <button
-                                                onClick={() => { onSwitchAccount(acc); setIsAccountSwitcherOpen(false); }}
-                                                className="w-full text-left flex items-center gap-2 p-2 rounded-lg text-sm font-medium hover:bg-[#e0e0e0] text-text-secondary hover:text-text-primary"
-                                            >
-                                                <AccountAvatar name={acc.name} />
-                                                <span className="truncate">{acc.name}</span>
-                                            </button>
-                                        </li>
-                                    ))}
+                                    {accounts.map(acc => {
+                                        const isActive = acc.id === account.id;
+                                        return (
+                                            <li key={acc.id}>
+                                                <button
+                                                    onClick={() => { onSwitchAccount(acc); setIsAccountSwitcherOpen(false); }}
+                                                    className={`w-full text-left flex items-center justify-between gap-2 p-2 rounded-lg text-sm font-medium transition-colors ${
+                                                        isActive
+                                                            ? 'bg-primary/10 text-primary font-semibold'
+                                                            : 'hover:bg-[#e0e0e0] text-text-secondary hover:text-text-primary'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center gap-2 overflow-hidden">
+                                                        <AccountAvatar name={acc.name} />
+                                                        <span className="truncate">{acc.name}</span>
+                                                    </div>
+                                                    {isActive && <IconCheck className="h-5 w-5 text-primary flex-shrink-0" />}
+                                                </button>
+                                            </li>
+                                        );
+                                    })}
                                 </ul>
                             </div>
                         )}

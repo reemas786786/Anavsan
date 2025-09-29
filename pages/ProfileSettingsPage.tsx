@@ -286,7 +286,7 @@ const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, onSave,
                 </div>
             </aside>
             <main className="flex-1 overflow-y-auto p-4">
-                <div className="max-w-4xl mx-auto space-y-4">
+                <div className="max-w-4xl space-y-4">
                     {renderContent()}
                 </div>
             </main>
