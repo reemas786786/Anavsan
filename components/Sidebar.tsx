@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useRef, useState } from 'react';
 import { NAV_ITEMS_TOP, NAV_ITEMS_BOTTOM } from '../constants';
 import { Page, NavItem as NavItemType, NavSubItem } from '../types';
@@ -10,7 +8,7 @@ interface SidebarProps {
   setActivePage: (page: Page, subPage?: string) => void;
   isOpen: boolean;
   onClose: () => void;
-  activeSettingsSubPage?: string;
+  activeSubPage?: string;
   showCompact: boolean;
 }
 
@@ -19,10 +17,10 @@ const SubMenuItem: React.FC<{
     subItem: NavSubItem;
     isActive: boolean;
     onClick: (page: Page, subPage?: string) => void;
-    activeSettingsSubPage?: string;
-}> = ({ item, subItem, isActive, onClick, activeSettingsSubPage }) => {
+    activeSubPage?: string;
+}> = ({ item, subItem, isActive, onClick, activeSubPage }) => {
     
-    const isSubItemActive = isActive && subItem.name === activeSettingsSubPage;
+    const isSubItemActive = isActive && subItem.name === activeSubPage;
 
     return (
         <li className="relative">
@@ -32,14 +30,13 @@ const SubMenuItem: React.FC<{
                     e.preventDefault();
                     onClick(item.name, subItem.name);
                 }}
-                className={`flex justify-between items-center relative w-full text-left rounded-md pl-8 pr-3 py-1.5 text-sm font-semibold transition-colors focus:outline-none focus:bg-input-bg focus:text-text-primary ${
+                className={`flex justify-between items-center relative w-full text-left rounded-md pl-8 pr-3 py-1.5 text-sm font-semibold transition-colors focus:outline-none focus:bg-[#e0e0e0] focus:text-text-primary ${
                     isSubItemActive
                         ? 'text-primary'
-                        : 'text-text-secondary hover:bg-input-bg hover:text-text-primary'
+                        : 'text-text-secondary hover:bg-[#e0e0e0] hover:text-text-primary'
                 }`}
                 role="menuitem"
             >
-                <span className={`absolute left-0 top-1/2 -translate-y-1/2 h-4 w-1 rounded-r-full bg-primary transition-opacity ${isSubItemActive ? 'opacity-100' : 'opacity-0'}`} />
                 <span>{subItem.name}</span>
             </a>
         </li>
@@ -50,8 +47,8 @@ const NavItem: React.FC<{
     item: NavItemType, 
     isActive: boolean,
     onClick: (page: Page, subPage?: string) => void,
-    activeSettingsSubPage?: string,
-}> = ({ item, isActive, onClick, activeSettingsSubPage }) => {
+    activeSubPage?: string,
+}> = ({ item, isActive, onClick, activeSubPage }) => {
     const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
     const itemRef = useRef<HTMLLIElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
@@ -122,14 +119,13 @@ const NavItem: React.FC<{
                 }}
                 className={`w-full group relative flex items-center justify-between rounded-md text-sm px-4 py-2 transition-colors duration-200
                     ${isActive
-                        ? 'bg-primary/10 text-primary font-semibold'
-                        : 'text-text-strong font-medium hover:bg-input-bg'}
+                        ? 'bg-[#F0EAFB] text-primary font-semibold'
+                        : 'text-text-strong font-medium hover:bg-[#e0e0e0]'}
                 `}
                 aria-haspopup={hasSubItems}
                 aria-expanded={isSubMenuOpen}
             >
                 <div className="flex items-center">
-                    <span className={`absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-primary transition-opacity ${isActive ? 'opacity-100' : 'opacity-0'}`} />
                     <item.icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-primary' : 'text-text-strong'}`} />
                     <span className="ml-3">{item.name}</span>
                 </div>
@@ -151,7 +147,136 @@ const NavItem: React.FC<{
                                 subItem={subItem}
                                 isActive={isActive}
                                 onClick={handleSubItemClick}
-                                activeSettingsSubPage={activeSettingsSubPage}
+                                activeSubPage={activeSubPage}
+                            />
+                        ))}
+                    </ul>
+                </div>
+            )}
+        </li>
+    );
+};
+
+const CompactSubMenuItem: React.FC<{
+    text: string;
+    onClick: () => void;
+    isActive: boolean;
+    isHeader?: boolean;
+}> = ({ text, onClick, isActive, isHeader = false }) => (
+    <li>
+        <a
+            href="#"
+            onClick={(e) => { e.preventDefault(); onClick(); }}
+            className={`flex items-center w-full text-left rounded-md px-3 py-1.5 text-sm transition-colors focus:outline-none focus:bg-[#e0e0e0] ${
+                isActive
+                    ? 'text-primary font-medium'
+                    : isHeader
+                    ? 'text-text-strong font-semibold'
+                    : 'text-text-secondary font-medium hover:bg-[#e0e0e0] hover:text-text-primary'
+            }`}
+            role="menuitem"
+        >
+            <span>{text}</span>
+        </a>
+    </li>
+);
+
+const CompactNavItem: React.FC<{
+    item: NavItemType,
+    isActive: boolean,
+    onClick: (page: Page, subPage?: string) => void,
+    activeSubPage?: string,
+}> = ({ item, isActive, onClick, activeSubPage }) => {
+    const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
+    const [flyoutPosition, setFlyoutPosition] = useState<'top' | 'bottom'>('top');
+    const itemRef = useRef<HTMLLIElement>(null);
+    const hasSubItems = item.subItems && item.subItems.length > 0;
+    let timer: number;
+
+    const handleItemClick = (page: Page, subPage?: string) => {
+        onClick(page, subPage);
+        setIsSubMenuOpen(false);
+    };
+
+    const showSubMenu = () => {
+        clearTimeout(timer);
+        if (hasSubItems) {
+            if (itemRef.current) {
+                const rect = itemRef.current.getBoundingClientRect();
+                const estimatedHeight = 16 + 28 + ((item.subItems?.length || 0) * 28);
+                if (rect.top + estimatedHeight > window.innerHeight) {
+                    setFlyoutPosition('bottom');
+                } else {
+                    setFlyoutPosition('top');
+                }
+            }
+            setIsSubMenuOpen(true);
+        }
+    };
+
+    const hideSubMenu = () => {
+        timer = window.setTimeout(() => {
+            setIsSubMenuOpen(false);
+        }, 150);
+    };
+
+    const handleMouseEnterContainer = () => {
+        clearTimeout(timer);
+        if (hasSubItems) {
+            showSubMenu();
+        }
+    };
+
+    return (
+        <li ref={itemRef} onMouseLeave={hideSubMenu} onMouseEnter={handleMouseEnterContainer} className="relative">
+            <button
+                onClick={(e) => {
+                    e.preventDefault();
+                    if (!hasSubItems) {
+                        onClick(item.name);
+                    } else {
+                        isSubMenuOpen ? hideSubMenu() : showSubMenu();
+                    }
+                }}
+                className={`group relative flex justify-center items-center h-10 w-10 rounded-lg transition-colors
+                    ${isActive ? 'bg-[#F0EAFB] text-primary' : 'text-text-secondary hover:bg-[#e0e0e0] hover:text-text-primary'}
+                    focus:outline-none focus:ring-2 focus:ring-primary
+                `}
+                aria-label={item.name}
+                aria-haspopup={hasSubItems}
+                aria-expanded={isSubMenuOpen}
+            >
+                <item.icon className="h-5 w-5" />
+                {!hasSubItems && (
+                    <span className="absolute left-full ml-3 w-auto p-2 min-w-max rounded-md shadow-md text-white bg-gray-900 text-xs font-bold transition-all duration-100 scale-0 origin-left group-hover:scale-100 z-50">
+                        {item.name}
+                    </span>
+                )}
+            </button>
+
+            {hasSubItems && isSubMenuOpen && (
+                <div
+                    className={`absolute left-full ml-2 w-60 bg-surface rounded-lg shadow-lg p-2 z-31 ${flyoutPosition === 'top' ? 'top-0' : 'bottom-0'}`}
+                    aria-hidden={!isSubMenuOpen}
+                    onMouseEnter={handleMouseEnterContainer}
+                    onMouseLeave={hideSubMenu}
+                >
+                    <ul role="menu">
+                        <CompactSubMenuItem
+                            text={item.name}
+                            onClick={() => {
+                                const defaultSubPage = item.subItems?.[0]?.name;
+                                handleItemClick(item.name, defaultSubPage);
+                            }}
+                            isActive={false}
+                            isHeader={true}
+                        />
+                        {item.subItems?.map(subItem => (
+                            <CompactSubMenuItem
+                                key={subItem.name}
+                                text={subItem.name}
+                                onClick={() => handleItemClick(item.name, subItem.name)}
+                                isActive={isActive && subItem.name === activeSubPage}
                             />
                         ))}
                     </ul>
@@ -162,36 +287,7 @@ const NavItem: React.FC<{
 };
 
 
-const CompactNavItem: React.FC<{ 
-    item: NavItemType, 
-    isActive: boolean,
-    onClick: () => void,
-}> = ({ item, isActive, onClick }) => (
-    <li>
-        <a
-            href="#"
-            onClick={(e) => {
-                e.preventDefault();
-                onClick();
-            }}
-            className={`group relative flex justify-center items-center h-10 w-10 rounded-lg transition-colors
-                ${isActive
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-text-secondary hover:bg-input-bg hover:text-text-primary'}
-                focus:outline-none focus:ring-2 focus:ring-primary
-            `}
-            aria-label={item.name}
-        >
-            <item.icon className="h-5 w-5" />
-            <span className="absolute left-full ml-3 w-auto p-2 min-w-max rounded-md shadow-md text-white bg-gray-900 text-xs font-bold transition-all duration-100 scale-0 origin-left group-hover:scale-100 z-50">
-                {item.name}
-            </span>
-        </a>
-    </li>
-);
-
-
-const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, onClose, activeSettingsSubPage, showCompact }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, onClose, activeSubPage, showCompact }) => {
     const sidebarRef = useRef<HTMLElement>(null);
 
     useEffect(() => {
@@ -233,7 +329,9 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
 
     const handleItemClick = (page: Page, subPage?: string) => {
         setActivePage(page, subPage);
-        onClose();
+        if (page !== 'Dashboards') {
+            onClose();
+        }
     }
 
     return (
@@ -266,7 +364,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
                                     item={item} 
                                     isActive={activePage === item.name}
                                     onClick={handleItemClick}
-                                    activeSettingsSubPage={activeSettingsSubPage}
+                                    activeSubPage={activeSubPage}
                                 />
                             ))}
                         </ul>
@@ -279,7 +377,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
                                         item={item} 
                                         isActive={activePage === item.name}
                                         onClick={handleItemClick}
-                                        activeSettingsSubPage={activeSettingsSubPage}
+                                        activeSubPage={activeSubPage}
                                     />
                                 ))}
                             </ul>
@@ -298,7 +396,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
                                     key={item.name} 
                                     item={item} 
                                     isActive={activePage === item.name}
-                                    onClick={() => setActivePage(item.name)}
+                                    onClick={handleItemClick}
+                                    activeSubPage={activeSubPage}
                                 />
                             ))}
                         </ul>
@@ -308,7 +407,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen, on
                                     key={item.name} 
                                     item={item} 
                                     isActive={activePage === item.name}
-                                    onClick={() => setActivePage(item.name)}
+                                    onClick={handleItemClick}
+                                    activeSubPage={activeSubPage}
                                 />
                             ))}
                         </ul>

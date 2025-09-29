@@ -268,7 +268,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                 <Card>
                      <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center">
-                            <h4 className="text-base font-semibold text-text-strong">Current month spend and forecast</h4>
+                            <h4 className="text-base font-semibold text-text-strong">Month-to-date Spend</h4>
                             <InfoTooltip text="The total cost or credits consumed this month, and the projected spend by the end of the month based on current usage patterns." />
                         </div>
                         <div className="relative" ref={openMenu === 'cost-forecast' ? menuRef : null}>

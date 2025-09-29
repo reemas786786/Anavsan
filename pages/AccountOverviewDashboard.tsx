@@ -210,7 +210,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
         return (
              <Card>
                 <div className="flex items-center mb-4">
-                    <h4 className="text-base font-semibold text-text-strong">Current month spend and forecast</h4>
+                    <h4 className="text-base font-semibold text-text-strong">Month-to-date Spend</h4>
                     <InfoTooltip text="The total cost or credits consumed by this account this month, and the projected spend by the end of the month based on current usage patterns." />
                 </div>
                 <div className="space-y-4">

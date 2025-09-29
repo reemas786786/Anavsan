@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -60,7 +59,7 @@ const App: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const [isSettingsViewActive, setIsSettingsViewActive] = useState(false);
-  const [activeSettingsSubPage, setActiveSettingsSubPage] = useState('User Management');
+  const [activeSubPage, setActiveSubPage] = useState<string | undefined>();
   
   const [userToSuspend, setUserToSuspend] = useState<User | null>(null);
   const [userToRemove, setUserToRemove] = useState<User | null>(null);
@@ -126,20 +125,15 @@ const App: React.FC = () => {
     
     if (page === 'Settings') {
         setIsSettingsViewActive(true);
-        if (subPage) {
-            setActiveSettingsSubPage(subPage);
-        } else {
-            setActiveSettingsSubPage('User Management');
-        }
+        setActiveSubPage(subPage || 'User Management');
     } else {
         setIsSettingsViewActive(false);
+        setActiveSubPage(subPage);
     }
 
     if (page === 'Assigned Queries') {
         setHasNewAssignment(false);
     }
-
-    setIsSidebarOpen(false);
   };
 
   const handleLogoClick = useCallback(() => {
@@ -232,6 +226,10 @@ const App: React.FC = () => {
   const handleBackToAccounts = useCallback(() => {
     setSelectedAccount(null);
     setActivePage('Snowflake Accounts');
+  }, []);
+
+  const handleBackFromUserView = useCallback(() => {
+    setSelectedUser(null);
   }, []);
   
   const handleAddUser = (data: { name: string; role: UserRole; }) => {
@@ -411,8 +409,8 @@ const App: React.FC = () => {
       if (isSettingsViewActive) {
           return [
               { label: 'Dashboard', onClick: handleLogoClick },
-              { label: 'Settings', onClick: () => setActiveSettingsSubPage('User Management') },
-              { label: activeSettingsSubPage }
+              { label: 'Settings', onClick: () => handlePageChange('Settings', 'User Management') },
+              { label: activeSubPage }
           ];
       }
       
@@ -426,20 +424,13 @@ const App: React.FC = () => {
 
       if(selectedUser) {
           return [
-              { label: 'Data Cloud Overview', onClick: handleLogoClick },
+              { label: 'Data Cloud Overview', onClick: handleBackFromUserView },
               { label: selectedUser.name }
           ]
       }
-      
-      if (editingDashboard) {
-        return [
-            { label: 'Dashboards', onClick: () => setEditingDashboard(null) },
-            { label: (editingDashboard as DashboardItem)?.title || 'New Dashboard' }
-        ]
-      }
 
       return [];
-  }, [activePage, selectedAccount, activeAccountSubPage, selectedUser, isSettingsViewActive, activeSettingsSubPage, isProfileSettingsPageActive, activeProfileSubPage, handleLogoClick, handleBackToAccounts, viewingDashboard, editingDashboard]);
+  }, [activePage, selectedAccount, activeAccountSubPage, selectedUser, isSettingsViewActive, activeSubPage, isProfileSettingsPageActive, activeProfileSubPage, handleLogoClick, handleBackToAccounts, handleBackFromUserView]);
 
   const showBreadcrumb = breadcrumbItems.length > 0;
 
@@ -548,8 +539,8 @@ const App: React.FC = () => {
                 onClose={() => setIsSidebarOpen(false)}
                 activePage={activePage}
                 setActivePage={handlePageChange}
-                activeSettingsSubPage={activeSettingsSubPage}
-                showCompact={!isAccountView && !isSettingsViewActive && !isProfileSettingsPageActive && !editingDashboard && !viewingDashboard}
+                activeSubPage={activeSubPage}
+                showCompact={!isAccountView && !isSettingsViewActive && !isProfileSettingsPageActive && !editingDashboard}
             />
             <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background">
               {selectedAccount ? (
@@ -571,8 +562,8 @@ const App: React.FC = () => {
               ) : isSettingsViewActive ? (
                 <SettingsPage
                     users={users}
-                    activeSubPage={activeSettingsSubPage}
-                    onSubPageChange={setActiveSettingsSubPage}
+                    activeSubPage={activeSubPage || 'User Management'}
+                    onSubPageChange={(subPage) => handlePageChange('Settings', subPage)}
                     onBack={() => {
                         setIsSettingsViewActive(false);
                         setActivePage('Data Cloud Overview');

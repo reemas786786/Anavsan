@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { User } from '../types';
 import { IconEdit, IconUser, IconLockClosed, IconPhoto, IconChevronLeft, IconChevronRight } from '../constants';
@@ -248,11 +249,19 @@ const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, onSave,
                                 <li key={item.name}>
                                     <button
                                         onClick={() => onSectionChange(item.name)}
-                                        className={`w-full flex items-center text-left px-3 py-2 rounded-full text-sm font-medium transition-colors ${activeSection === item.name ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'}`}
+                                        className={`w-full flex items-center text-left px-3 py-2 rounded-full text-sm transition-colors ${
+                                            activeSection === item.name 
+                                            ? 'bg-[#F0EAFB] text-primary font-semibold' 
+                                            : 'text-text-strong font-medium hover:bg-[#e0e0e0]'
+                                        }`}
                                         aria-label={item.name}
                                         title={isSidebarExpanded ? '' : item.name}
                                     >
-                                        <item.icon className={`h-5 w-5 shrink-0 ${activeSection === item.name ? 'text-primary' : 'text-text-secondary'}`} />
+                                        <item.icon className={`h-5 w-5 shrink-0 ${
+                                            activeSection === item.name 
+                                            ? 'text-primary' 
+                                            : 'text-text-strong'
+                                        }`} />
                                         {isSidebarExpanded && <span className="ml-3">{item.name}</span>}
                                     </button>
                                 </li>

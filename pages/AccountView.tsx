@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, SQLFile, BigScreenWidget, QueryListItem } from '../types';
 import QueryWorkspace from './QueryWorkspace';
@@ -72,32 +73,115 @@ const accountNavItems = [
     { name: 'Query Workspace', icon: IconCode, children: [] },
 ];
 
-const CompactAccountNavItem: React.FC<{
-    item: { name: string; icon: React.FC<{ className?: string }> };
-    isActive: boolean;
-    onClick: () => void;
-}> = ({ item, isActive, onClick }) => (
-    <li>
-        <button
-            onClick={onClick}
-            className={`group relative flex justify-center items-center h-10 w-10 rounded-lg transition-colors
-                ${
-                    isActive
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'
+const CollapsedNavItem: React.FC<{
+    item: { name: string; icon: React.FC<{ className?: string }>; children: { name: string; icon: React.FC<{ className?: string }> }[] };
+    isActiveParent: boolean;
+    activePage: string;
+    onClick: (page: string) => void;
+}> = ({ item, isActiveParent, activePage, onClick }) => {
+    const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
+    const [flyoutPosition, setFlyoutPosition] = useState<'top' | 'bottom'>('top');
+    const itemRef = useRef<HTMLLIElement>(null);
+    const hasSubItems = item.children && item.children.length > 0;
+    let timer: number;
+
+    const handleItemClick = (page: string) => {
+        onClick(page);
+        setIsSubMenuOpen(false);
+    };
+
+    const showSubMenu = () => {
+        clearTimeout(timer);
+        if (hasSubItems) {
+            if (itemRef.current) {
+                const rect = itemRef.current.getBoundingClientRect();
+                const estimatedHeight = 16 + 34 + (item.children.length * 34); 
+                if (rect.top + estimatedHeight > window.innerHeight) {
+                    setFlyoutPosition('bottom');
+                } else {
+                    setFlyoutPosition('top');
                 }
-                focus:outline-none focus:ring-2 focus:ring-primary
-            `}
-            aria-label={item.name}
-            title={item.name}
-        >
-            <item.icon className="h-5 w-5" />
-            <span className="absolute left-full ml-3 w-auto p-2 min-w-max rounded-md shadow-md text-white bg-gray-900 text-xs font-bold transition-all duration-100 scale-0 origin-left group-hover:scale-100 z-50">
-                {item.name}
-            </span>
-        </button>
-    </li>
-);
+            }
+            setIsSubMenuOpen(true);
+        }
+    };
+
+    const hideSubMenu = () => {
+        timer = window.setTimeout(() => {
+            setIsSubMenuOpen(false);
+        }, 150);
+    };
+
+    const handleMouseEnterContainer = () => {
+        clearTimeout(timer);
+        if (hasSubItems) {
+            showSubMenu();
+        }
+    };
+
+    return (
+        <li ref={itemRef} onMouseLeave={hideSubMenu} onMouseEnter={handleMouseEnterContainer} className="relative">
+            <button
+                onClick={(e) => {
+                    e.preventDefault();
+                    if (!hasSubItems) {
+                        onClick(item.name);
+                    } else {
+                        // Click parent icon in collapsed view opens first child
+                        handleItemClick(item.children[0].name);
+                    }
+                }}
+                className={`group relative flex justify-center items-center h-10 w-10 rounded-lg transition-colors
+                    ${isActiveParent ? 'bg-[#F0EAFB] text-primary' : 'text-text-secondary hover:bg-[#e0e0e0] hover:text-text-primary'}
+                    focus:outline-none focus:ring-2 focus:ring-primary
+                `}
+                aria-label={item.name}
+                aria-haspopup={hasSubItems}
+                aria-expanded={isSubMenuOpen}
+            >
+                <item.icon className="h-5 w-5" />
+                {!hasSubItems && (
+                    <span className="absolute left-full ml-3 w-auto p-2 min-w-max rounded-md shadow-md text-white bg-gray-900 text-xs font-bold transition-all duration-100 scale-0 origin-left group-hover:scale-100 z-50">
+                        {item.name}
+                    </span>
+                )}
+            </button>
+
+            {hasSubItems && isSubMenuOpen && (
+                <div
+                    className={`absolute left-full ml-2 w-60 bg-surface rounded-lg shadow-lg p-2 z-31 ${flyoutPosition === 'top' ? 'top-0' : 'bottom-0'}`}
+                    aria-hidden={!isSubMenuOpen}
+                    onMouseEnter={handleMouseEnterContainer}
+                    onMouseLeave={hideSubMenu}
+                >
+                    <ul role="menu">
+                        {/* Header Item */}
+                        <li>
+                            <button onClick={() => handleItemClick(item.children[0].name)} className="w-full text-left rounded-md px-3 py-1.5 text-sm text-text-strong font-semibold hover:bg-[#e0e0e0] focus:outline-none focus:bg-[#e0e0e0]">
+                                {item.name}
+                            </button>
+                        </li>
+                        {/* Sub Items */}
+                        {item.children.map(child => (
+                            <li key={child.name}>
+                                <button
+                                    onClick={() => handleItemClick(child.name)}
+                                    className={`w-full text-left rounded-md px-3 py-1.5 text-sm transition-colors focus:outline-none focus:bg-[#e0e0e0] ${
+                                        activePage === child.name
+                                            ? 'text-primary font-medium'
+                                            : 'text-text-secondary font-medium hover:bg-[#e0e0e0] hover:text-text-primary'
+                                    }`}
+                                >
+                                    {child.name}
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+        </li>
+    );
+};
 
 const AccountAvatar: React.FC<{ name: string }> = ({ name }) => {
     const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -194,7 +278,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                         {isSidebarExpanded ? (
                             <button
                                 onClick={() => setIsAccountSwitcherOpen(!isAccountSwitcherOpen)}
-                                className="w-full flex items-center justify-between text-left p-2 rounded-full hover:bg-surface-hover transition-colors"
+                                className="w-full flex items-center justify-between text-left p-2 rounded-full hover:bg-[#e0e0e0] transition-colors"
                                 aria-haspopup="true"
                                 aria-expanded={isAccountSwitcherOpen}
                             >
@@ -208,7 +292,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                             <div className="flex justify-center group relative">
                                 <button
                                     onClick={() => setIsAccountSwitcherOpen(!isAccountSwitcherOpen)}
-                                    className="p-1 rounded-full hover:bg-surface-hover transition-colors"
+                                    className="p-1 rounded-full hover:bg-[#e0e0e0] transition-colors"
                                     aria-label={`Switch account from ${account.name}`}
                                     aria-haspopup="true"
                                     aria-expanded={isAccountSwitcherOpen}
@@ -230,7 +314,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                                         <li key={acc.id}>
                                             <button
                                                 onClick={() => { onSwitchAccount(acc); setIsAccountSwitcherOpen(false); }}
-                                                className="w-full text-left flex items-center gap-2 p-2 rounded-lg text-sm font-medium hover:bg-surface-hover text-text-secondary hover:text-text-primary"
+                                                className="w-full text-left flex items-center gap-2 p-2 rounded-lg text-sm font-medium hover:bg-[#e0e0e0] text-text-secondary hover:text-text-primary"
                                             >
                                                 <AccountAvatar name={acc.name} />
                                                 <span className="truncate">{acc.name}</span>
@@ -244,22 +328,16 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
 
                     <div className={`border-t border-border-light my-2 ${isSidebarExpanded ? 'mx-4' : 'mx-2'}`}></div>
 
-                    <nav className="flex-grow overflow-y-auto p-2">
-                        <ul className="space-y-1">
+                    <nav className={`flex-grow p-2 ${isSidebarExpanded ? 'overflow-y-auto' : ''}`}>
+                        <ul className="space-y-1 flex flex-col items-center">
                             {!isSidebarExpanded ? (
                                 accountNavItems.map(item => (
-                                    <CompactAccountNavItem
+                                    <CollapsedNavItem
                                         key={item.name}
                                         item={item}
-                                        isActive={activeParent === item.name && item.children.length === 0}
-                                        onClick={() => {
-                                            if (item.children.length > 0) {
-                                                setIsSidebarExpanded(true);
-                                                setOpenSubMenus(prev => ({ ...prev, [item.name]: true }));
-                                            } else {
-                                                onPageChange(item.name);
-                                            }
-                                        }}
+                                        isActiveParent={activeParent === item.name}
+                                        activePage={activePage}
+                                        onClick={onPageChange}
                                     />
                                 ))
                             ) : (
@@ -269,20 +347,20 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                                     const isSubMenuOpen = openSubMenus[item.name];
                                     
                                     return (
-                                        <li key={item.name}>
+                                        <li key={item.name} className="w-full">
                                             <button
                                                 onClick={() => hasChildren ? handleSubMenuToggle(item.name) : onPageChange(item.name)}
-                                                className={`w-full flex items-center justify-between text-left p-2 rounded-full text-sm font-medium transition-colors mx-1 ${
+                                                className={`w-full flex items-center justify-between text-left p-2 rounded-full text-sm transition-colors mx-1 ${
                                                     activePage === item.name
                                                       ? 'bg-[#F0EAFB] text-primary font-semibold' // Directly active item
                                                       : isActive
-                                                      ? 'text-primary font-semibold hover:bg-[#f4f4f4] hover:text-text-primary' // Parent of active item
-                                                      : 'text-text-secondary hover:bg-[#f4f4f4] hover:text-text-primary' // Inactive item
+                                                      ? 'text-primary font-semibold hover:bg-[#e0e0e0] hover:text-text-primary' // Parent of active item
+                                                      : 'text-text-strong font-medium hover:bg-[#e0e0e0]'
                                                 }`}
                                                 aria-current={activePage === item.name ? "page" : undefined}
                                             >
                                                 <div className="flex items-center gap-2">
-                                                    <item.icon className="h-5 w-5 shrink-0" />
+                                                    <item.icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-primary' : 'text-text-strong'}`} />
                                                     <span>{item.name}</span>
                                                 </div>
                                                 {hasChildren && <IconChevronDown className={`h-4 w-4 transition-transform ${isSubMenuOpen ? 'rotate-180' : ''}`} />}
@@ -293,7 +371,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                                                         <li key={child.name}>
                                                             <button
                                                                 onClick={() => onPageChange(child.name)}
-                                                                className={`w-full text-left flex items-center gap-2 p-2 rounded-full text-sm transition-colors mx-1 ${activePage === child.name ? 'bg-[#F0EAFB] text-primary font-semibold' : 'text-text-secondary hover:bg-[#f4f4f4] hover:text-text-primary'}`}
+                                                                className={`w-full text-left flex items-center gap-2 p-2 rounded-full text-sm transition-colors mx-1 ${activePage === child.name ? 'bg-[#F0EAFB] text-primary font-semibold' : 'text-text-secondary font-medium hover:bg-[#e0e0e0] hover:text-text-primary'}`}
                                                                 aria-current={activePage === child.name ? "page" : undefined}
                                                             >
                                                                 <child.icon className="h-4 w-4 shrink-0" />
