@@ -3,7 +3,6 @@ import { queryListData as initialData, warehousesData } from '../data/dummyData'
 import { QueryListItem, QueryType } from '../types';
 import { IconSearch, IconChevronLeft, IconChevronRight, IconChevronDown, IconDotsVertical, IconShare } from '../constants';
 import Modal from '../components/Modal';
-import TimeRangeFilter, { TimeRange } from '../components/TimeRangeFilter';
 
 const MetricCard: React.FC<{ title: string; value: string; valueColor?: string }> = ({ title, value, valueColor = 'text-text-primary' }) => (
     <div className="bg-surface p-4 rounded-3xl break-inside-avoid mb-4">
@@ -20,7 +19,6 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onShareQuery }) => {
     const [isFilterPanelCollapsed, setIsFilterPanelCollapsed] = useState(false);
     const [search, setSearch] = useState('');
     const [dateFilter, setDateFilter] = useState('All');
-    const [timeRange, setTimeRange] = useState<TimeRange>('day');
     const [warehouseFilter, setWarehouseFilter] = useState('All');
     const [statusFilter, setStatusFilter] = useState('All');
     const [typeFilters, setTypeFilters] = useState<Set<QueryType>>(new Set());
@@ -195,9 +193,6 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onShareQuery }) => {
             <main className="flex-1 flex flex-col gap-4">
                 <div className="flex justify-between items-center">
                     <h1 className="text-2xl font-bold text-text-primary">Query List</h1>
-                    <div className="flex items-center gap-4">
-                        <TimeRangeFilter value={timeRange} onChange={setTimeRange} />
-                    </div>
                 </div>
                 <div className="columns-1 md:columns-2 lg:columns-3 gap-4">
                     <MetricCard title="Total queries" value={totalQueries.toLocaleString()} />

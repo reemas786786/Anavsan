@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, Cell, PieChart, Pie } from 'recharts';
 import { storageSummaryData, storageGrowthData, databasesData, storageByTypeData } from '../data/dummyData';
 import InfoTooltip from '../components/InfoTooltip';
-import TimeRangeFilter, { TimeRange } from '../components/TimeRangeFilter';
 import { BigScreenWidget } from '../types';
 import { IconDotsVertical } from '../constants';
 import SidePanel from '../components/SidePanel';
@@ -52,7 +51,6 @@ const WidgetActionMenu: React.FC<WidgetActionMenuProps> = ({ widgetId, onExpand,
 
 
 const StorageSummaryView: React.FC<{ onSelectDatabase: (databaseId: string) => void, onSetBigScreenWidget: (widget: BigScreenWidget) => void }> = ({ onSelectDatabase, onSetBigScreenWidget }) => {
-    const [timeRange, setTimeRange] = useState<TimeRange>('month');
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const [tableViewData, setTableViewData] = useState<{
@@ -150,9 +148,8 @@ const StorageSummaryView: React.FC<{ onSelectDatabase: (databaseId: string) => v
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-text-primary">Storage Summary</h1>
-                <TimeRangeFilter value={timeRange} onChange={setTimeRange} />
             </div>
-            <div className="columns-1 md:columns-2 gap-4">
+            <div className="columns-1 lg:columns-2 gap-4">
                 {/* Widget 1: Total Storage & Spend */}
                 <WidgetCard>
                     <div className="flex items-center">

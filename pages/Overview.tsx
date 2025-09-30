@@ -7,7 +7,6 @@ import { IconDotsVertical } from '../constants';
 import SidePanel from '../components/SidePanel';
 import TableView from '../components/TableView';
 import InfoTooltip from '../components/InfoTooltip';
-import TimeRangeFilter, { TimeRange } from '../components/TimeRangeFilter';
 
 interface OverviewProps {
     onSelectAccount: (account: Account) => void;
@@ -86,7 +85,6 @@ const CustomTooltip = ({ active, payload, label, displayMode }: any) => {
 const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, accounts, users, onSetBigScreenWidget, displayMode }) => {
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
-    const [timeRange, setTimeRange] = useState<TimeRange>('day');
     
     const [tableViewData, setTableViewData] = useState<{
         title: string;
@@ -258,13 +256,10 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-text-primary">Data Cloud Overview</h1>
-                <div className="flex items-center gap-4">
-                    <TimeRangeFilter value={timeRange} onChange={setTimeRange} />
-                </div>
             </div>
 
 
-            <div className="columns-1 md:columns-2 gap-4">
+            <div className="columns-1 lg:columns-2 gap-4">
                 <Card>
                      <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center">

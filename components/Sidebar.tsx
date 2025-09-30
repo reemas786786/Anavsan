@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { NAV_ITEMS_TOP, NAV_ITEMS_BOTTOM } from '../constants';
 import { Page, NavItem as NavItemType, NavSubItem } from '../types';
@@ -30,10 +31,10 @@ const SubMenuItem: React.FC<{
                     e.preventDefault();
                     onClick(item.name, subItem.name);
                 }}
-                className={`flex justify-between items-center relative w-full text-left rounded-md pl-8 pr-3 py-1.5 text-sm font-semibold transition-colors focus:outline-none focus:bg-[#e0e0e0] focus:text-text-primary ${
+                className={`flex justify-between items-center relative w-full text-left rounded-md pl-8 pr-3 py-1.5 text-sm font-semibold transition-colors focus:outline-none focus:bg-surface-hover focus:text-text-primary ${
                     isSubItemActive
                         ? 'text-primary'
-                        : 'text-text-secondary hover:bg-[#e0e0e0] hover:text-text-primary'
+                        : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'
                 }`}
                 role="menuitem"
             >
@@ -120,7 +121,7 @@ const NavItem: React.FC<{
                 className={`w-full group relative flex items-center justify-between rounded-md text-sm px-4 py-2 transition-colors duration-200
                     ${isActive
                         ? 'bg-[#F0EAFB] text-primary font-semibold'
-                        : 'text-text-strong font-medium hover:bg-[#e0e0e0]'}
+                        : 'text-text-strong font-medium hover:bg-surface-hover'}
                 `}
                 aria-haspopup={hasSubItems}
                 aria-expanded={isSubMenuOpen}
@@ -167,12 +168,12 @@ const CompactSubMenuItem: React.FC<{
         <a
             href="#"
             onClick={(e) => { e.preventDefault(); onClick(); }}
-            className={`flex items-center w-full text-left rounded-md px-3 py-1.5 text-sm transition-colors focus:outline-none focus:bg-[#e0e0e0] ${
+            className={`flex items-center w-full text-left rounded-md px-3 py-1.5 text-sm transition-colors focus:outline-none focus:bg-surface-hover ${
                 isActive
                     ? 'text-primary font-medium'
                     : isHeader
                     ? 'text-text-strong font-semibold'
-                    : 'text-text-secondary font-medium hover:bg-[#e0e0e0] hover:text-text-primary'
+                    : 'text-text-secondary font-medium hover:bg-surface-hover hover:text-text-primary'
             }`}
             role="menuitem"
         >
@@ -239,7 +240,7 @@ const CompactNavItem: React.FC<{
                     }
                 }}
                 className={`group relative flex justify-center items-center h-10 w-10 rounded-lg transition-colors
-                    ${isActive ? 'bg-[#F0EAFB] text-primary' : 'text-text-secondary hover:bg-[#e0e0e0] hover:text-text-primary'}
+                    ${isActive ? 'bg-[#F0EAFB] text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'}
                     focus:outline-none focus:ring-2 focus:ring-primary
                 `}
                 aria-label={item.name}

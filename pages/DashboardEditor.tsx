@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { DashboardItem, Widget, Account, WidgetType } from '../types';
 import { availableWidgetsData, overviewMetrics, accountSpend, costBreakdownData, accountCostBreakdown, warehousesData } from '../data/dummyData';
@@ -512,7 +511,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto space-y-2 pr-2 -mr-2 pt-2 mt-4 custom-scrollbar">
+                        <div className="flex-1 overflow-y-auto space-y-2 pt-2 mt-4">
                              <div className="grid grid-cols-1 gap-4">
                                 {filteredWidgets.map(widget => (
                                     <div key={widget.widgetId} className="bg-background p-4 rounded-2xl flex flex-col gap-3">

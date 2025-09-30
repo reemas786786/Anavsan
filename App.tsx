@@ -86,6 +86,19 @@ const App: React.FC = () => {
 
 
   useEffect(() => {
+    const splashLoader = document.getElementById('splash-loader');
+    if (splashLoader) {
+      const timer = setTimeout(() => {
+        splashLoader.style.opacity = '0';
+        setTimeout(() => {
+          splashLoader.remove();
+        }, 500); // match transition duration
+      }, 2000); // show loader for 2 seconds
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  useEffect(() => {
     if (accounts.length === 0) {
         setAccounts(connectionsData);
     }

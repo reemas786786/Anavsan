@@ -1,4 +1,3 @@
-
 // FIX: Corrected import statement for React hooks.
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, TopQuery, Warehouse } from '../types';
@@ -9,7 +8,6 @@ import { IconDotsVertical, IconEdit, IconDragHandle, IconClose } from '../consta
 import SidePanel from '../components/SidePanel';
 import TableView from '../components/TableView';
 import InfoTooltip from '../components/InfoTooltip';
-import TimeRangeFilter, { TimeRange } from '../components/TimeRangeFilter';
 
 const Card: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className, title }) => (
     <div className={`bg-surface p-4 rounded-3xl break-inside-avoid mb-4 ${className}`}>
@@ -86,7 +84,6 @@ const kpiWidgetIds: WidgetConfig['id'][] = ['spend', 'budget'];
 const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ account, displayMode }) => {
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
-    const [timeRange, setTimeRange] = useState<TimeRange>('day');
     const [tableViewData, setTableViewData] = useState<{
         title: string;
         data: { name: string; cost: number; credits: number; percentage: number }[];
@@ -318,7 +315,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                     })}
                 </div>
                  <div className="text-center mt-4 pt-4 flex items-baseline justify-center">
-                    <span className="text-sm text-text-secondary mr-1">Total Monthly Spend:</span>
+                    <span className="text-sm text-text-secondary mr-1">Current spend:</span>
                     <span className="text-sm font-semibold text-text-primary">
                          {displayMode === 'cost' ? (
                             `$${monthlySpend.toLocaleString()}.00`
@@ -454,7 +451,6 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-text-primary">Account Overview</h1>
                 <div className="flex items-center gap-4">
-                    <TimeRangeFilter value={timeRange} onChange={setTimeRange} />
                      {!isEditMode && (
                         <button onClick={handleEditDashboard} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-text-primary bg-white rounded-full shadow-sm hover:bg-gray-50">
                             <IconEdit className="h-4 w-4" />
@@ -464,7 +460,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                 </div>
             </div>
 
-            <div className="columns-1 md:columns-2 gap-4">
+            <div className="columns-1 lg:columns-2 gap-4">
                 {currentWidgets.map((widget, index) => renderWidget(widget, index))}
             </div>
 

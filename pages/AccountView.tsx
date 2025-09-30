@@ -74,6 +74,62 @@ const accountNavItems = [
     { name: 'Query Workspace', icon: IconCode, children: [] },
 ];
 
+const MobileNav: React.FC<{
+    activePage: string;
+    onPageChange: (page: string) => void;
+    accountNavItems: any[];
+}> = ({ activePage, onPageChange, accountNavItems }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const navRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (navRef.current && !navRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    return (
+        <div ref={navRef} className="relative">
+            <button onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between text-left px-4 py-2 rounded-lg bg-surface-nested border border-border-color">
+                <span className="font-semibold text-text-primary">{activePage}</span>
+                <IconChevronDown className={`h-5 w-5 text-text-secondary transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {isOpen && (
+                <div className="absolute top-full left-0 w-full bg-surface rounded-lg shadow-lg mt-1 z-20 border border-border-color">
+                    <ul className="py-1">
+                        {accountNavItems.map(item => (
+                            <React.Fragment key={item.name}>
+                                {item.children.length === 0 ? (
+                                    <li>
+                                        <button onClick={() => { onPageChange(item.name); setIsOpen(false); }} className={`w-full text-left px-4 py-2 text-sm font-medium ${activePage === item.name ? 'text-primary bg-primary/10' : 'text-text-strong'}`}>
+                                            {item.name}
+                                        </button>
+                                    </li>
+                                ) : (
+                                    <>
+                                        <li className="px-4 pt-2 pb-1 text-xs font-bold uppercase text-text-muted">{item.name}</li>
+                                        {item.children.map((child: any) => (
+                                            <li key={child.name}>
+                                                <button onClick={() => { onPageChange(child.name); setIsOpen(false); }} className={`w-full text-left pl-6 pr-4 py-2 text-sm ${activePage === child.name ? 'text-primary font-semibold' : 'text-text-secondary'}`}>
+                                                    {child.name}
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </>
+                                )}
+                            </React.Fragment>
+                        ))}
+                    </ul>
+                </div>
+            )}
+        </div>
+    );
+};
+
 const CollapsedNavItem: React.FC<{
     item: { name: string; icon: React.FC<{ className?: string }>; children: { name: string; icon: React.FC<{ className?: string }> }[] };
     isActiveParent: boolean;
@@ -133,7 +189,7 @@ const CollapsedNavItem: React.FC<{
                     }
                 }}
                 className={`group relative flex justify-center items-center h-10 w-10 rounded-lg transition-colors
-                    ${isActiveParent ? 'bg-[#F0EAFB] text-primary' : 'text-text-secondary hover:bg-[#e0e0e0] hover:text-text-primary'}
+                    ${isActiveParent ? 'bg-[#F0EAFB] text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'}
                     focus:outline-none focus:ring-2 focus:ring-primary
                 `}
                 aria-label={item.name}
@@ -158,7 +214,7 @@ const CollapsedNavItem: React.FC<{
                     <ul role="menu">
                         {/* Header Item */}
                         <li>
-                            <button onClick={() => handleItemClick(item.children[0].name)} className="w-full text-left rounded-md px-3 py-1.5 text-sm text-text-strong font-semibold hover:bg-[#e0e0e0] focus:outline-none focus:bg-[#e0e0e0]">
+                            <button onClick={() => handleItemClick(item.children[0].name)} className="w-full text-left rounded-md px-3 py-1.5 text-sm text-text-strong font-semibold hover:bg-surface-hover focus:outline-none focus:bg-surface-hover">
                                 {item.name}
                             </button>
                         </li>
@@ -167,10 +223,10 @@ const CollapsedNavItem: React.FC<{
                             <li key={child.name}>
                                 <button
                                     onClick={() => handleItemClick(child.name)}
-                                    className={`w-full text-left rounded-md px-3 py-1.5 text-sm transition-colors focus:outline-none focus:bg-[#e0e0e0] ${
+                                    className={`w-full text-left rounded-md px-3 py-1.5 text-sm transition-colors focus:outline-none focus:bg-surface-hover ${
                                         activePage === child.name
                                             ? 'text-primary font-medium'
-                                            : 'text-text-secondary font-medium hover:bg-[#e0e0e0] hover:text-text-primary'
+                                            : 'text-text-secondary font-medium hover:bg-surface-hover hover:text-text-primary'
                                     }`}
                                 >
                                     {child.name}
@@ -274,12 +330,12 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
         <div className="flex h-full bg-background">
             {/* Contextual Sidebar */}
             {!isDatabaseDetailView && (
-                <aside className={`bg-surface flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out ${isSidebarExpanded ? 'w-64' : 'w-16'}`}>
+                <aside className={`hidden lg:flex bg-surface flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out ${isSidebarExpanded ? 'w-64' : 'w-16'}`}>
                     <div ref={accountSwitcherRef} className="relative p-2">
                         {isSidebarExpanded ? (
                             <button
                                 onClick={() => setIsAccountSwitcherOpen(!isAccountSwitcherOpen)}
-                                className="w-full flex items-center justify-between text-left p-2 rounded-full hover:bg-[#e0e0e0] transition-colors"
+                                className="w-full flex items-center justify-between text-left p-2 rounded-full hover:bg-surface-hover transition-colors"
                                 aria-haspopup="true"
                                 aria-expanded={isAccountSwitcherOpen}
                             >
@@ -293,7 +349,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                             <div className="flex justify-center group relative">
                                 <button
                                     onClick={() => setIsAccountSwitcherOpen(!isAccountSwitcherOpen)}
-                                    className="p-1 rounded-full hover:bg-[#e0e0e0] transition-colors"
+                                    className="p-1 rounded-full hover:bg-surface-hover transition-colors"
                                     aria-label={`Switch account from ${account.name}`}
                                     aria-haspopup="true"
                                     aria-expanded={isAccountSwitcherOpen}
@@ -320,7 +376,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                                                     className={`w-full text-left flex items-center justify-between gap-2 p-2 rounded-lg text-sm font-medium transition-colors ${
                                                         isActive
                                                             ? 'bg-primary/10 text-primary font-semibold'
-                                                            : 'hover:bg-[#e0e0e0] text-text-secondary hover:text-text-primary'
+                                                            : 'hover:bg-surface-hover text-text-secondary hover:text-text-primary'
                                                     }`}
                                                 >
                                                     <div className="flex items-center gap-2 overflow-hidden">
@@ -365,8 +421,8 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                                                     activePage === item.name
                                                       ? 'bg-[#F0EAFB] text-primary font-semibold' // Directly active item
                                                       : isActive
-                                                      ? 'text-primary font-semibold hover:bg-[#e0e0e0] hover:text-text-primary' // Parent of active item
-                                                      : 'text-text-strong font-medium hover:bg-[#e0e0e0]'
+                                                      ? 'text-primary font-semibold hover:bg-surface-hover hover:text-text-primary' // Parent of active item
+                                                      : 'text-text-strong font-medium hover:bg-surface-hover'
                                                 }`}
                                                 aria-current={activePage === item.name ? "page" : undefined}
                                             >
@@ -382,7 +438,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                                                         <li key={child.name}>
                                                             <button
                                                                 onClick={() => onPageChange(child.name)}
-                                                                className={`w-full text-left flex items-center gap-2 p-2 rounded-full text-sm transition-colors mx-1 ${activePage === child.name ? 'bg-[#F0EAFB] text-primary font-semibold' : 'text-text-secondary font-medium hover:bg-[#e0e0e0] hover:text-text-primary'}`}
+                                                                className={`w-full text-left flex items-center gap-2 p-2 rounded-full text-sm transition-colors mx-1 ${activePage === child.name ? 'bg-[#F0EAFB] text-primary font-semibold' : 'text-text-secondary font-medium hover:bg-surface-hover hover:text-text-primary'}`}
                                                                 aria-current={activePage === child.name ? "page" : undefined}
                                                             >
                                                                 <child.icon className="h-4 w-4 shrink-0" />
@@ -419,7 +475,12 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
 
             {/* Main Content */}
             <main className="flex-1 overflow-y-auto">
-                <div className="p-4">
+                {!isDatabaseDetailView && (
+                    <div className="lg:hidden p-4 border-b border-border-color bg-surface sticky top-0 z-10">
+                        <MobileNav activePage={activePage} onPageChange={onPageChange} accountNavItems={accountNavItems} />
+                    </div>
+                )}
+                <div className={isDatabaseDetailView ? "" : "p-4"}>
                     {renderContent()}
                 </div>
             </main>

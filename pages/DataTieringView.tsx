@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import {
@@ -189,7 +190,7 @@ const DataTieringView: React.FC = () => {
                 <h1 className="text-2xl font-bold text-text-primary">Data Tiering</h1>
                 <TimeRangeFilter value={timeRange} onChange={setTimeRange} />
             </div>
-            <div className="columns-1 md:columns-2 gap-4">
+            <div className="columns-1 lg:columns-2 gap-4">
                 <DataAgeDistributionWidget />
                 <StorageByTierWidget />
                 <TieringOpportunitiesWidget />

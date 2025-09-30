@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
     LineChart, Line, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
@@ -104,7 +105,7 @@ const CostForecastingView: React.FC = () => {
                 <h1 className="text-2xl font-bold text-text-primary">Cost Forecasting</h1>
                 <TimeRangeFilter value={timeRange} onChange={setTimeRange} />
             </div>
-            <div className="columns-1 md:columns-2 gap-4">
+            <div className="columns-1 lg:columns-2 gap-4">
                 <SpendVsForecastWidget />
                 <ForecastByTierWidget />
                 <AnomalyDetectionWidget />
