@@ -1,7 +1,11 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
+<<<<<<< HEAD
 import { costBreakdownData, overviewMetrics, resourceSummaryData as initialResourceSummaryData, ytdOverviewMetrics } from '../data/dummyData';
+=======
+import { costBreakdownData, overviewMetrics, resourceSummaryData as initialResourceSummaryData } from '../data/dummyData';
+>>>>>>> eb9bc86 (deploy script added)
 import { Account, User, BigScreenWidget } from '../types';
 import { IconDotsVertical } from '../constants';
 import SidePanel from '../components/SidePanel';
@@ -138,6 +142,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                     ['Forecasted Spend', overviewMetrics.cost.forecasted, overviewMetrics.credits.forecasted, timestamp]
                 ];
                 break;
+<<<<<<< HEAD
             case 'ytd-spend':
                 fileName = 'year_to_date_spend_and_forecast';
                 headers = ['Metric', 'Cost', 'Credits', 'Timestamp'];
@@ -146,6 +151,8 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                     ['Forecasted YTD Spend', ytdOverviewMetrics.cost.forecasted, ytdOverviewMetrics.credits.forecasted, timestamp]
                 ];
                 break;
+=======
+>>>>>>> eb9bc86 (deploy script added)
             case 'resource-summary':
                 fileName = 'resource_summary';
                 headers = ['Metric', 'Value', 'Timestamp'];
@@ -256,8 +263,11 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
     
     const currentSpend = displayMode === 'cost' ? overviewMetrics.cost.current : overviewMetrics.credits.current;
     const forecastedSpend = displayMode === 'cost' ? overviewMetrics.cost.forecasted : overviewMetrics.credits.forecasted;
+<<<<<<< HEAD
     const ytdCurrentSpend = displayMode === 'cost' ? ytdOverviewMetrics.cost.current : ytdOverviewMetrics.credits.current;
     const ytdForecastedSpend = displayMode === 'cost' ? ytdOverviewMetrics.cost.forecasted : ytdOverviewMetrics.credits.forecasted;
+=======
+>>>>>>> eb9bc86 (deploy script added)
     const barHeight = 12;
     const userBarHeight = 12;
 
@@ -324,6 +334,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                         </div>
                     </div>
                 </Card>
+<<<<<<< HEAD
                 
                 <Card>
                     <div className="flex justify-between items-start mb-4">
@@ -379,6 +390,8 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                         </div>
                     </div>
                 </Card>
+=======
+>>>>>>> eb9bc86 (deploy script added)
 
                 <Card>
                     <div className="flex justify-between items-start mb-4">

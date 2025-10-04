@@ -126,6 +126,7 @@ export const overviewMetrics = {
     }
 };
 
+<<<<<<< HEAD
 export const ytdOverviewMetrics = {
     cost: {
         current: 58020,
@@ -137,6 +138,8 @@ export const ytdOverviewMetrics = {
     }
 };
 
+=======
+>>>>>>> eb9bc86 (deploy script added)
 export const resourceSummaryData = [
     { title: 'Warehouses', value: '12' },
     { title: 'Databases', value: '34' },

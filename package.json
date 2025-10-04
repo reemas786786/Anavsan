@@ -2,20 +2,39 @@
   "name": "anavsan",
   "private": true,
   "version": "0.0.0",
+<<<<<<< HEAD
+=======
+  "homepage": "https://reemas786786.github.io/Anavsan",
+>>>>>>> eb9bc86 (deploy script added)
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+<<<<<<< HEAD
     "preview": "vite preview"
   },
   "dependencies": {
     "recharts": "^3.1.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
+=======
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+"deploy": "gh-pages -d build"
+  },
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "recharts": "^3.1.2"
+>>>>>>> eb9bc86 (deploy script added)
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+<<<<<<< HEAD
+=======
+    "gh-pages": "^6.3.0",
+>>>>>>> eb9bc86 (deploy script added)
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }
