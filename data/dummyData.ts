@@ -126,6 +126,17 @@ export const overviewMetrics = {
     }
 };
 
+export const ytdOverviewMetrics = {
+    cost: {
+        current: 58020,
+        forecasted: 62500,
+    },
+    credits: {
+        current: 23208,
+        forecasted: 25000,
+    }
+};
+
 export const resourceSummaryData = [
     { title: 'Warehouses', value: '12' },
     { title: 'Databases', value: '34' },
