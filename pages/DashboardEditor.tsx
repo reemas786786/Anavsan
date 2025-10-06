@@ -194,7 +194,6 @@ const RealSpendBreakdown: React.FC<{ dataSource: Widget['dataSource'] }> = ({ da
     </div>
   );
 })}
-
              <div className="text-center mt-auto pt-2 flex items-baseline justify-center text-xs">
                 <span className="text-text-secondary mr-1">Total:</span>
                 <span className="font-semibold text-text-primary">${totalSpend.toLocaleString()}</span>
