@@ -130,8 +130,6 @@ export const resourceSummaryData = [
     { title: 'Warehouses', value: '12' },
     { title: 'Databases', value: '34' },
     { title: 'Active users', value: '87' },
-    { title: 'Avg. daily queries', value: '14.2k' },
-    { title: 'Avg. query cost', value: '$0.03' },
 ];
 
 export const costBreakdownData = [
