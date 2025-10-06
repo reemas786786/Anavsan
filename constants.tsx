@@ -49,7 +49,9 @@ export const IconSettings: React.FC<{ className?: string }> = ({ className }) =>
 );
 export const IconSupport: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8.5v7m-3.5-3.5h7M4.93 4.93l2.828 2.828M16.242 16.242l-2.828-2.828M4.93 19.07l2.828-2.828M19.07 4.93l-2.828 2.828M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 9.563C9 9.252 9.252 9 9.563 9h4.874c.311 0 .563.252.563.563v4.874c0 .311-.252.563-.563.563H9.564A.562.562 0 019 14.437V9.564z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l-2.25-2.25M15 9l2.25-2.25M9 15l-2.25 2.25M15 15l2.25 2.25" />
     </svg>
 );
 export const IconClipboardList: React.FC<{ className?: string }> = ({ className }) => (
@@ -264,7 +266,6 @@ export const IconSummary: React.FC<{ className?: string }> = ({ className }) => 
         <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 18.375L15 13.125l-2.625 2.625L8.25 12l-4.5 4.5" />
     </svg>
 );
-
 
 export const NAV_ITEMS_TOP: NavItem[] = [
     { name: 'Data Cloud Overview', icon: IconOverview },
