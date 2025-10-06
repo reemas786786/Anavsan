@@ -49,7 +49,7 @@ export const IconSettings: React.FC<{ className?: string }> = ({ className }) =>
 );
 export const IconSupport: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9.75a4.5 4.5 0 100 9 4.5 4.5 0 000-9zm0 0h-.008v.008H12V9.75zm-4.11-4.11a.75.75 0 011.06 0l1.06 1.06a.75.75 0 01-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zM16.17 5.64a.75.75 0 010 1.06l-1.06 1.06a.75.75 0 01-1.06-1.06l1.06-1.06a.75.75 0 011.06 0zm-8.24 8.24a.75.75 0 011.06 0l1.06 1.06a.75.75 0 01-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zM16.17 13.83a.75.75 0 010 1.06l-1.06 1.06a.75.75 0 01-1.06-1.06l1.06-1.06a.75.75 0 011.06 0zM12 3a9 9 0 100 18 9 9 0 000-18z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8.5v7m-3.5-3.5h7M4.93 4.93l2.828 2.828M16.242 16.242l-2.828-2.828M4.93 19.07l2.828-2.828M19.07 4.93l-2.828 2.828M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
 );
 export const IconClipboardList: React.FC<{ className?: string }> = ({ className }) => (
