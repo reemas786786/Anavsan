@@ -277,8 +277,6 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
     const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
     const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
     const [activeFilter, setActiveFilter] = useState<string>('All');
-    const [isAggregated, setIsAggregated] = useState(true);
-    const [selectedAccountForNewWidgets, setSelectedAccountForNewWidgets] = useState(accounts.length > 0 ? accounts[0].id : '');
     
     const dragItem = useRef<number | null>(null);
     const dragOverItem = useRef<number | null>(null);
@@ -310,9 +308,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
         const newWidgetInstance: Widget = {
             ...widgetTemplate,
             id: `inst-${Date.now()}-${Math.random()}`,
-            dataSource: isAggregated 
-                ? { type: 'overall' }
-                : { type: 'account', accountId: selectedAccountForNewWidgets },
+            dataSource: editedDashboard.dataSourceContext ?? { type: 'overall' },
         };
         setEditedDashboard(prev => ({
             ...prev,
@@ -378,7 +374,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
     return (
         <div className="flex flex-col bg-background h-full">
             {/* Header */}
-            <header className={`flex items-center justify-between flex-shrink-0 ${isViewMode ? 'p-4' : 'bg-surface p-4 border-b border-border-light'}`}>
+            <header className={`flex items-center justify-between flex-shrink-0 ${isViewMode ? 'p-4' : 'bg-white px-6 py-4'}`}>
                 {isViewMode && editedDashboard ? (
                     <div className="flex items-center justify-between w-full">
                         <div className="flex items-center gap-2">
@@ -450,32 +446,35 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                 ) : (
                     <>
                         <div className="flex-grow">
-                            <input 
-                                type="text" 
-                                value={editedDashboard.title} 
-                                onChange={handleTitleChange} 
-                                className="text-2xl font-bold text-text-strong bg-transparent focus:outline-none w-full block" 
-                                placeholder="Untitled Dashboard" 
+                            <input
+                                type="text"
+                                value={editedDashboard.title}
+                                onChange={handleTitleChange}
+                                className="text-2xl font-bold text-sidebar-topbar bg-transparent focus:outline-none w-full block border-none p-0"
+                                placeholder="Untitled Dashboard"
                             />
-                            <input 
-                                type="text" 
-                                value={editedDashboard.description || ''} 
-                                onChange={handleDescriptionChange} 
-                                className="text-sm text-text-secondary w-full bg-transparent focus:outline-none block" 
-                                placeholder="Dashboard description (optional)" 
+                            <input
+                                type="text"
+                                value={editedDashboard.description || ''}
+                                onChange={handleDescriptionChange}
+                                className="text-sm text-text-secondary w-full bg-transparent focus:outline-none block border-none p-0 mt-1"
+                                placeholder="Dashboard description (optional)"
                             />
                         </div>
-                        <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+                        <div className="flex items-center gap-3 flex-shrink-0 ml-4">
                             <button 
                                 onClick={onCancel} 
-                                className="text-sm font-semibold px-4 py-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                                className="text-sm font-semibold px-5 py-2.5 rounded-full bg-violet-100 text-primary hover:bg-violet-200 transition-colors"
                             >
                                 Cancel
                             </button>
                             <button 
                                 onClick={handleSave} 
-                                disabled={!editedDashboard.title.trim()}
-                                className="text-sm font-semibold px-4 py-2 rounded-full shadow-sm transition-colors bg-primary text-white hover:bg-primary-hover disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+                                disabled={!editedDashboard.title.trim() || editedDashboard.title.trim().toLowerCase() === 'untitled dashboard'}
+                                className="text-sm font-semibold px-5 py-2.5 rounded-full shadow-sm transition-colors 
+                                            disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed
+                                            bg-primary text-white hover:bg-primary-hover
+                                            "
                             >
                                 Save Dashboard
                             </button>
@@ -492,44 +491,6 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                         <h3 className="text-lg font-semibold text-text-strong mb-4 px-2">Select views</h3>
                         
                         <div className="flex flex-col space-y-4 px-2 flex-shrink-0">
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <label htmlFor="aggregate-toggle" className="text-sm font-medium text-text-strong pr-4">Enable aggregated metrics</label>
-                                     <button
-                                        type="button"
-                                        onClick={() => setIsAggregated(!isAggregated)}
-                                        className={`${
-                                            isAggregated ? 'bg-primary' : 'bg-gray-200'
-                                        } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2`}
-                                        role="switch"
-                                        aria-checked={isAggregated}
-                                        id="aggregate-toggle"
-                                    >
-                                        <span
-                                            aria-hidden="true"
-                                            className={`${
-                                            isAggregated ? 'translate-x-5' : 'translate-x-0'
-                                            } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
-                                        />
-                                    </button>
-                                </div>
-                                {!isAggregated && accounts.length > 0 && (
-                                    <div className="relative">
-                                        <select 
-                                            id="account-select" 
-                                            value={selectedAccountForNewWidgets} 
-                                            onChange={e => setSelectedAccountForNewWidgets(e.target.value)}
-                                            className="w-full appearance-none border-0 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-primary bg-background"
-                                        >
-                                            {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
-                                        </select>
-                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-text-secondary">
-                                            <IconChevronDown className="h-5 w-5" />
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                            
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><IconSearch className="h-5 w-5 text-text-muted" /></div>
                                 <input type="text" placeholder="Search views..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border-0 rounded-full text-sm focus:ring-2 focus:ring-primary bg-background placeholder-text-secondary" />
