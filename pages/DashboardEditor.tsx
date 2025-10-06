@@ -147,36 +147,6 @@ const RealSpendBreakdown: React.FC<{ dataSource: Widget['dataSource'] }> = ({ da
 
     return (
         <div className="space-y-2 p-2 h-full flex flex-col">
-<<<<<<< HEAD
-            {data.map(item => {
-                const chartData = [{ value: item.percentage }, { value: 100 - item.percentage }];
-                const value = item.cost;
-                return (
-                    <div key={item.name} className="flex items-center justify-between gap-2">
-                        <div className="bg-surface-nested p-2 rounded-xl flex-grow">
-                            <p className="text-text-secondary text-xs">{item.name}</p>
-                            <div className="text-lg leading-tight font-bold text-text-primary mt-1 flex items-baseline">
-                                ${value.toLocaleString()}
-                            </div>
-                        </div>
-                        <div className="flex-shrink-0">
-                            <div className="relative h-[50px] w-[50px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie data={chartData} dataKey="value" innerRadius="70%" outerRadius="100%" startAngle={90} endAngle={-270} cy="50%" cx="50%" stroke="none">
-                                            <Cell fill={item.color} />
-                                            <Cell fill="var(--color-border-light)" />
-                                        </Pie>
-                                    </ResponsiveContainer>
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <span className="text-sm font-bold text-text-primary">{item.percentage}%</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    );
-            })}
-=======
            {data.map((item) => {
   const chartData = [
     { value: item.percentage },
@@ -225,7 +195,6 @@ const RealSpendBreakdown: React.FC<{ dataSource: Widget['dataSource'] }> = ({ da
   );
 })}
 
->>>>>>> eb9bc86 (deploy script added)
              <div className="text-center mt-auto pt-2 flex items-baseline justify-center text-xs">
                 <span className="text-text-secondary mr-1">Total:</span>
                 <span className="font-semibold text-text-primary">${totalSpend.toLocaleString()}</span>

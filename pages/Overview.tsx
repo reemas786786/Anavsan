@@ -1,11 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
-<<<<<<< HEAD
-import { costBreakdownData, overviewMetrics, resourceSummaryData as initialResourceSummaryData, ytdOverviewMetrics } from '../data/dummyData';
-=======
 import { costBreakdownData, overviewMetrics, resourceSummaryData as initialResourceSummaryData } from '../data/dummyData';
->>>>>>> eb9bc86 (deploy script added)
 import { Account, User, BigScreenWidget } from '../types';
 import { IconDotsVertical } from '../constants';
 import SidePanel from '../components/SidePanel';
@@ -142,17 +138,6 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                     ['Forecasted Spend', overviewMetrics.cost.forecasted, overviewMetrics.credits.forecasted, timestamp]
                 ];
                 break;
-<<<<<<< HEAD
-            case 'ytd-spend':
-                fileName = 'year_to_date_spend_and_forecast';
-                headers = ['Metric', 'Cost', 'Credits', 'Timestamp'];
-                dataRows = [
-                    ['Current YTD Spend', ytdOverviewMetrics.cost.current, ytdOverviewMetrics.credits.current, timestamp],
-                    ['Forecasted YTD Spend', ytdOverviewMetrics.cost.forecasted, ytdOverviewMetrics.credits.forecasted, timestamp]
-                ];
-                break;
-=======
->>>>>>> eb9bc86 (deploy script added)
             case 'resource-summary':
                 fileName = 'resource_summary';
                 headers = ['Metric', 'Value', 'Timestamp'];
@@ -263,11 +248,6 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
     
     const currentSpend = displayMode === 'cost' ? overviewMetrics.cost.current : overviewMetrics.credits.current;
     const forecastedSpend = displayMode === 'cost' ? overviewMetrics.cost.forecasted : overviewMetrics.credits.forecasted;
-<<<<<<< HEAD
-    const ytdCurrentSpend = displayMode === 'cost' ? ytdOverviewMetrics.cost.current : ytdOverviewMetrics.credits.current;
-    const ytdForecastedSpend = displayMode === 'cost' ? ytdOverviewMetrics.cost.forecasted : ytdOverviewMetrics.credits.forecasted;
-=======
->>>>>>> eb9bc86 (deploy script added)
     const barHeight = 12;
     const userBarHeight = 12;
 
@@ -334,64 +314,6 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                         </div>
                     </div>
                 </Card>
-<<<<<<< HEAD
-                
-                <Card>
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-center">
-                            <h4 className="text-base font-semibold text-text-strong">Year-to-date Spend</h4>
-                            <InfoTooltip text="The total cost or credits consumed this year, and the projected spend by the end of the year based on current usage patterns." />
-                        </div>
-                        <div className="relative" ref={openMenu === 'ytd-spend' ? menuRef : null}>
-                            <button
-                                onClick={() => handleMenuClick('ytd-spend')}
-                                className="p-1 rounded-full text-text-secondary hover:bg-surface-hover hover:text-primary focus:outline-none"
-                                aria-label="Year-to-date spend options"
-                                aria-haspopup="true"
-                                aria-expanded={openMenu === 'ytd-spend'}
-                            >
-                                <IconDotsVertical className="h-5 w-5" />
-                            </button>
-                                {openMenu === 'ytd-spend' && (
-                                <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg bg-surface shadow-lg z-10">
-                                    <div className="py-1" role="menu" aria-orientation="vertical">
-                                        <button onClick={() => handleDownloadCSV('ytd-spend')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="bg-surface-nested p-4 rounded-3xl">
-                            <p className="text-text-secondary text-sm">Current spend</p>
-                            <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
-                                {displayMode === 'cost' ? (
-                                    `$${ytdCurrentSpend.toLocaleString()}.00`
-                                ) : (
-                                    <>
-                                        <span>{ytdCurrentSpend.toLocaleString()}</span>
-                                        <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                        <div className="bg-surface-nested p-4 rounded-3xl">
-                            <p className="text-text-secondary text-sm">Forecasted spend</p>
-                            <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
-                                {displayMode === 'cost' ? (
-                                    `$${ytdForecastedSpend.toLocaleString()}.00`
-                                ) : (
-                                    <>
-                                        <span>{ytdForecastedSpend.toLocaleString()}</span>
-                                        <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </Card>
-=======
->>>>>>> eb9bc86 (deploy script added)
 
                 <Card>
                     <div className="flex justify-between items-start mb-4">
