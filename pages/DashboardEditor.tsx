@@ -234,26 +234,6 @@ const DashboardWidgetRenderer: React.FC<{ widget: Widget }> = ({ widget }) => {
     }
 };
 
-const ToggleSwitch: React.FC<{ enabled: boolean; onChange: (enabled: boolean) => void }> = ({ enabled, onChange }) => (
-    <button
-      type="button"
-      onClick={() => onChange(!enabled)}
-      className={`${
-        enabled ? 'bg-primary' : 'bg-gray-200'
-      } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2`}
-      role="switch"
-      aria-checked={enabled}
-    >
-      <span
-        aria-hidden="true"
-        className={`${
-          enabled ? 'translate-x-5' : 'translate-x-0'
-        } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
-      />
-    </button>
-);
-
-
 interface DashboardEditorProps {
     dashboard: DashboardItem | null; // null for new dashboard
     accounts: Account[];
@@ -270,7 +250,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
     const [editedDashboard, setEditedDashboard] = useState<DashboardItem>(
         dashboard || {
             id: `temp-${Date.now()}`,
-            title: 'Untitled Dashboard',
+            title: '',
             description: '',
             createdOn: '',
             widgets: [],
@@ -281,11 +261,19 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
     useEffect(() => {
         if (dashboard) {
             setEditedDashboard(dashboard);
+        } else {
+             setEditedDashboard({
+                id: `temp-${Date.now()}`,
+                title: 'Untitled Dashboard',
+                description: '',
+                createdOn: '',
+                widgets: [],
+                dataSourceContext: { type: 'overall' },
+            });
         }
     }, [dashboard]);
 
     const [searchTerm, setSearchTerm] = useState('');
-    const [isPreview, setIsPreview] = useState(isViewMode);
     const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
     const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
     const [activeFilter, setActiveFilter] = useState<string>('All');
@@ -340,7 +328,11 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
     };
     
     const handleSave = () => {
-        onSave(editedDashboard);
+        const dashboardToSave = {
+            ...editedDashboard,
+            title: editedDashboard.title.trim() || 'Untitled Dashboard'
+        };
+        onSave(dashboardToSave);
     };
     
     const handleDragSort = () => {
@@ -384,9 +376,9 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
     }, [searchTerm, activeFilter]);
 
     return (
-        <div className="flex flex-col bg-background">
+        <div className="flex flex-col bg-background h-full">
             {/* Header */}
-            <header className="p-4 flex items-center justify-between flex-shrink-0">
+            <header className={`flex items-center justify-between flex-shrink-0 ${isViewMode ? 'p-4' : 'bg-surface p-4 border-b border-border-light'}`}>
                 {isViewMode && editedDashboard ? (
                     <div className="flex items-center justify-between w-full">
                         <div className="flex items-center gap-2">
@@ -456,37 +448,70 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                         </div>
                     </div>
                 ) : (
-                    <div className=" rounded-3xl p-4 flex-grow">
-                        <input type="text" value={editedDashboard.title} onChange={handleTitleChange} className="text-xl font-bold bg-transparent focus:outline-none focus:ring-1 focus:ring-primary rounded-md -ml-2 px-2 py-1" placeholder="Dashboard Title" />
-                        <input type="text" value={editedDashboard.description} onChange={handleDescriptionChange} className="text-sm text-text-secondary w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-primary rounded-md -ml-2 px-2" placeholder="Dashboard description (optional)" />
-                    </div>
-                )}
-                
-                {!isViewMode && (
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <span className={`text-sm font-medium ${!isPreview ? 'text-text-muted' : 'text-text-primary'}`}>Preview</span>
-                            <ToggleSwitch enabled={isPreview} onChange={setIsPreview} />
+                    <>
+                        <div className="flex-grow">
+                            <input 
+                                type="text" 
+                                value={editedDashboard.title} 
+                                onChange={handleTitleChange} 
+                                className="text-2xl font-bold text-text-strong bg-transparent focus:outline-none w-full block" 
+                                placeholder="Untitled Dashboard" 
+                            />
+                            <input 
+                                type="text" 
+                                value={editedDashboard.description || ''} 
+                                onChange={handleDescriptionChange} 
+                                className="text-sm text-text-secondary w-full bg-transparent focus:outline-none block" 
+                                placeholder="Dashboard description (optional)" 
+                            />
                         </div>
-                        <div className="h-6 w-px bg-border-color"></div>
-                        <button onClick={onCancel} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-gray-50">Cancel</button>
-                        <button onClick={handleSave} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full shadow-sm">Save Dashboard</button>
-                    </div>
+                        <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+                            <button 
+                                onClick={onCancel} 
+                                className="text-sm font-semibold px-4 py-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={handleSave} 
+                                disabled={!editedDashboard.title.trim()}
+                                className="text-sm font-semibold px-4 py-2 rounded-full shadow-sm transition-colors bg-primary text-white hover:bg-primary-hover disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+                            >
+                                Save Dashboard
+                            </button>
+                        </div>
+                    </>
                 )}
             </header>
             
             {/* Main Content */}
-            <div className={`flex-1 grid grid-cols-1 ${!isPreview ? 'lg:grid-cols-12' : ''} gap-4 p-4`}>
+            <div className={`flex-1 grid grid-cols-1 ${!isViewMode ? 'lg:grid-cols-12' : ''} gap-4 p-4 overflow-y-auto`}>
                 {/* Left Panel: Widget Library */}
-                {!isPreview && (
-                    <aside className="lg:col-span-4 xl:col-span-3 bg-white rounded-3xl p-4 flex flex-col self-start sticky top-4 max-h-[calc(100vh-80px)]">
+                {!isViewMode && (
+                    <aside className="lg:col-span-4 xl:col-span-3 bg-white rounded-3xl p-4 flex flex-col self-start sticky top-4 max-h-[calc(100vh-100px)]">
                         <h3 className="text-lg font-semibold text-text-strong mb-4 px-2">Select views</h3>
                         
                         <div className="flex flex-col space-y-4 px-2 flex-shrink-0">
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
                                     <label htmlFor="aggregate-toggle" className="text-sm font-medium text-text-strong pr-4">Enable aggregated metrics</label>
-                                    <ToggleSwitch enabled={isAggregated} onChange={setIsAggregated} />
+                                     <button
+                                        type="button"
+                                        onClick={() => setIsAggregated(!isAggregated)}
+                                        className={`${
+                                            isAggregated ? 'bg-primary' : 'bg-gray-200'
+                                        } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2`}
+                                        role="switch"
+                                        aria-checked={isAggregated}
+                                        id="aggregate-toggle"
+                                    >
+                                        <span
+                                            aria-hidden="true"
+                                            className={`${
+                                            isAggregated ? 'translate-x-5' : 'translate-x-0'
+                                            } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                                        />
+                                    </button>
                                 </div>
                                 {!isAggregated && accounts.length > 0 && (
                                     <div className="relative">
@@ -559,7 +584,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                 )}
 
                 {/* Right Panel: Dashboard Canvas */}
-                <main className={`${!isPreview ? 'lg:col-span-8 xl:col-span-9' : 'col-span-1'}`}>
+                <main className={`${!isViewMode ? 'lg:col-span-8 xl:col-span-9' : 'col-span-1'}`}>
                     {!isViewMode && <h3 className="text-lg font-semibold text-text-strong mb-4 px-2">Layout</h3>}
                     {editedDashboard.widgets.length > 0 ? (
                        <div className="columns-1 md:columns-2 gap-4">
@@ -570,16 +595,16 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                                 return (
                                 <div
                                     key={widget.id}
-                                    className={`bg-surface rounded-3xl flex flex-col group p-4 relative break-inside-avoid mb-4 ${!isPreview ? 'cursor-move' : ''}`}
-                                    draggable={!isPreview}
-                                    onDragStart={!isPreview ? () => (dragItem.current = index) : undefined}
-                                    onDragEnter={!isPreview ? () => (dragOverItem.current = index) : undefined}
-                                    onDragEnd={!isPreview ? handleDragSort : undefined}
-                                    onDragOver={!isPreview ? (e) => e.preventDefault() : undefined}
+                                    className={`bg-surface rounded-3xl flex flex-col group p-4 relative break-inside-avoid mb-4 ${!isViewMode ? 'cursor-move' : ''}`}
+                                    draggable={!isViewMode}
+                                    onDragStart={!isViewMode ? () => (dragItem.current = index) : undefined}
+                                    onDragEnter={!isViewMode ? () => (dragOverItem.current = index) : undefined}
+                                    onDragEnd={!isViewMode ? handleDragSort : undefined}
+                                    onDragOver={!isViewMode ? (e) => e.preventDefault() : undefined}
                                 >
                                     <div className="flex items-start justify-between">
                                         <h4 className="text-base font-semibold text-text-strong pr-6">{widget.title}</h4>
-                                        {!isPreview && (
+                                        {!isViewMode && (
                                             <button onClick={() => handleRemoveWidget(widget.id)} className="absolute top-3 right-3 p-1 rounded-full text-text-muted hover:bg-gray-200 hover:text-status-error opacity-0 group-hover:opacity-100 transition-opacity z-10" aria-label="Remove widget">
                                                 <IconClose className="w-5 h-5" />
                                             </button>
@@ -596,9 +621,9 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                             )})}
                        </div>
                     ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-center text-text-secondary border-2 border-dashed border-border-color rounded-2xl">
+                        <div className="h-full flex flex-col items-center justify-center text-center text-text-secondary border-2 border-dashed border-border-color rounded-2xl min-h-[400px]">
                             <h3 className="text-lg font-semibold">Drag or Add views here</h3>
-                            {!isPreview && <p className="max-w-xs">Your dashboard is currently empty. Choose a view from the left panel to get started.</p>}
+                            {!isViewMode && <p className="max-w-xs">Your dashboard is currently empty. Choose a view from the left panel to get started.</p>}
                         </div>
                     )}
                 </main>
