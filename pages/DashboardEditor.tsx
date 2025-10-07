@@ -4,6 +4,7 @@ import { availableWidgetsData, overviewMetrics, accountSpend, costBreakdownData,
 import { IconAdd, IconSearch, IconClose, IconChevronDown, IconChevronLeft, IconDotsVertical, IconEdit, IconDelete } from '../constants';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import StatCard from '../components/StatCard';
+import InfoTooltip from '../components/InfoTooltip';
 
 
 const dummyLineData = [
@@ -526,28 +527,37 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                 {/* Left Panel: Widget Library */}
                 {!effectiveViewMode && (
                     <aside className="lg:col-span-4 xl:col-span-3 bg-white rounded-3xl p-4 flex flex-col self-start sticky top-4 max-h-[calc(100vh-100px)]">
-                        <h3 className="text-lg font-semibold text-text-strong mb-4 px-2">Select views</h3>
+                        <h3 className="text-lg font-semibold text-text-strong mb-4">Select views</h3>
                         
-                        <div className="px-2 mb-4">
-                            <label className="text-xs font-semibold text-text-secondary uppercase mb-2 block px-1">Data Source</label>
-                            <div className="bg-background p-3 rounded-xl space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-text-primary">Overall Metrics</span>
+                        <div className="mb-4">
+                            <div className="flex items-center mb-3">
+                                <h4 className="text-xs font-semibold text-text-secondary uppercase">View mode</h4>
+                                <InfoTooltip text="Switch between organization-wide metrics and a specific account view." />
+                            </div>
+                            <div className="space-y-3">
+                                <div className="border border-border-color bg-background p-1 rounded-full flex items-center" aria-label="Switch between Overall and Account view">
                                     <button
-                                        type="button"
-                                        onClick={() => setIsOverallSource(!isOverallSource)}
-                                        className={`${ isOverallSource ? 'bg-primary' : 'bg-gray-200' } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2`}
-                                        role="switch"
-                                        aria-checked={isOverallSource}
+                                        onClick={() => setIsOverallSource(true)}
+                                        aria-pressed={isOverallSource}
+                                        className={`w-1/2 px-3 py-1.5 text-sm font-semibold rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
+                                            isOverallSource ? 'bg-white shadow text-text-primary' : 'text-text-secondary hover:text-text-primary'
+                                        }`}
                                     >
-                                        <span
-                                            aria-hidden="true"
-                                            className={`${ isOverallSource ? 'translate-x-5' : 'translate-x-0' } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
-                                        />
+                                        Overall
+                                    </button>
+                                    <button
+                                        onClick={() => setIsOverallSource(false)}
+                                        aria-pressed={!isOverallSource}
+                                        className={`w-1/2 px-3 py-1.5 text-sm font-semibold rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
+                                            !isOverallSource ? 'bg-white shadow text-text-primary' : 'text-text-secondary hover:text-text-primary'
+                                        }`}
+                                    >
+                                        Account
                                     </button>
                                 </div>
+
                                 {!isOverallSource && (
-                                    <div>
+                                    <div className="pt-2">
                                         <label htmlFor="account-source-select" className="sr-only">Select Account</label>
                                         <div className="relative">
                                             <select 
@@ -569,7 +579,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2 px-2 mb-4 flex-shrink-0">
+                        <div className="flex items-center gap-2 mb-4 flex-shrink-0">
                             <div className="relative flex-grow">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <IconSearch className="h-5 w-5 text-text-muted" />
