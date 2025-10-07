@@ -278,6 +278,8 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
     const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
     const [activeFilter, setActiveFilter] = useState<string>('All');
     const [isPreviewing, setIsPreviewing] = useState(false);
+    const [isOverallSource, setIsOverallSource] = useState(true);
+    const [selectedSourceAccountId, setSelectedSourceAccountId] = useState<string>(accounts.length > 0 ? accounts[0].id : '');
     
     const dragItem = useRef<number | null>(null);
     const dragOverItem = useRef<number | null>(null);
@@ -309,7 +311,9 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
         const newWidgetInstance: Widget = {
             ...widgetTemplate,
             id: `inst-${Date.now()}-${Math.random()}`,
-            dataSource: editedDashboard.dataSourceContext ?? { type: 'overall' },
+            dataSource: isOverallSource
+                ? { type: 'overall' }
+                : { type: 'account', accountId: selectedSourceAccountId },
         };
         setEditedDashboard(prev => ({
             ...prev,
@@ -524,33 +528,80 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                     <aside className="lg:col-span-4 xl:col-span-3 bg-white rounded-3xl p-4 flex flex-col self-start sticky top-4 max-h-[calc(100vh-100px)]">
                         <h3 className="text-lg font-semibold text-text-strong mb-4 px-2">Select views</h3>
                         
-                        <div className="flex flex-col space-y-4 px-2 flex-shrink-0">
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><IconSearch className="h-5 w-5 text-text-muted" /></div>
-                                <input type="text" placeholder="Search views..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border-0 rounded-full text-sm focus:ring-2 focus:ring-primary bg-background placeholder-text-secondary" />
-                            </div>
-
-                            <div>
-                                <label htmlFor="category-filter" className="text-xs font-semibold text-text-secondary uppercase mb-2 block px-1">Category</label>
-                                <div className="relative">
-                                    <select 
-                                        id="category-filter"
-                                        value={activeFilter}
-                                        onChange={e => setActiveFilter(e.target.value)}
-                                        className="w-full appearance-none border-0 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-primary bg-background"
+                        <div className="px-2 mb-4">
+                            <label className="text-xs font-semibold text-text-secondary uppercase mb-2 block px-1">Data Source</label>
+                            <div className="bg-background p-3 rounded-xl space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-text-primary">Overall Metrics</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsOverallSource(!isOverallSource)}
+                                        className={`${ isOverallSource ? 'bg-primary' : 'bg-gray-200' } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2`}
+                                        role="switch"
+                                        aria-checked={isOverallSource}
                                     >
-                                        {widgetTagsWithCounts.map(({tag, count}) => (
-                                            <option key={tag} value={tag}>{tag} ({count})</option>
-                                        ))}
-                                    </select>
-                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-text-secondary">
-                                        <IconChevronDown className="h-5 w-5" />
+                                        <span
+                                            aria-hidden="true"
+                                            className={`${ isOverallSource ? 'translate-x-5' : 'translate-x-0' } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                                        />
+                                    </button>
+                                </div>
+                                {!isOverallSource && (
+                                    <div>
+                                        <label htmlFor="account-source-select" className="sr-only">Select Account</label>
+                                        <div className="relative">
+                                            <select 
+                                                id="account-source-select"
+                                                value={selectedSourceAccountId}
+                                                onChange={e => setSelectedSourceAccountId(e.target.value)}
+                                                className="w-full appearance-none border border-border-color rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-primary bg-white"
+                                            >
+                                                {accounts.map((acc) => (
+                                                    <option key={acc.id} value={acc.id}>{acc.name}</option>
+                                                ))}
+                                            </select>
+                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-text-secondary">
+                                                <IconChevronDown className="h-5 w-5" />
+                                            </div>
+                                        </div>
                                     </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 px-2 mb-4 flex-shrink-0">
+                            <div className="relative flex-grow">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <IconSearch className="h-5 w-5 text-text-muted" />
+                                </div>
+                                <input 
+                                    type="text" 
+                                    placeholder="Search views..." 
+                                    value={searchTerm} 
+                                    onChange={(e) => setSearchTerm(e.target.value)} 
+                                    className="w-full pl-10 pr-4 py-2 border-0 rounded-full text-sm focus:ring-2 focus:ring-primary bg-background placeholder-text-secondary"
+                                    aria-label="Search views"
+                                />
+                            </div>
+                            <div className="relative flex-shrink-0">
+                                <select
+                                    id="category-filter"
+                                    value={activeFilter}
+                                    onChange={e => setActiveFilter(e.target.value)}
+                                    className="w-full appearance-none border-0 rounded-full pl-4 pr-10 py-2 text-sm focus:ring-2 focus:ring-primary bg-background"
+                                    aria-label="Filter by category"
+                                >
+                                    {widgetTagsWithCounts.map(({tag, count}) => (
+                                        <option key={tag} value={tag}>{tag} ({count})</option>
+                                    ))}
+                                </select>
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-text-secondary">
+                                    <IconChevronDown className="h-5 w-5" />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto space-y-2 pt-2 mt-4">
+                        <div className="flex-1 overflow-y-auto space-y-2">
                              <div className="grid grid-cols-1 gap-4">
                                 {filteredWidgets.map(widget => (
                                     <div key={widget.widgetId} className="bg-background p-4 rounded-2xl flex flex-col gap-3">
@@ -580,7 +631,6 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
 
                 {/* Right Panel: Dashboard Canvas */}
                 <main className={`${!effectiveViewMode ? 'lg:col-span-8 xl:col-span-9' : 'col-span-1'}`}>
-                    {!effectiveViewMode && <h3 className="text-lg font-semibold text-text-strong mb-4 px-2">Layout</h3>}
                     {editedDashboard.widgets.length > 0 ? (
                        <div className="columns-1 md:columns-2 gap-4">
                             {editedDashboard.widgets.map((widget, index) => {
@@ -617,7 +667,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                        </div>
                     ) : (
                         <div className="h-full flex flex-col items-center justify-center text-center text-text-secondary border-2 border-dashed border-border-color rounded-2xl min-h-[400px]">
-                            <h3 className="text-lg font-semibold">Drag or Add views here</h3>
+                            <h3 className="text-lg font-semibold">Add views here</h3>
                             {!effectiveViewMode && <p className="max-w-xs">Your dashboard is currently empty. Choose a view from the left panel to get started.</p>}
                         </div>
                     )}
