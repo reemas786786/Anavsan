@@ -21,10 +21,10 @@ const InfoTooltip: React.FC<InfoTooltipProps> = ({ text }) => {
             <div
                 id={id}
                 role="tooltip"
-                className="absolute bottom-full mb-2 w-64 bg-sidebar-topbar text-white text-xs rounded-lg py-2 px-3 z-20 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none transform -translate-x-1/2 left-1/2"
+                className="absolute bottom-full mb-2 w-64 bg-sidebar-topbar text-white text-xs rounded-lg py-2 px-3 z-20 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none left-0"
             >
                 {text}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-sidebar-topbar"></div>
+                <div className="absolute top-full left-2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-sidebar-topbar"></div>
             </div>
         </div>
     );

@@ -16,12 +16,12 @@ interface QueryListViewProps {
 }
 
 const QueryListView: React.FC<QueryListViewProps> = ({ onShareQuery }) => {
-    const [isFilterPanelCollapsed, setIsFilterPanelCollapsed] = useState(false);
     const [search, setSearch] = useState('');
     const [dateFilter, setDateFilter] = useState('All');
     const [warehouseFilter, setWarehouseFilter] = useState('All');
     const [statusFilter, setStatusFilter] = useState('All');
     const [typeFilters, setTypeFilters] = useState<Set<QueryType>>(new Set());
+    const [isTypeFilterOpen, setIsTypeFilterOpen] = useState(false);
     
     const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
     const [sortConfig, setSortConfig] = useState<{ key: keyof QueryListItem; direction: 'ascending' | 'descending' }>({ key: 'timestamp', direction: 'descending' });
@@ -33,9 +33,10 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onShareQuery }) => {
 
     const menuRef = useRef<HTMLDivElement>(null);
     const exportMenuRef = useRef<HTMLDivElement>(null);
+    const typeFilterRef = useRef<HTMLDivElement>(null);
 
     const totalQueries = initialData.length;
-    const successQueries = useMemo(() => initialData.filter(q => q.status === 'Success').length, [initialData]);
+    const successQueries = useMemo(() => initialData.filter(q => q.status === 'Success').length, []);
     const failedQueries = totalQueries - successQueries;
     const queryTypes: QueryType[] = ['SELECT', 'WHERE', 'JOIN', 'Aggregation'];
 
@@ -43,6 +44,7 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onShareQuery }) => {
         const handleClickOutside = (event: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(event.target as Node)) setOpenMenuId(null);
             if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) setIsExportMenuOpen(false);
+            if (typeFilterRef.current && !typeFilterRef.current.contains(event.target as Node)) setIsTypeFilterOpen(false);
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -135,149 +137,142 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onShareQuery }) => {
     }
 
     return (
-        <div className="flex gap-4 h-[calc(100vh-140px)]">
-            {/* Filter Panel */}
-            <aside className={`bg-surface rounded-3xl p-4 flex flex-col transition-all duration-300 ${isFilterPanelCollapsed ? 'w-16' : 'w-80'}`}>
-                <div className="flex items-center justify-between mb-4">
-                    {!isFilterPanelCollapsed && <h3 className="text-base font-semibold text-text-strong">Filters</h3>}
-                    <button onClick={() => setIsFilterPanelCollapsed(!isFilterPanelCollapsed)} className="p-1 rounded-full hover:bg-surface-hover">
-                        <IconChevronLeft className={`h-5 w-5 text-text-secondary transition-transform ${isFilterPanelCollapsed ? 'rotate-180' : ''}`} />
-                    </button>
-                </div>
-                {!isFilterPanelCollapsed && (
-                    <div className="space-y-4 overflow-y-auto pr-2 -mr-2">
-                        <div>
-                            <label htmlFor="search-query-id" className="text-sm font-medium text-text-secondary">Query ID</label>
-                            <div className="relative mt-1">
-                                <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
-                                <input id="search-query-id" type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..." className="w-full pl-10 pr-4 py-2 bg-input-bg border-border-color rounded-full text-sm"/>
-                            </div>
+        <div className="space-y-4">
+            <div className="flex justify-between items-center">
+                <h1 className="text-2xl font-bold text-text-primary">All Queries</h1>
+            </div>
+            <div className="columns-1 md:columns-2 lg:columns-3 gap-4">
+                <MetricCard title="Total queries" value={totalQueries.toLocaleString()} />
+                <MetricCard title="Success" value={successQueries.toLocaleString()} valueColor="text-status-success" />
+                <MetricCard title="Failed" value={failedQueries.toLocaleString()} valueColor="text-status-error" />
+            </div>
+            
+            <div className="bg-surface rounded-3xl flex-1 flex flex-col overflow-hidden">
+                 <div className="p-4 border-b border-border-color space-y-3">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="relative flex-grow max-w-md">
+                            <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input id="search-query-id" type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by Query ID..." className="w-full pl-10 pr-4 py-2 bg-input-bg border-border-color rounded-full text-sm"/>
                         </div>
-                        <div>
-                            <label className="text-sm font-medium text-text-secondary">Date</label>
-                            <div className="flex gap-1 bg-input-bg p-1 rounded-full mt-1">
-                                {['All', '1d', '7d', '30d'].map(d => <button key={d} onClick={() => setDateFilter(d)} className={`px-3 py-1 text-sm rounded-full w-full ${dateFilter === d ? 'bg-surface shadow-sm text-text-primary font-semibold' : 'text-text-secondary'}`}>{d}</button>)}
-                            </div>
+                        <div className="relative" ref={exportMenuRef}>
+                            <button onClick={() => setIsExportMenuOpen(!isExportMenuOpen)} className="px-4 py-2 text-sm font-semibold text-text-primary bg-background border border-border-color rounded-full flex items-center gap-2">
+                                Export <IconChevronDown className="h-4 w-4" />
+                            </button>
+                            {isExportMenuOpen && (
+                                 <div className="origin-top-right absolute right-0 top-full mt-2 w-32 rounded-lg bg-surface border border-border-color z-10">
+                                    <div className="py-1" role="menu">
+                                        <button onClick={() => handleExport('csv')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">CSV</button>
+                                        <button onClick={() => handleExport('json')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">JSON</button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                        <div>
-                            <label htmlFor="warehouse-filter" className="text-sm font-medium text-text-secondary">Warehouse</label>
-                            <select id="warehouse-filter" value={warehouseFilter} onChange={e => setWarehouseFilter(e.target.value)} className="w-full mt-1 bg-input-bg border-border-color rounded-full text-sm px-3 py-2">
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="flex gap-1 bg-input-bg p-1 rounded-full">
+                            {['All', '1d', '7d', '30d'].map(d => <button key={d} onClick={() => setDateFilter(d)} className={`px-3 py-1 text-sm rounded-full ${dateFilter === d ? 'bg-surface shadow-sm text-text-primary font-semibold' : 'text-text-secondary'}`}>{d}</button>)}
+                        </div>
+
+                        <div className="relative">
+                             <select id="warehouse-filter" value={warehouseFilter} onChange={e => setWarehouseFilter(e.target.value)} className="w-full bg-input-bg border-border-color rounded-full text-sm px-3 py-2 appearance-none pr-8">
                                 <option value="All">All Warehouses</option>
                                 {warehousesData.map(w => <option key={w.id} value={w.name}>{w.name}</option>)}
                             </select>
+                             <IconChevronDown className="h-4 w-4 text-text-secondary absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                         </div>
-                        <div>
-                            <label htmlFor="status-filter" className="text-sm font-medium text-text-secondary">Status</label>
-                             <select id="status-filter" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="w-full mt-1 bg-input-bg border-border-color rounded-full text-sm px-3 py-2">
-                                <option>All</option>
-                                <option>Success</option>
-                                <option>Failed</option>
+                        
+                        <div className="relative">
+                             <select id="status-filter" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="w-full bg-input-bg border-border-color rounded-full text-sm px-3 py-2 appearance-none pr-8">
+                                <option value="All">All Status</option>
+                                <option value="Success">Success</option>
+                                <option value="Failed">Failed</option>
                             </select>
+                            <IconChevronDown className="h-4 w-4 text-text-secondary absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                         </div>
-                        <div>
-                            <label className="text-sm font-medium text-text-secondary">Query Type</label>
-                            <div className="space-y-1 mt-2">
-                                {queryTypes.map(type => (
-                                    <label key={type} className="flex items-center">
-                                        <input type="checkbox" checked={typeFilters.has(type)} onChange={() => handleTypeFilterChange(type)} className="h-4 w-4 rounded text-primary border-border-color focus:ring-primary" />
-                                        <span className="ml-2 text-sm text-text-primary">{type}</span>
-                                    </label>
-                                ))}
-                            </div>
+                        
+                        <div className="relative" ref={typeFilterRef}>
+                            <button onClick={() => setIsTypeFilterOpen(!isTypeFilterOpen)} className="px-3 py-2 bg-input-bg border border-border-color rounded-full text-sm flex items-center gap-2">
+                                <span>{typeFilters.size > 0 ? `${typeFilters.size} Type(s)` : 'All Types'}</span>
+                                <IconChevronDown className={`h-4 w-4 text-text-secondary transition-transform ${isTypeFilterOpen ? 'rotate-180' : ''}`} />
+                            </button>
+                            {isTypeFilterOpen && (
+                                <div className="absolute top-full mt-2 w-48 bg-surface rounded-lg shadow-lg border border-border-color z-10 p-2">
+                                    <div className="space-y-1">
+                                        {queryTypes.map(type => (
+                                            <label key={type} className="flex items-center p-2 rounded-md hover:bg-surface-hover cursor-pointer">
+                                                <input type="checkbox" checked={typeFilters.has(type)} onChange={() => handleTypeFilterChange(type)} className="h-4 w-4 rounded text-primary border-border-color focus:ring-primary" />
+                                                <span className="ml-2 text-sm text-text-primary">{type}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
-                )}
-            </aside>
-            
-            {/* Main Content */}
-            <main className="flex-1 flex flex-col gap-4">
-                <div className="flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-text-primary">Query List</h1>
-                </div>
-                <div className="columns-1 md:columns-2 lg:columns-3 gap-4">
-                    <MetricCard title="Total queries" value={totalQueries.toLocaleString()} />
-                    <MetricCard title="Success" value={successQueries.toLocaleString()} valueColor="text-status-success" />
-                    <MetricCard title="Failed" value={failedQueries.toLocaleString()} valueColor="text-status-error" />
                 </div>
                 
-                <div className="bg-surface rounded-3xl flex-1 flex flex-col overflow-hidden">
-                    <div className="p-4 flex justify-end relative" ref={exportMenuRef}>
-                        <button onClick={() => setIsExportMenuOpen(!isExportMenuOpen)} className="px-4 py-2 text-sm font-semibold text-text-primary bg-background border border-border-color rounded-full flex items-center gap-2">
-                            Export <IconChevronDown className="h-4 w-4" />
-                        </button>
-                        {isExportMenuOpen && (
-                             <div className="origin-top-right absolute right-4 top-14 mt-2 w-32 rounded-lg bg-surface border border-border-color z-10">
-                                <div className="py-1" role="menu">
-                                    <button onClick={() => handleExport('csv')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">CSV</button>
-                                    <button onClick={() => handleExport('json')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">JSON</button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    
-                    <div className="overflow-auto flex-1">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-background text-xs text-text-secondary uppercase font-medium sticky top-0">
-                                <tr>
-                                    <th scope="col" className="p-4 w-12"><input type="checkbox" onChange={handleSelectAll} checked={selectedRows.size === paginatedData.length && paginatedData.length > 0} className="h-4 w-4 rounded"/></th>
-                                    <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('id')} className="group flex items-center">Query ID</button></th>
-                                    <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('costUSD')} className="group flex items-center">Cost</button></th>
-                                    <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('duration')} className="group flex items-center">Duration</button></th>
-                                    <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('warehouse')} className="group flex items-center">Warehouse</button></th>
-                                    <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('estSavingsUSD')} className="group flex items-center">Est. Savings</button></th>
-                                    <th scope="col" className="px-3 py-3 w-12"></th>
-                                </tr>
-                            </thead>
-                            <tbody className="text-text-secondary">
-                                {paginatedData.map(q => (
-                                    <tr key={q.id} className={`border-t border-border-color hover:bg-surface-hover ${q.status === 'Success' ? 'border-l-4 border-status-success' : 'border-l-4 border-status-error'}`}>
-                                        <td className="p-4"><input type="checkbox" checked={selectedRows.has(q.id)} onChange={() => handleSelectRow(q.id)} className="h-4 w-4 rounded"/></td>
-                                        <td className="px-3 py-4 font-mono text-xs text-text-primary"><button onClick={() => setPreviewQuery(q)} className="hover:underline">{q.id.substring(0, 8)}...</button></td>
-                                        <td className="px-3 py-4"><span className="font-semibold text-text-primary">${q.costUSD.toFixed(2)}</span><br/>{q.costCredits.toFixed(2)} cr</td>
-                                        <td className="px-3 py-4">{q.duration}</td>
-                                        <td className="px-3 py-4">{q.warehouse}</td>
-                                        <td className="px-3 py-4 font-semibold text-status-success">${q.estSavingsUSD.toFixed(2)} ({q.estSavingsPercent}%)</td>
-                                        <td className="px-3 py-4 text-right">
-                                            <div className="relative" ref={openMenuId === q.id ? menuRef : null}>
-                                                <button onClick={() => setOpenMenuId(q.id)}><IconDotsVertical className="h-5 w-5"/></button>
-                                                {openMenuId === q.id && (
-                                                     <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg bg-surface border border-border-color z-10">
-                                                        <div className="py-1" role="menu">
-                                                            <button onClick={() => {setPreviewQuery(q); setOpenMenuId(null)}} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Query Preview</button>
-                                                            <button onClick={() => { onShareQuery(q); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Share for Optimization</button>
-                                                            <button className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Open in Analyzer</button>
-                                                            <button className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Open in Optimizer</button>
-                                                            <button className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Open in Simulator</button>
-                                                        </div>
+                <div className="overflow-auto flex-1">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-background text-xs text-text-secondary uppercase font-medium sticky top-0">
+                            <tr>
+                                <th scope="col" className="p-4 w-12"><input type="checkbox" onChange={handleSelectAll} checked={selectedRows.size === paginatedData.length && paginatedData.length > 0} className="h-4 w-4 rounded"/></th>
+                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('id')} className="group flex items-center">Query ID</button></th>
+                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('costUSD')} className="group flex items-center">Cost</button></th>
+                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('duration')} className="group flex items-center">Duration</button></th>
+                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('warehouse')} className="group flex items-center">Warehouse</button></th>
+                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('estSavingsUSD')} className="group flex items-center">Est. Savings</button></th>
+                                <th scope="col" className="px-3 py-3 w-12"></th>
+                            </tr>
+                        </thead>
+                        <tbody className="text-text-secondary">
+                            {paginatedData.map(q => (
+                                <tr key={q.id} className={`border-t border-border-color hover:bg-surface-hover ${q.status === 'Success' ? 'border-l-4 border-status-success' : 'border-l-4 border-status-error'}`}>
+                                    <td className="p-4"><input type="checkbox" checked={selectedRows.has(q.id)} onChange={() => handleSelectRow(q.id)} className="h-4 w-4 rounded"/></td>
+                                    <td className="px-3 py-4 font-mono text-xs text-text-primary"><button onClick={() => setPreviewQuery(q)} className="hover:underline">{q.id.substring(0, 8)}...</button></td>
+                                    <td className="px-3 py-4"><span className="font-semibold text-text-primary">${q.costUSD.toFixed(2)}</span><br/>{q.costCredits.toFixed(2)} cr</td>
+                                    <td className="px-3 py-4">{q.duration}</td>
+                                    <td className="px-3 py-4">{q.warehouse}</td>
+                                    <td className="px-3 py-4 font-semibold text-status-success">${q.estSavingsUSD.toFixed(2)} ({q.estSavingsPercent}%)</td>
+                                    <td className="px-3 py-4 text-right">
+                                        <div className="relative" ref={openMenuId === q.id ? menuRef : null}>
+                                            <button onClick={() => setOpenMenuId(q.id)}><IconDotsVertical className="h-5 w-5"/></button>
+                                            {openMenuId === q.id && (
+                                                 <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg bg-surface border border-border-color z-10">
+                                                    <div className="py-1" role="menu">
+                                                        <button onClick={() => {setPreviewQuery(q); setOpenMenuId(null)}} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Query Preview</button>
+                                                        <button onClick={() => { onShareQuery(q); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Share for Optimization</button>
+                                                        <button className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Open in Analyzer</button>
+                                                        <button className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Open in Optimizer</button>
+                                                        <button className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Open in Simulator</button>
                                                     </div>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div className="p-4 flex justify-between items-center text-sm border-t border-border-color">
+                    <div>
+                         <select value={rowsPerPage} onChange={e => {setRowsPerPage(Number(e.target.value)); setCurrentPage(1)}} className="bg-input-bg border-border-color rounded-full text-sm px-3 py-1.5">
+                            <option value={25}>25</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                         </select>
+                         <span className="ml-2">items per page</span>
                     </div>
-                    
-                    <div className="p-4 flex justify-between items-center text-sm border-t border-border-color">
-                        <div>
-                             <select value={rowsPerPage} onChange={e => {setRowsPerPage(Number(e.target.value)); setCurrentPage(1)}} className="bg-input-bg border-border-color rounded-full text-sm px-3 py-1.5">
-                                <option value={25}>25</option>
-                                <option value={50}>50</option>
-                                <option value={100}>100</option>
-                             </select>
-                             <span className="ml-2">items per page</span>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <span>{`1–${paginatedData.length} of ${sortedData.length} items`}</span>
-                            <div className="flex gap-2">
-                                <button onClick={() => setCurrentPage(p => Math.max(1, p-1))} disabled={currentPage === 1} className="p-1 rounded-full disabled:opacity-50 hover:bg-surface-hover"><IconChevronLeft className="h-5 w-5"/></button>
-                                <button onClick={() => setCurrentPage(p => Math.min(Math.ceil(sortedData.length/rowsPerPage), p+1))} disabled={currentPage * rowsPerPage >= sortedData.length} className="p-1 rounded-full disabled:opacity-50 hover:bg-surface-hover"><IconChevronRight className="h-5 w-5"/></button>
-                            </div>
+                    <div className="flex items-center gap-4">
+                        <span>{`1–${paginatedData.length} of ${sortedData.length} items`}</span>
+                        <div className="flex gap-2">
+                            <button onClick={() => setCurrentPage(p => Math.max(1, p-1))} disabled={currentPage === 1} className="p-1 rounded-full disabled:opacity-50 hover:bg-surface-hover"><IconChevronLeft className="h-5 w-5"/></button>
+                            <button onClick={() => setCurrentPage(p => Math.min(Math.ceil(sortedData.length/rowsPerPage), p+1))} disabled={currentPage * rowsPerPage >= sortedData.length} className="p-1 rounded-full disabled:opacity-50 hover:bg-surface-hover"><IconChevronRight className="h-5 w-5"/></button>
                         </div>
                     </div>
                 </div>
-            </main>
+            </div>
 
             {previewQuery && (
                 <Modal isOpen={!!previewQuery} onClose={() => setPreviewQuery(null)} title="Query preview">
