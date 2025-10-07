@@ -1,4 +1,3 @@
-
 import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget, SimilarQuery, QueryListItem, QueryStatus, QueryType, StorageBreakdownItem, TopStorageConsumer, StorageGrowthPoint, UnusedTable, StorageActivityLogItem, StorageByTeamItem, DuplicateDataPattern, StorageOptimizationOpportunity, DataAgeDistributionItem, StorageTierItem, TieringOpportunityItem, CostForecastPoint, TierForecastPoint, AnomalyAlertItem, SavingsProjection, Database, DatabaseTable, StorageByTypeItem, AssignedQuery } from '../types';
 
 export const availableWidgetsData: Omit<Widget, 'id' | 'dataSource' | 'imageUrl'>[] = [
@@ -198,6 +197,9 @@ export const queryListData: QueryListItem[] = Array.from({ length: 500 }, (_, i)
         timestamp: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
         type: ['SELECT', (['JOIN', 'WHERE', 'Aggregation'] as QueryType[])[i % 3]],
         user: usersData[Math.floor(Math.random() * usersData.length)].name,
+        bytesScanned: Math.floor(Math.random() * 10000000000), // up to 10GB
+        bytesWritten: Math.random() > 0.5 ? Math.floor(Math.random() * 100000000) : 0, // up to 100MB
+        queryTag: ['ETL', 'Dashboard', 'Ad-hoc', undefined][i % 4],
     };
 });
 

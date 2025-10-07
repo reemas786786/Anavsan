@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export type Page = 
@@ -152,6 +151,9 @@ export interface QueryListItem {
   timestamp: string; // ISO string
   type: QueryType[];
   user: string;
+  bytesScanned: number;
+  bytesWritten: number;
+  queryTag?: string;
 }
 
 export interface StorageBreakdownItem {

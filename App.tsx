@@ -38,6 +38,7 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedQuery, setSelectedQuery] = useState<QueryListItem | null>(null);
   
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [sqlFiles, setSqlFiles] = useState<SQLFile[]>(initialSqlFiles);
@@ -135,6 +136,7 @@ const App: React.FC = () => {
     setIsProfileSettingsPageActive(false);
     setViewingDashboard(null);
     setEditingDashboard(null);
+    setSelectedQuery(null);
     
     if (page === 'Settings') {
         setIsSettingsViewActive(true);
@@ -157,6 +159,7 @@ const App: React.FC = () => {
     setIsProfileSettingsPageActive(false);
     setViewingDashboard(null);
     setEditingDashboard(null);
+    setSelectedQuery(null);
     setIsSidebarOpen(false);
   }, []);
 
@@ -227,6 +230,7 @@ const App: React.FC = () => {
     setIsProfileSettingsPageActive(false);
     setActivePage('Snowflake Accounts');
     setActiveAccountSubPage('Account overview'); // Reset sub-page on account change
+    setSelectedQuery(null);
   };
 
   const handleSelectUser = (user: User) => {
@@ -234,11 +238,13 @@ const App: React.FC = () => {
       setSelectedAccount(null);
       setIsSettingsViewActive(false);
       setIsProfileSettingsPageActive(false);
+      setSelectedQuery(null);
   };
 
   const handleBackToAccounts = useCallback(() => {
     setSelectedAccount(null);
     setActivePage('Snowflake Accounts');
+    setSelectedQuery(null);
   }, []);
 
   const handleBackFromUserView = useCallback(() => {
@@ -410,6 +416,11 @@ const App: React.FC = () => {
     showToast(`Assignment status updated to "${status}"`);
   };
 
+  const handleAccountSubPageChange = (subPage: string) => {
+    setActiveAccountSubPage(subPage);
+    setSelectedQuery(null);
+  };
+
   const breadcrumbItems = useMemo(() => {
       if (isProfileSettingsPageActive) {
           return [
@@ -428,11 +439,19 @@ const App: React.FC = () => {
       }
       
       if (selectedAccount) {
-            return [
+            const baseItems = [
               { label: 'Snowflake Accounts', onClick: handleBackToAccounts },
-              { label: selectedAccount.name, onClick: () => setActiveAccountSubPage('Account overview') },
-              { label: activeAccountSubPage }
+              { label: selectedAccount.name, onClick: () => handleAccountSubPageChange('Account overview') },
             ];
+
+            if (selectedQuery) {
+                return [
+                    ...baseItems,
+                    { label: activeAccountSubPage, onClick: () => setSelectedQuery(null) },
+                    { label: selectedQuery.id }
+                ];
+            }
+            return [...baseItems, { label: activeAccountSubPage }];
       }
 
       if(selectedUser) {
@@ -443,7 +462,7 @@ const App: React.FC = () => {
       }
 
       return [];
-  }, [activePage, selectedAccount, activeAccountSubPage, selectedUser, isSettingsViewActive, activeSubPage, isProfileSettingsPageActive, activeProfileSubPage, handleLogoClick, handleBackToAccounts, handleBackFromUserView]);
+  }, [activePage, selectedAccount, activeAccountSubPage, selectedUser, isSettingsViewActive, activeSubPage, isProfileSettingsPageActive, activeProfileSubPage, handleLogoClick, handleBackToAccounts, handleBackFromUserView, selectedQuery]);
 
   const showBreadcrumb = breadcrumbItems.length > 0;
 
@@ -566,8 +585,10 @@ const App: React.FC = () => {
                   onSaveQueryClick={() => setActiveSidePanel({ type: 'saveQuery' })}
                   onSetBigScreenWidget={setBigScreenWidget}
                   activePage={activeAccountSubPage}
-                  onPageChange={setActiveAccountSubPage}
+                  onPageChange={handleAccountSubPageChange}
                   onShareQueryClick={handleOpenAssignQuery}
+                  selectedQuery={selectedQuery}
+                  setSelectedQuery={setSelectedQuery}
                   displayMode={displayMode}
                   />
               ) : selectedUser ? (

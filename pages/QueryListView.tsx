@@ -5,13 +5,6 @@ import { IconSearch, IconChevronLeft, IconChevronRight, IconChevronDown, IconDot
 import Modal from '../components/Modal';
 import InfoTooltip from '../components/InfoTooltip';
 
-const MetricCard: React.FC<{ title: string; value: string; valueColor?: string }> = ({ title, value, valueColor = 'text-text-primary' }) => (
-    <div className="bg-surface p-4 rounded-3xl flex-1">
-        <h4 className="text-sm font-medium text-text-secondary">{title}</h4>
-        <p className={`text-2xl font-bold mt-2 ${valueColor}`}>{value}</p>
-    </div>
-);
-
 const SortIndicator: React.FC<{ direction: 'ascending' | 'descending' | null }> = ({ direction }) => {
     if (!direction) return <span className="w-4 h-4 inline-block opacity-0 group-hover:opacity-100 transition-opacity text-text-muted">↑↓</span>;
     return <span className="w-4 h-4 inline-block text-text-primary">{direction === 'ascending' ? '↑' : '↓'}</span>;
@@ -19,10 +12,11 @@ const SortIndicator: React.FC<{ direction: 'ascending' | 'descending' | null }> 
 
 
 interface QueryListViewProps {
-    onShareQuery: (query: QueryListItem) => void;
+    onShareQueryClick: (query: QueryListItem) => void;
+    onSelectQuery: (query: QueryListItem) => void;
 }
 
-const QueryListView: React.FC<QueryListViewProps> = ({ onShareQuery }) => {
+const QueryListView: React.FC<QueryListViewProps> = ({ onShareQueryClick, onSelectQuery }) => {
     const [search, setSearch] = useState('');
     const [dateFilter, setDateFilter] = useState('All');
     const [warehouseFilter, setWarehouseFilter] = useState('All');
@@ -44,8 +38,9 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onShareQuery }) => {
     const typeFilterRef = useRef<HTMLDivElement>(null);
 
     const totalQueries = initialData.length;
-    const successQueries = useMemo(() => initialData.filter(q => q.status === 'Success').length, []);
-    const failedQueries = totalQueries - successQueries;
+    const successCount = useMemo(() => initialData.filter(q => q.status === 'Success').length, []);
+    const failedCount = totalQueries - successCount;
+    
     const queryTypes: QueryType[] = ['SELECT', 'WHERE', 'JOIN', 'Aggregation'];
 
     useEffect(() => {
@@ -156,17 +151,28 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onShareQuery }) => {
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-text-primary">All Queries</h1>
             </div>
-             <div className="flex flex-col items-center gap-4 md:flex-row">
-                <div className="text-center md:hidden">
-                    <p className="text-sm text-text-secondary">Total Queries</p>
-                    <p className="text-lg font-bold text-text-primary">{totalQueries.toLocaleString()}</p>
+            
+            <div className="bg-surface shadow-[0_4px_12px_rgba(105,50,213,0.1)] px-4 sm:px-6 py-3 rounded-full flex items-center justify-center flex-wrap gap-x-4 sm:gap-x-6 gap-y-2">
+                <div className="flex items-center space-x-2">
+                    <span className="text-sm font-semibold text-text-strong">Total Queries:</span>
+                    <span className="text-sm font-semibold text-text-strong">{totalQueries}</span>
                 </div>
-                <MetricCard title="Success" value={successQueries.toLocaleString()} valueColor="text-status-success-dark" />
-                <div className="hidden md:block text-center">
-                    <p className="text-sm text-text-secondary">Total Queries</p>
-                    <p className="text-lg font-bold text-text-primary">{totalQueries.toLocaleString()}</p>
+                
+                <div className="flex items-center gap-x-4 sm:gap-x-6">
+                    <div className="w-0.5 h-5 bg-status-success rounded-full"></div>
+                    <div className="flex items-center space-x-2">
+                        <span className="text-sm font-semibold text-text-strong">Success:</span>
+                        <span className="text-sm font-semibold text-text-strong">{successCount}</span>
+                    </div>
                 </div>
-                <MetricCard title="Failed" value={failedQueries.toLocaleString()} valueColor="text-status-error-dark" />
+        
+                <div className="flex items-center gap-x-4 sm:gap-x-6">
+                    <div className="w-0.5 h-5 bg-status-error rounded-full"></div>
+                    <div className="flex items-center space-x-2">
+                        <span className="text-sm font-semibold text-text-strong">Failed:</span>
+                        <span className="text-sm font-semibold text-text-strong">{failedCount}</span>
+                    </div>
+                </div>
             </div>
             
             <div className="bg-surface rounded-3xl flex-1 flex flex-col overflow-hidden">
@@ -252,7 +258,7 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onShareQuery }) => {
                                     <td className="p-4"><input type="checkbox" checked={selectedRows.has(q.id)} onChange={() => handleSelectRow(q.id)} className="h-4 w-4 rounded"/></td>
                                     <td className="px-3 py-4 font-mono text-xs text-text-primary">
                                         <div className="flex items-center gap-2 group">
-                                            <button onClick={() => setPreviewQuery(q)} title={q.id} className="hover:underline">{q.id.substring(0, 8)}...</button>
+                                            <button onClick={() => onSelectQuery(q)} title={q.id} className="hover:underline">{q.id.substring(0, 8)}...</button>
                                             <InfoTooltip text={q.status === 'Success' ? 'Efficient query' : 'Query exceeding cost threshold'} />
                                             <button onClick={() => handleCopyToClipboard(q.id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-text-muted hover:text-text-primary">
                                                 {copiedId === q.id ? <IconCheck className="h-4 w-4 text-status-success" /> : <IconClipboardCopy className="h-4 w-4" />}
@@ -270,7 +276,7 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onShareQuery }) => {
                                                  <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg bg-surface border border-border-color z-10">
                                                     <div className="py-1" role="menu">
                                                         <button onClick={() => {setPreviewQuery(q); setOpenMenuId(null)}} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Query Preview</button>
-                                                        <button onClick={() => { onShareQuery(q); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Share for Optimization</button>
+                                                        <button onClick={() => { onShareQueryClick(q); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Share for Optimization</button>
                                                         <button className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Open in Analyzer</button>
                                                         <button className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Open in Optimizer</button>
                                                         <button className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Open in Simulator</button>

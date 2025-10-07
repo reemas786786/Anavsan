@@ -26,6 +26,7 @@ import {
 import QueryListView from './QueryListView';
 import StorageSummaryView from './StorageSummaryView';
 import DatabasesView from './DatabasesView';
+import QueryDetailView from './QueryDetailView';
 
 
 interface AccountViewProps {
@@ -39,6 +40,8 @@ interface AccountViewProps {
     activePage: string;
     onPageChange: (page: string) => void;
     onShareQueryClick: (query: QueryListItem) => void;
+    selectedQuery: QueryListItem | null;
+    setSelectedQuery: (query: QueryListItem | null) => void;
     displayMode: 'cost' | 'credits';
 }
 
@@ -250,7 +253,7 @@ const AccountAvatar: React.FC<{ name: string }> = ({ name }) => {
 };
 
 
-const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, onSwitchAccount, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, displayMode }) => {
+const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, onSwitchAccount, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, selectedQuery, setSelectedQuery, displayMode }) => {
     const [selectedDatabaseId, setSelectedDatabaseId] = useState<string | null>(null);
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
     const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
@@ -293,6 +296,10 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
     const isDatabaseDetailView = activePage === 'Databases' && !!selectedDatabaseId;
     
     const renderContent = () => {
+        if (selectedQuery) {
+            return <QueryDetailView query={selectedQuery} onBack={() => setSelectedQuery(null)} />;
+        }
+
         if (activePage.includes("Similar query patterns")) {
             return <SimilarQueryPatternsView />;
         }
@@ -304,7 +311,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                 return <QueryWorkspace sqlFiles={sqlFiles} onSaveQueryClick={onSaveQueryClick} />;
             case 'All queries':
             case 'Slow queries':
-                 return <QueryListView onShareQuery={onShareQueryClick} />;
+                 return <QueryListView onShareQueryClick={onShareQueryClick} onSelectQuery={setSelectedQuery} />;
             case 'Storage summary':
                 return <StorageSummaryView onSelectDatabase={handleSelectDatabaseFromSummary} onSetBigScreenWidget={onSetBigScreenWidget} />;
             case 'Databases':
@@ -329,7 +336,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
     return (
         <div className="flex h-full bg-background">
             {/* Contextual Sidebar */}
-            {!isDatabaseDetailView && (
+            {!isDatabaseDetailView && !selectedQuery && (
                 <aside className={`hidden lg:flex bg-surface flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out ${isSidebarExpanded ? 'w-64' : 'w-16'}`}>
                     <div ref={accountSwitcherRef} className="relative p-2">
                         {isSidebarExpanded ? (
@@ -472,12 +479,12 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
 
             {/* Main Content */}
             <main className="flex-1 overflow-y-auto">
-                {!isDatabaseDetailView && (
+                {!isDatabaseDetailView && !selectedQuery && (
                     <div className="lg:hidden p-4 border-b border-border-color bg-surface sticky top-0 z-10">
                         <MobileNav activePage={activePage} onPageChange={onPageChange} accountNavItems={accountNavItems} />
                     </div>
                 )}
-                <div className={isDatabaseDetailView ? "" : "p-4"}>
+                <div className={isDatabaseDetailView || selectedQuery ? "" : "p-4"}>
                     {renderContent()}
                 </div>
             </main>
