@@ -1,15 +1,22 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { queryListData as initialData, warehousesData } from '../data/dummyData';
 import { QueryListItem, QueryType } from '../types';
-import { IconSearch, IconChevronLeft, IconChevronRight, IconChevronDown, IconDotsVertical, IconShare } from '../constants';
+import { IconSearch, IconChevronLeft, IconChevronRight, IconChevronDown, IconDotsVertical, IconShare, IconInfo, IconClipboardCopy, IconCheck } from '../constants';
 import Modal from '../components/Modal';
+import InfoTooltip from '../components/InfoTooltip';
 
 const MetricCard: React.FC<{ title: string; value: string; valueColor?: string }> = ({ title, value, valueColor = 'text-text-primary' }) => (
-    <div className="bg-surface p-4 rounded-3xl break-inside-avoid mb-4">
+    <div className="bg-surface p-4 rounded-3xl flex-1">
         <h4 className="text-sm font-medium text-text-secondary">{title}</h4>
         <p className={`text-2xl font-bold mt-2 ${valueColor}`}>{value}</p>
     </div>
 );
+
+const SortIndicator: React.FC<{ direction: 'ascending' | 'descending' | null }> = ({ direction }) => {
+    if (!direction) return <span className="w-4 h-4 inline-block opacity-0 group-hover:opacity-100 transition-opacity text-text-muted">↑↓</span>;
+    return <span className="w-4 h-4 inline-block text-text-primary">{direction === 'ascending' ? '↑' : '↓'}</span>;
+};
+
 
 interface QueryListViewProps {
     onShareQuery: (query: QueryListItem) => void;
@@ -30,6 +37,7 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onShareQuery }) => {
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [previewQuery, setPreviewQuery] = useState<QueryListItem | null>(null);
     const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+    const [copiedId, setCopiedId] = useState<string | null>(null);
 
     const menuRef = useRef<HTMLDivElement>(null);
     const exportMenuRef = useRef<HTMLDivElement>(null);
@@ -134,17 +142,31 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onShareQuery }) => {
             URL.revokeObjectURL(url);
         }
         setIsExportMenuOpen(false);
-    }
+    };
+
+    const handleCopyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text).then(() => {
+            setCopiedId(text);
+            setTimeout(() => setCopiedId(null), 2000);
+        });
+    };
 
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-text-primary">All Queries</h1>
             </div>
-            <div className="columns-1 md:columns-2 lg:columns-3 gap-4">
-                <MetricCard title="Total queries" value={totalQueries.toLocaleString()} />
-                <MetricCard title="Success" value={successQueries.toLocaleString()} valueColor="text-status-success" />
-                <MetricCard title="Failed" value={failedQueries.toLocaleString()} valueColor="text-status-error" />
+             <div className="flex flex-col items-center gap-4 md:flex-row">
+                <div className="text-center md:hidden">
+                    <p className="text-sm text-text-secondary">Total Queries</p>
+                    <p className="text-lg font-bold text-text-primary">{totalQueries.toLocaleString()}</p>
+                </div>
+                <MetricCard title="Success" value={successQueries.toLocaleString()} valueColor="text-status-success-dark" />
+                <div className="hidden md:block text-center">
+                    <p className="text-sm text-text-secondary">Total Queries</p>
+                    <p className="text-lg font-bold text-text-primary">{totalQueries.toLocaleString()}</p>
+                </div>
+                <MetricCard title="Failed" value={failedQueries.toLocaleString()} valueColor="text-status-error-dark" />
             </div>
             
             <div className="bg-surface rounded-3xl flex-1 flex flex-col overflow-hidden">
@@ -170,7 +192,7 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onShareQuery }) => {
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="flex gap-1 bg-input-bg p-1 rounded-full">
-                            {['All', '1d', '7d', '30d'].map(d => <button key={d} onClick={() => setDateFilter(d)} className={`px-3 py-1 text-sm rounded-full ${dateFilter === d ? 'bg-surface shadow-sm text-text-primary font-semibold' : 'text-text-secondary'}`}>{d}</button>)}
+                            {['All', '1d', '7d', '30d', 'Custom'].map(d => <button key={d} onClick={() => setDateFilter(d)} className={`px-3 py-1 text-sm rounded-full ${dateFilter === d ? 'bg-surface shadow-sm text-text-primary font-semibold' : 'text-text-secondary'}`}>{d}</button>)}
                         </div>
 
                         <div className="relative">
@@ -216,11 +238,11 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onShareQuery }) => {
                         <thead className="bg-background text-xs text-text-secondary uppercase font-medium sticky top-0">
                             <tr>
                                 <th scope="col" className="p-4 w-12"><input type="checkbox" onChange={handleSelectAll} checked={selectedRows.size === paginatedData.length && paginatedData.length > 0} className="h-4 w-4 rounded"/></th>
-                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('id')} className="group flex items-center">Query ID</button></th>
-                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('costUSD')} className="group flex items-center">Cost</button></th>
-                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('duration')} className="group flex items-center">Duration</button></th>
-                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('warehouse')} className="group flex items-center">Warehouse</button></th>
-                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('estSavingsUSD')} className="group flex items-center">Est. Savings</button></th>
+                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('id')} className="group flex items-center">Query ID <SortIndicator direction={sortConfig.key === 'id' ? sortConfig.direction : null} /></button></th>
+                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('duration')} className="group flex items-center">Duration <SortIndicator direction={sortConfig.key === 'duration' ? sortConfig.direction : null} /></button></th>
+                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('warehouse')} className="group flex items-center">Warehouse <SortIndicator direction={sortConfig.key === 'warehouse' ? sortConfig.direction : null} /></button></th>
+                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('costUSD')} className="group flex items-center">Cost <SortIndicator direction={sortConfig.key === 'costUSD' ? sortConfig.direction : null} /></button></th>
+                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('estSavingsUSD')} className="group flex items-center">Est. Savings <SortIndicator direction={sortConfig.key === 'estSavingsUSD' ? sortConfig.direction : null} /></button></th>
                                 <th scope="col" className="px-3 py-3 w-12"></th>
                             </tr>
                         </thead>
@@ -228,11 +250,19 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onShareQuery }) => {
                             {paginatedData.map(q => (
                                 <tr key={q.id} className={`border-t border-border-color hover:bg-surface-hover ${q.status === 'Success' ? 'border-l-4 border-status-success' : 'border-l-4 border-status-error'}`}>
                                     <td className="p-4"><input type="checkbox" checked={selectedRows.has(q.id)} onChange={() => handleSelectRow(q.id)} className="h-4 w-4 rounded"/></td>
-                                    <td className="px-3 py-4 font-mono text-xs text-text-primary"><button onClick={() => setPreviewQuery(q)} className="hover:underline">{q.id.substring(0, 8)}...</button></td>
-                                    <td className="px-3 py-4"><span className="font-semibold text-text-primary">${q.costUSD.toFixed(2)}</span><br/>{q.costCredits.toFixed(2)} cr</td>
+                                    <td className="px-3 py-4 font-mono text-xs text-text-primary">
+                                        <div className="flex items-center gap-2 group">
+                                            <button onClick={() => setPreviewQuery(q)} title={q.id} className="hover:underline">{q.id.substring(0, 8)}...</button>
+                                            <InfoTooltip text={q.status === 'Success' ? 'Efficient query' : 'Query exceeding cost threshold'} />
+                                            <button onClick={() => handleCopyToClipboard(q.id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-text-muted hover:text-text-primary">
+                                                {copiedId === q.id ? <IconCheck className="h-4 w-4 text-status-success" /> : <IconClipboardCopy className="h-4 w-4" />}
+                                            </button>
+                                        </div>
+                                    </td>
                                     <td className="px-3 py-4">{q.duration}</td>
                                     <td className="px-3 py-4">{q.warehouse}</td>
-                                    <td className="px-3 py-4 font-semibold text-status-success">${q.estSavingsUSD.toFixed(2)} ({q.estSavingsPercent}%)</td>
+                                    <td className="px-3 py-4"><span className="font-bold text-text-primary">${q.costUSD.toFixed(2)}</span><br/>{q.costCredits.toFixed(2)} cr</td>
+                                    <td className="px-3 py-4 bg-status-success-light"><span className="font-semibold text-status-success-dark">${q.estSavingsUSD.toFixed(2)} ({q.estSavingsPercent}%)</span></td>
                                     <td className="px-3 py-4 text-right">
                                         <div className="relative" ref={openMenuId === q.id ? menuRef : null}>
                                             <button onClick={() => setOpenMenuId(q.id)}><IconDotsVertical className="h-5 w-5"/></button>
