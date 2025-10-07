@@ -74,7 +74,7 @@ const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(users.length > 0 ? users[0] : null);
   const [brandLogo, setBrandLogo] = useState<string | null>(null);
 
-  const [activeAccountSubPage, setActiveAccountSubPage] = useState('Account Overview');
+  const [activeAccountSubPage, setActiveAccountSubPage] = useState('Account overview');
   const [activeProfileSubPage, setActiveProfileSubPage] = useState('User Info');
   
   const [assignedQueries, setAssignedQueries] = useState<AssignedQuery[]>(assignedQueriesData);
@@ -226,7 +226,7 @@ const App: React.FC = () => {
     setIsSettingsViewActive(false);
     setIsProfileSettingsPageActive(false);
     setActivePage('Snowflake Accounts');
-    setActiveAccountSubPage('Account Overview'); // Reset sub-page on account change
+    setActiveAccountSubPage('Account overview'); // Reset sub-page on account change
   };
 
   const handleSelectUser = (user: User) => {
@@ -430,7 +430,7 @@ const App: React.FC = () => {
       if (selectedAccount) {
             return [
               { label: 'Snowflake Accounts', onClick: handleBackToAccounts },
-              { label: selectedAccount.name, onClick: () => setActiveAccountSubPage('Account Overview') },
+              { label: selectedAccount.name, onClick: () => setActiveAccountSubPage('Account overview') },
               { label: activeAccountSubPage }
             ];
       }

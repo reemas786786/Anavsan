@@ -43,35 +43,35 @@ interface AccountViewProps {
 }
 
 const accountNavItems = [
-    { name: 'Account Overview', icon: IconActivity, children: [] },
+    { name: 'Account overview', icon: IconActivity, children: [] },
     { 
-        name: 'Query Performance', 
+        name: 'Query performance', 
         icon: IconTrendingUp, 
         children: [
-            { name: 'Query List', icon: IconList },
-            { name: 'Slow Queries', icon: IconClock },
-            { name: 'Similar Query Patterns', icon: IconSearch }
+            { name: 'All queries', icon: IconList },
+            { name: 'Slow queries', icon: IconClock },
+            { name: 'Similar query patterns', icon: IconSearch }
         ] 
     },
     { 
         name: 'Optimization',
         icon: IconAdjustments,
         children: [
-            { name: 'Query Analyzer', icon: IconSearch },
-            { name: 'Query Optimizer', icon: IconAIAgent },
-            { name: 'Query Simulator', icon: IconBeaker }
+            { name: 'Query analyzer', icon: IconSearch },
+            { name: 'Query optimizer', icon: IconAIAgent },
+            { name: 'Query simulator', icon: IconBeaker }
         ] 
     },
     { 
-        name: 'Storage & Cost', 
+        name: 'Storage and Cost', 
         icon: IconDatabase, 
         children: [
-            { name: 'Storage Summary', icon: IconSummary },
+            { name: 'Storage summary', icon: IconSummary },
             { name: 'Databases', icon: IconList },
         ] 
     },
-    { name: 'AI & Insights', icon: IconBrain, children: [] },
-    { name: 'Query Workspace', icon: IconCode, children: [] },
+    { name: 'Query workspace', icon: IconCode, children: [] },
+    { name: 'AI and insights', icon: IconBrain, children: [] },
 ];
 
 const MobileNav: React.FC<{
@@ -256,9 +256,9 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
     const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
     const accountSwitcherRef = useRef<HTMLDivElement>(null);
     const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({
-        'Query Performance': true,
+        'Query performance': true,
         'Optimization': false,
-        'Storage & Cost': true,
+        'Storage and Cost': true,
     });
 
     useEffect(() => {
@@ -293,19 +293,19 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
     const isDatabaseDetailView = activePage === 'Databases' && !!selectedDatabaseId;
     
     const renderContent = () => {
-        if (activePage.includes("Similar Query Patterns")) {
+        if (activePage.includes("Similar query patterns")) {
             return <SimilarQueryPatternsView />;
         }
 
         switch (activePage) {
-            case 'Account Overview':
+            case 'Account overview':
                 return <AccountOverviewDashboard account={account} displayMode={displayMode} />;
-            case 'Query Workspace':
+            case 'Query workspace':
                 return <QueryWorkspace sqlFiles={sqlFiles} onSaveQueryClick={onSaveQueryClick} />;
-            case 'Query List':
-            case 'Slow Queries':
+            case 'All queries':
+            case 'Slow queries':
                  return <QueryListView onShareQuery={onShareQueryClick} />;
-            case 'Storage Summary':
+            case 'Storage summary':
                 return <StorageSummaryView onSelectDatabase={handleSelectDatabaseFromSummary} onSetBigScreenWidget={onSetBigScreenWidget} />;
             case 'Databases':
                 return <DatabasesView selectedDatabaseId={selectedDatabaseId} onSelectDatabase={setSelectedDatabaseId} onBackToList={handleBackToDbList} />;
@@ -321,7 +321,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                 return item.name;
             }
         }
-        return 'Account Overview';
+        return 'Account overview';
     };
 
     const activeParent = getActiveParent();
@@ -335,14 +335,11 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
                         {isSidebarExpanded ? (
                             <button
                                 onClick={() => setIsAccountSwitcherOpen(!isAccountSwitcherOpen)}
-                                className="w-full flex items-center justify-between text-left p-2 rounded-full hover:bg-surface-hover transition-colors"
+                                className="w-full flex items-center justify-between text-left p-2 rounded-lg hover:bg-surface-hover transition-colors bg-[#f4f4f4]"
                                 aria-haspopup="true"
                                 aria-expanded={isAccountSwitcherOpen}
                             >
-                                <div className="flex items-center gap-2 overflow-hidden">
-                                    <AccountAvatar name={account.name} />
-                                    <span className="text-sm font-semibold text-text-primary truncate">{account.name}</span>
-                                </div>
+                                <span className="text-sm font-semibold text-text-primary truncate">{account.name}</span>
                                 <IconChevronDown className={`h-5 w-5 text-text-secondary transition-transform ${isAccountSwitcherOpen ? 'rotate-180' : ''}`} />
                             </button>
                         ) : (

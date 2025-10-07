@@ -277,6 +277,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
     const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
     const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
     const [activeFilter, setActiveFilter] = useState<string>('All');
+    const [isPreviewing, setIsPreviewing] = useState(false);
     
     const dragItem = useRef<number | null>(null);
     const dragOverItem = useRef<number | null>(null);
@@ -370,6 +371,8 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
             return matchesSearch && matchesFilter;
         });
     }, [searchTerm, activeFilter]);
+    
+    const effectiveViewMode = isViewMode || isPreviewing;
 
     return (
         <div className="flex flex-col bg-background h-full">
@@ -450,43 +453,74 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                                 type="text"
                                 value={editedDashboard.title}
                                 onChange={handleTitleChange}
-                                className="text-2xl font-bold text-sidebar-topbar bg-transparent focus:outline-none w-full block border-none p-0"
+                                className={`text-2xl font-bold text-sidebar-topbar bg-transparent focus:outline-none w-full block border-none p-0 transition-opacity ${
+                                    editedDashboard.title === 'Untitled Dashboard' ? 'opacity-50 focus:opacity-100' : ''
+                                }`}
                                 placeholder="Untitled Dashboard"
+                                onFocus={(e) => {
+                                    if (e.target.value === 'Untitled Dashboard') {
+                                        e.target.select();
+                                    }
+                                }}
                             />
                             <input
                                 type="text"
                                 value={editedDashboard.description || ''}
                                 onChange={handleDescriptionChange}
-                                className="text-sm text-text-secondary w-full bg-transparent focus:outline-none block border-none p-0 mt-1"
+                                className="text-sm text-text-secondary w-full bg-transparent focus:outline-none block border-none p-0 mt-1 placeholder:opacity-60"
                                 placeholder="Dashboard description (optional)"
                             />
                         </div>
-                        <div className="flex items-center gap-3 flex-shrink-0 ml-4">
-                            <button 
-                                onClick={onCancel} 
-                                className="text-sm font-semibold px-5 py-2.5 rounded-full bg-violet-100 text-primary hover:bg-violet-200 transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button 
-                                onClick={handleSave} 
-                                disabled={!editedDashboard.title.trim() || editedDashboard.title.trim().toLowerCase() === 'untitled dashboard'}
-                                className="text-sm font-semibold px-5 py-2.5 rounded-full shadow-sm transition-colors 
-                                            disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed
-                                            bg-primary text-white hover:bg-primary-hover
-                                            "
-                            >
-                                Save Dashboard
-                            </button>
+                        <div className="flex items-center gap-4 flex-shrink-0 ml-4">
+                            <div className="flex items-center gap-3">
+                                <span className="text-sm font-semibold text-text-secondary">Preview</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsPreviewing(!isPreviewing)}
+                                    className={`${
+                                        isPreviewing ? 'bg-primary' : 'bg-gray-200'
+                                    } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2`}
+                                    role="switch"
+                                    aria-checked={isPreviewing}
+                                >
+                                    <span
+                                        aria-hidden="true"
+                                        className={`${
+                                            isPreviewing ? 'translate-x-5' : 'translate-x-0'
+                                        } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                                    />
+                                </button>
+                            </div>
+                            
+                            <div className="h-6 w-px bg-border-color"></div>
+
+                            <div className="flex items-center gap-3">
+                                <button 
+                                    onClick={onCancel} 
+                                    className="text-sm font-semibold px-5 py-2.5 rounded-full bg-violet-100 text-primary hover:bg-violet-200 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    onClick={handleSave} 
+                                    disabled={!editedDashboard.title.trim() || editedDashboard.title.trim().toLowerCase() === 'untitled dashboard'}
+                                    className="text-sm font-semibold px-5 py-2.5 rounded-full shadow-sm transition-colors 
+                                                disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed
+                                                bg-primary text-white hover:bg-primary-hover
+                                                "
+                                >
+                                    Save Dashboard
+                                </button>
+                            </div>
                         </div>
                     </>
                 )}
             </header>
             
             {/* Main Content */}
-            <div className={`flex-1 grid grid-cols-1 ${!isViewMode ? 'lg:grid-cols-12' : ''} gap-4 p-4 overflow-y-auto`}>
+            <div className={`flex-1 grid grid-cols-1 ${!effectiveViewMode ? 'lg:grid-cols-12' : ''} gap-4 p-4 overflow-y-auto`}>
                 {/* Left Panel: Widget Library */}
-                {!isViewMode && (
+                {!effectiveViewMode && (
                     <aside className="lg:col-span-4 xl:col-span-3 bg-white rounded-3xl p-4 flex flex-col self-start sticky top-4 max-h-[calc(100vh-100px)]">
                         <h3 className="text-lg font-semibold text-text-strong mb-4 px-2">Select views</h3>
                         
@@ -545,8 +579,8 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                 )}
 
                 {/* Right Panel: Dashboard Canvas */}
-                <main className={`${!isViewMode ? 'lg:col-span-8 xl:col-span-9' : 'col-span-1'}`}>
-                    {!isViewMode && <h3 className="text-lg font-semibold text-text-strong mb-4 px-2">Layout</h3>}
+                <main className={`${!effectiveViewMode ? 'lg:col-span-8 xl:col-span-9' : 'col-span-1'}`}>
+                    {!effectiveViewMode && <h3 className="text-lg font-semibold text-text-strong mb-4 px-2">Layout</h3>}
                     {editedDashboard.widgets.length > 0 ? (
                        <div className="columns-1 md:columns-2 gap-4">
                             {editedDashboard.widgets.map((widget, index) => {
@@ -556,16 +590,16 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                                 return (
                                 <div
                                     key={widget.id}
-                                    className={`bg-surface rounded-3xl flex flex-col group p-4 relative break-inside-avoid mb-4 ${!isViewMode ? 'cursor-move' : ''}`}
-                                    draggable={!isViewMode}
-                                    onDragStart={!isViewMode ? () => (dragItem.current = index) : undefined}
-                                    onDragEnter={!isViewMode ? () => (dragOverItem.current = index) : undefined}
-                                    onDragEnd={!isViewMode ? handleDragSort : undefined}
-                                    onDragOver={!isViewMode ? (e) => e.preventDefault() : undefined}
+                                    className={`bg-surface rounded-3xl flex flex-col group p-4 relative break-inside-avoid mb-4 ${!effectiveViewMode ? 'cursor-move' : ''}`}
+                                    draggable={!effectiveViewMode}
+                                    onDragStart={!effectiveViewMode ? () => (dragItem.current = index) : undefined}
+                                    onDragEnter={!effectiveViewMode ? () => (dragOverItem.current = index) : undefined}
+                                    onDragEnd={!effectiveViewMode ? handleDragSort : undefined}
+                                    onDragOver={!effectiveViewMode ? (e) => e.preventDefault() : undefined}
                                 >
                                     <div className="flex items-start justify-between">
                                         <h4 className="text-base font-semibold text-text-strong pr-6">{widget.title}</h4>
-                                        {!isViewMode && (
+                                        {!effectiveViewMode && (
                                             <button onClick={() => handleRemoveWidget(widget.id)} className="absolute top-3 right-3 p-1 rounded-full text-text-muted hover:bg-gray-200 hover:text-status-error opacity-0 group-hover:opacity-100 transition-opacity z-10" aria-label="Remove widget">
                                                 <IconClose className="w-5 h-5" />
                                             </button>
@@ -584,7 +618,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                     ) : (
                         <div className="h-full flex flex-col items-center justify-center text-center text-text-secondary border-2 border-dashed border-border-color rounded-2xl min-h-[400px]">
                             <h3 className="text-lg font-semibold">Drag or Add views here</h3>
-                            {!isViewMode && <p className="max-w-xs">Your dashboard is currently empty. Choose a view from the left panel to get started.</p>}
+                            {!effectiveViewMode && <p className="max-w-xs">Your dashboard is currently empty. Choose a view from the left panel to get started.</p>}
                         </div>
                     )}
                 </main>
