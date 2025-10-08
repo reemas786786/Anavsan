@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, ConnectionStatus } from '../types';
-import { IconDotsVertical, IconSearch, IconView, IconEdit, IconDelete, IconAdd } from '../constants';
+import { IconDotsVertical, IconSearch, IconView, IconEdit, IconDelete, IconAdd, IconArrowUp, IconArrowDown } from '../constants';
 
 const StatusBadge: React.FC<{ status: ConnectionStatus }> = ({ status }) => {
     const colorClasses: Record<ConnectionStatus, string> = {
@@ -33,6 +33,31 @@ interface ConnectionsProps {
 const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, onAddAccountClick, onDeleteAccount }) => {
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+    const [sortConfig, setSortConfig] = useState<{ key: keyof Account; direction: 'ascending' | 'descending' } | null>({ key: 'name', direction: 'ascending' });
+
+    const sortedAccounts = useMemo(() => {
+        let sortableItems = [...accounts];
+        if (sortConfig !== null) {
+            sortableItems.sort((a, b) => {
+                if (a[sortConfig.key] < b[sortConfig.key]) {
+                    return sortConfig.direction === 'ascending' ? -1 : 1;
+                }
+                if (a[sortConfig.key] > b[sortConfig.key]) {
+                    return sortConfig.direction === 'ascending' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+        return sortableItems;
+    }, [accounts, sortConfig]);
+
+    const requestSort = (key: keyof Account) => {
+        let direction: 'ascending' | 'descending' = 'ascending';
+        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
+    };
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -49,6 +74,16 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
     if (accounts.length === 0) {
         return <EmptyConnections onAdd={onAddAccountClick} />;
     }
+
+    const SortIcon: React.FC<{ columnKey: keyof Account }> = ({ columnKey }) => {
+        if (!sortConfig || sortConfig.key !== columnKey) {
+            return <span className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-50"><IconArrowUp/></span>;
+        }
+        if (sortConfig.direction === 'ascending') {
+            return <IconArrowUp className="w-4 h-4 ml-1" />;
+        }
+        return <IconArrowDown className="w-4 h-4 ml-1" />;
+    };
 
     return (
         <div className="space-y-4">
@@ -72,16 +107,36 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
                     <table className="w-full text-sm text-left text-text-secondary">
                         <thead className="bg-table-header-bg text-xs text-text-primary font-medium">
                             <tr>
-                                <th scope="col" className="px-6 py-3">Account Name</th>
-                                <th scope="col" className="px-6 py-3">Identifier</th>
-                                <th scope="col" className="px-6 py-3">Role</th>
-                                <th scope="col" className="px-6 py-3">Status</th>
-                                <th scope="col" className="px-6 py-3">Last Synced</th>
+                                <th scope="col" className="px-6 py-3">
+                                    <button onClick={() => requestSort('name')} className="group flex items-center">
+                                        Account Name <SortIcon columnKey="name" />
+                                    </button>
+                                </th>
+                                <th scope="col" className="px-6 py-3">
+                                    <button onClick={() => requestSort('identifier')} className="group flex items-center">
+                                        Identifier <SortIcon columnKey="identifier" />
+                                    </button>
+                                </th>
+                                <th scope="col" className="px-6 py-3">
+                                    <button onClick={() => requestSort('role')} className="group flex items-center">
+                                        Role <SortIcon columnKey="role" />
+                                    </button>
+                                </th>
+                                <th scope="col" className="px-6 py-3">
+                                    <button onClick={() => requestSort('status')} className="group flex items-center">
+                                        Status <SortIcon columnKey="status" />
+                                    </button>
+                                </th>
+                                <th scope="col" className="px-6 py-3">
+                                    <button onClick={() => requestSort('lastSynced')} className="group flex items-center">
+                                        Last Synced <SortIcon columnKey="lastSynced" />
+                                    </button>
+                                </th>
                                 <th scope="col" className="px-6 py-3 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {accounts.map(account => (
+                            {sortedAccounts.map(account => (
                                 <tr key={account.id} className="even:bg-surface-nested hover:bg-surface-hover">
                                     <td onClick={() => onSelectAccount(account)} className="px-6 py-4 font-medium text-link whitespace-nowrap cursor-pointer">{account.name}</td>
                                     <td className="px-6 py-4">{account.identifier}</td>

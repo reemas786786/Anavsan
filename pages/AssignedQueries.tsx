@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { AssignedQuery, AssignmentStatus, AssignmentPriority } from '../types';
-import { IconDotsVertical } from '../constants';
+import { IconDotsVertical, IconArrowUp, IconArrowDown } from '../constants';
 
 const PriorityBadge: React.FC<{ priority: AssignmentPriority }> = ({ priority }) => {
     const colorClasses = {
@@ -29,6 +29,40 @@ interface AssignedQueriesProps {
 const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUpdateStatus }) => {
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+    const [sortConfig, setSortConfig] = useState<{ key: keyof AssignedQuery; direction: 'ascending' | 'descending' } | null>({ key: 'priority', direction: 'descending' });
+
+    const sortedQueries = useMemo(() => {
+        let sortableItems = [...assignedQueries];
+        if (sortConfig !== null) {
+            sortableItems.sort((a, b) => {
+                if (sortConfig.key === 'priority') {
+                    const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
+                    const valA = priorityOrder[a.priority];
+                    const valB = priorityOrder[b.priority];
+                    if (valA < valB) return sortConfig.direction === 'ascending' ? -1 : 1;
+                    if (valA > valB) return sortConfig.direction === 'ascending' ? 1 : -1;
+                    return 0;
+                }
+                
+                if (a[sortConfig.key] < b[sortConfig.key]) {
+                    return sortConfig.direction === 'ascending' ? -1 : 1;
+                }
+                if (a[sortConfig.key] > b[sortConfig.key]) {
+                    return sortConfig.direction === 'ascending' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+        return sortableItems;
+    }, [assignedQueries, sortConfig]);
+
+    const requestSort = (key: keyof AssignedQuery) => {
+        let direction: 'ascending' | 'descending' = 'ascending';
+        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
+    };
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -40,6 +74,16 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUp
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+     const SortIcon: React.FC<{ columnKey: keyof AssignedQuery }> = ({ columnKey }) => {
+        if (!sortConfig || sortConfig.key !== columnKey) {
+            return <span className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-50"><IconArrowUp/></span>;
+        }
+        if (sortConfig.direction === 'ascending') {
+            return <IconArrowUp className="w-4 h-4 ml-1" />;
+        }
+        return <IconArrowDown className="w-4 h-4 ml-1" />;
+    };
+
     return (
         <div className="space-y-4">
             <h1 className="text-2xl font-bold text-text-primary">Assigned Queries for Optimization</h1>
@@ -49,16 +93,26 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUp
                     <table className="w-full text-sm text-left text-text-secondary">
                         <thead className="bg-table-header-bg text-xs text-text-primary font-medium">
                             <tr>
-                                <th scope="col" className="px-6 py-3">Query</th>
-                                <th scope="col" className="px-6 py-3">Assigned By</th>
-                                <th scope="col" className="px-6 py-3">Priority</th>
-                                <th scope="col" className="px-6 py-3">Cost / Credits</th>
-                                <th scope="col" className="px-6 py-3">Status</th>
+                                <th scope="col" className="px-6 py-3">
+                                    <button onClick={() => requestSort('queryText')} className="group flex items-center">Query<SortIcon columnKey="queryText" /></button>
+                                </th>
+                                <th scope="col" className="px-6 py-3">
+                                    <button onClick={() => requestSort('assignedBy')} className="group flex items-center">Assigned By<SortIcon columnKey="assignedBy" /></button>
+                                </th>
+                                <th scope="col" className="px-6 py-3">
+                                    <button onClick={() => requestSort('priority')} className="group flex items-center">Priority<SortIcon columnKey="priority" /></button>
+                                </th>
+                                <th scope="col" className="px-6 py-3">
+                                    <button onClick={() => requestSort('cost')} className="group flex items-center">Cost / Credits<SortIcon columnKey="cost" /></button>
+                                </th>
+                                <th scope="col" className="px-6 py-3">
+                                    <button onClick={() => requestSort('status')} className="group flex items-center">Status<SortIcon columnKey="status" /></button>
+                                </th>
                                 <th scope="col" className="px-6 py-3 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {assignedQueries.map(query => (
+                            {sortedQueries.map(query => (
                                 <tr key={query.id} className="border-t border-border-color hover:bg-surface-hover">
                                     <td className="px-6 py-4 font-mono text-xs text-text-primary whitespace-nowrap max-w-sm">
                                         <p className="truncate" title={query.queryText}>{query.queryText}</p>

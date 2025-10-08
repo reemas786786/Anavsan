@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { SQLFile, SQLVersion } from '../types';
 import { sqlFilesData } from '../data/dummyData';
+import { IconArrowUp, IconArrowDown } from '../constants';
+
 
 interface QueryWorkspaceProps {
     sqlFiles: SQLFile[];
@@ -22,6 +24,31 @@ const Tag: React.FC<{ tag?: string }> = ({ tag }) => {
 const QueryWorkspace: React.FC<QueryWorkspaceProps> = ({ sqlFiles, onSaveQueryClick }) => {
     const [selectedFile, setSelectedFile] = useState<SQLFile | null>(sqlFiles[0] || null);
     const [selectedVersions, setSelectedVersions] = useState<Set<string>>(new Set());
+    const [sortConfig, setSortConfig] = useState<{ key: keyof SQLVersion; direction: 'ascending' | 'descending' } | null>({ key: 'version', direction: 'descending' });
+
+    const sortedVersions = useMemo(() => {
+        let sortableItems = selectedFile ? [...selectedFile.versions] : [];
+        if (sortConfig !== null) {
+            sortableItems.sort((a, b) => {
+                if (a[sortConfig.key] < b[sortConfig.key]) {
+                    return sortConfig.direction === 'ascending' ? -1 : 1;
+                }
+                if (a[sortConfig.key] > b[sortConfig.key]) {
+                    return sortConfig.direction === 'ascending' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+        return sortableItems;
+    }, [selectedFile, sortConfig]);
+
+    const requestSort = (key: keyof SQLVersion) => {
+        let direction: 'ascending' | 'descending' = 'ascending';
+        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
+    };
 
     const handleVersionSelect = (versionId: string) => {
         const newSelection = new Set(selectedVersions);
@@ -41,6 +68,16 @@ const QueryWorkspace: React.FC<QueryWorkspaceProps> = ({ sqlFiles, onSaveQueryCl
         setSelectedFile(file);
         setSelectedVersions(new Set()); // Reset selections when file changes
     }
+    
+    const SortIcon: React.FC<{ columnKey: keyof SQLVersion }> = ({ columnKey }) => {
+        if (!sortConfig || sortConfig.key !== columnKey) {
+            return <span className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-50"><IconArrowUp/></span>;
+        }
+        if (sortConfig.direction === 'ascending') {
+            return <IconArrowUp className="w-4 h-4 ml-1" />;
+        }
+        return <IconArrowDown className="w-4 h-4 ml-1" />;
+    };
 
     return (
         <div className="space-y-4">
@@ -83,14 +120,14 @@ const QueryWorkspace: React.FC<QueryWorkspaceProps> = ({ sqlFiles, onSaveQueryCl
                             <thead className="bg-table-header-bg text-left text-xs text-text-primary font-medium">
                                 <tr>
                                     <th className="p-2 w-8"></th>
-                                    <th className="p-2">Version</th>
-                                    <th className="p-2">Date</th>
-                                    <th className="p-2">Tag</th>
-                                    <th className="p-2">Description</th>
+                                    <th className="p-2"><button onClick={() => requestSort('version')} className="group flex items-center">Version<SortIcon columnKey="version" /></button></th>
+                                    <th className="p-2"><button onClick={() => requestSort('date')} className="group flex items-center">Date<SortIcon columnKey="date" /></button></th>
+                                    <th className="p-2"><button onClick={() => requestSort('tag')} className="group flex items-center">Tag<SortIcon columnKey="tag" /></button></th>
+                                    <th className="p-2"><button onClick={() => requestSort('description')} className="group flex items-center">Description<SortIcon columnKey="description" /></button></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {selectedFile?.versions.map(v => (
+                                {sortedVersions.map(v => (
                                     <tr key={v.id} className="even:bg-surface-nested hover:bg-surface-hover">
                                         <td className="p-2">
                                             <input 

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { IconSearch, IconShare } from '../constants';
+import { IconSearch, IconShare, IconArrowUp, IconArrowDown } from '../constants';
 import Pagination from './Pagination';
 
 interface TableViewData {
@@ -13,26 +13,6 @@ interface TableViewProps {
     title: string;
     data: TableViewData[];
 }
-
-const SortIndicator: React.FC<{ direction: 'ascending' | 'descending' | null }> = ({ direction }) => {
-    if (!direction) return <span className="w-4 h-4 inline-block"></span>;
-    return (
-        <svg
-            className="w-4 h-4 inline-block ml-1 text-text-secondary group-hover:text-text-primary"
-            aria-hidden="true"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            {direction === 'ascending' ? (
-                <path d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L11 6.414V17a1 1 0 11-2 0V6.414L7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3z"></path>
-            ) : (
-                <path d="M10 17a1 1 0 01-.707-.293l-3-3a1 1 0 011.414-1.414L9 13.586V3a1 1 0 112 0v10.586l1.293-1.293a1 1 0 011.414 1.414l-3 3A1 1 0 0110 17z"></path>
-            )}
-        </svg>
-    );
-};
-
 
 const TableView: React.FC<TableViewProps> = ({ title, data }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -87,11 +67,14 @@ const TableView: React.FC<TableViewProps> = ({ title, data }) => {
         setSortConfig({ key, direction });
     };
 
-    const getSortIndicator = (key: keyof TableViewData) => {
-        if (!sortConfig || sortConfig.key !== key) {
-            return <SortIndicator direction={null} />;
+    const SortIcon: React.FC<{ columnKey: keyof TableViewData }> = ({ columnKey }) => {
+        if (!sortConfig || sortConfig.key !== columnKey) {
+            return <span className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-50"><IconArrowUp/></span>;
         }
-        return <SortIndicator direction={sortConfig.direction} />;
+        if (sortConfig.direction === 'ascending') {
+            return <IconArrowUp className="w-4 h-4 ml-1" />;
+        }
+        return <IconArrowDown className="w-4 h-4 ml-1" />;
     };
 
     const handleExportCSV = () => {
@@ -154,16 +137,16 @@ const TableView: React.FC<TableViewProps> = ({ title, data }) => {
                     <thead className="bg-table-header-bg text-xs text-text-primary font-medium sticky top-0 z-10">
                         <tr>
                             <th scope="col" className="px-6 py-3">
-                                <button onClick={() => requestSort('name')} className="group flex items-center">Name {getSortIndicator('name')}</button>
+                                <button onClick={() => requestSort('name')} className="group flex items-center">Name <SortIcon columnKey="name" /></button>
                             </th>
                             <th scope="col" className="px-6 py-3">
-                                 <button onClick={() => requestSort('cost')} className="group flex items-center">Cost ($) {getSortIndicator('cost')}</button>
+                                 <button onClick={() => requestSort('cost')} className="group flex items-center">Cost ($) <SortIcon columnKey="cost" /></button>
                             </th>
                             <th scope="col" className="px-6 py-3">
-                                 <button onClick={() => requestSort('credits')} className="group flex items-center">Credits {getSortIndicator('credits')}</button>
+                                 <button onClick={() => requestSort('credits')} className="group flex items-center">Credits <SortIcon columnKey="credits" /></button>
                             </th>
                             <th scope="col" className="px-6 py-3">
-                                 <button onClick={() => requestSort('percentage')} className="group flex items-center">% of Total {getSortIndicator('percentage')}</button>
+                                 <button onClick={() => requestSort('percentage')} className="group flex items-center">% of Total <SortIcon columnKey="percentage" /></button>
                             </th>
                         </tr>
                     </thead>

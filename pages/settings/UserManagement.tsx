@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { User, UserStatus } from '../../types';
-import { IconAdd, IconDotsVertical } from '../../constants';
+import { IconAdd, IconDotsVertical, IconArrowUp, IconArrowDown } from '../../constants';
 
 const StatusBadge: React.FC<{ status: UserStatus }> = ({ status }) => {
     const colorClasses: Record<UserStatus, string> = {
@@ -43,6 +43,31 @@ interface UserManagementProps {
 const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEditUserRole, onSuspendUser, onActivateUserClick, onRemoveUser }) => {
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+    const [sortConfig, setSortConfig] = useState<{ key: keyof User; direction: 'ascending' | 'descending' } | null>({ key: 'name', direction: 'ascending' });
+
+    const sortedUsers = useMemo(() => {
+        let sortableItems = [...users];
+        if (sortConfig !== null) {
+            sortableItems.sort((a, b) => {
+                if (a[sortConfig.key] < b[sortConfig.key]) {
+                    return sortConfig.direction === 'ascending' ? -1 : 1;
+                }
+                if (a[sortConfig.key] > b[sortConfig.key]) {
+                    return sortConfig.direction === 'ascending' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+        return sortableItems;
+    }, [users, sortConfig]);
+
+    const requestSort = (key: keyof User) => {
+        let direction: 'ascending' | 'descending' = 'ascending';
+        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
+    };
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -58,6 +83,16 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEdi
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [openMenuId]);
+    
+    const SortIcon: React.FC<{ columnKey: keyof User }> = ({ columnKey }) => {
+        if (!sortConfig || sortConfig.key !== columnKey) {
+            return <span className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-50"><IconArrowUp/></span>;
+        }
+        if (sortConfig.direction === 'ascending') {
+            return <IconArrowUp className="w-4 h-4 ml-1" />;
+        }
+        return <IconArrowDown className="w-4 h-4 ml-1" />;
+    };
 
     return (
         <div className="space-y-4">
@@ -77,15 +112,31 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEdi
                     <table className="w-full text-sm text-left text-text-secondary">
                         <thead className="bg-table-header-bg text-xs text-text-primary font-medium">
                             <tr>
-                                <th scope="col" className="px-6 py-3">User</th>
-                                <th scope="col" className="px-6 py-3">Role</th>
-                                <th scope="col" className="px-6 py-3">Status</th>
-                                <th scope="col" className="px-6 py-3">Date Added</th>
+                                <th scope="col" className="px-6 py-3">
+                                    <button onClick={() => requestSort('name')} className="group flex items-center">
+                                        User <SortIcon columnKey="name" />
+                                    </button>
+                                </th>
+                                <th scope="col" className="px-6 py-3">
+                                     <button onClick={() => requestSort('role')} className="group flex items-center">
+                                        Role <SortIcon columnKey="role" />
+                                    </button>
+                                </th>
+                                <th scope="col" className="px-6 py-3">
+                                     <button onClick={() => requestSort('status')} className="group flex items-center">
+                                        Status <SortIcon columnKey="status" />
+                                    </button>
+                                </th>
+                                <th scope="col" className="px-6 py-3">
+                                    <button onClick={() => requestSort('dateAdded')} className="group flex items-center">
+                                        Date Added <SortIcon columnKey="dateAdded" />
+                                    </button>
+                                </th>
                                 <th scope="col" className="px-6 py-3 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {users.map(user => (
+                            {sortedUsers.map(user => (
                                 <tr key={user.id} className="border-t border-border-color hover:bg-surface-hover">
                                     <td className="px-6 py-4 font-medium text-text-primary whitespace-nowrap">
                                         <div className="flex items-center gap-3">

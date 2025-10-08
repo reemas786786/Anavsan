@@ -38,9 +38,9 @@ const allColumns = [
     { key: 'user', label: 'User' },
     { key: 'warehouse', label: 'Warehouse' },
     { key: 'duration', label: 'Duration' },
-    { key: 'bytesScanned', label: 'Bytes Scanned' },
-    { key: 'cost', label: 'Cost (Credits)' },
-    { key: 'startTime', label: 'Start Time' },
+    { key: 'bytesScanned', label: 'Bytes scanned' },
+    { key: 'cost', label: 'Cost (credits)' },
+    { key: 'startTime', label: 'Start time' },
     { key: 'actions', label: 'Actions' },
 ];
 
@@ -62,6 +62,7 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onSelectQuery, onShareQue
     const [visibleColumns, setVisibleColumns] = useState<string[]>([
         'queryId', 'user', 'warehouse', 'duration', 'bytesScanned', 'cost', 'startTime', 'actions'
     ]);
+    const [hoveredColumnKey, setHoveredColumnKey] = useState<string | null>(null);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -126,6 +127,79 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onSelectQuery, onShareQue
         return parts[0] * 3600 + parts[1] * 60 + parts[2];
     }
 
+    const visibleColsData = useMemo(() => allColumns.filter(c => visibleColumns.includes(c.key)), [visibleColumns]);
+
+    const getTdClassName = (colKey: string) => {
+        let classes = `px-6 py-3 transition-colors duration-150 ${hoveredColumnKey === colKey ? 'bg-surface-hover' : ''}`;
+        if (colKey === 'actions') {
+            classes += ' text-right';
+        } else if (['user', 'warehouse', 'startTime'].includes(colKey)) {
+            classes += ' text-text-primary';
+        } else if (['duration', 'bytesScanned'].includes(colKey)) {
+            classes += ' font-medium text-text-primary';
+        }
+        return classes;
+    }
+
+    const renderCellContent = (q: QueryListItem, colKey: string) => {
+        switch (colKey) {
+            case 'queryId':
+                return (
+                    <div className="flex items-center gap-3">
+                        <span className={`w-1 h-5 rounded-full ${q.status === 'Success' ? 'bg-status-success' : 'bg-status-error'}`}></span>
+                        <span className="font-mono text-sm text-text-primary">Q{q.id.substring(7, 13).toUpperCase()}</span>
+                    </div>
+                );
+            case 'user': return q.user;
+            case 'warehouse': return q.warehouse;
+            case 'duration': return `${getDurationInSeconds(q.duration)}s`;
+            case 'bytesScanned': return formatBytes(q.bytesScanned);
+            case 'cost':
+                return (
+                    <>
+                        <span className="font-medium text-text-primary">${q.costUSD.toFixed(2)}</span>
+                        <span className="text-text-secondary"> ({q.costCredits.toFixed(2)})</span>
+                    </>
+                );
+            case 'startTime': return formatTimestamp(q.timestamp);
+            case 'actions':
+                return (
+                    <div className="relative inline-block text-left" ref={openMenuId === q.id ? menuRef : null}>
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === q.id ? null : q.id); }} 
+                            title="Actions" 
+                            className="p-2 text-text-secondary hover:text-primary rounded-full hover:bg-primary/10 transition-colors"
+                        >
+                            <IconDotsVertical className="h-5 w-5"/>
+                        </button>
+                        {openMenuId === q.id && (
+                            <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-lg bg-surface shadow-lg z-10 border border-border-color">
+                                <div className="py-1" role="menu" aria-orientation="vertical">
+                                    <button onClick={(e) => { e.stopPropagation(); onSelectQuery(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                        <IconView className="h-4 w-4"/> Query Preview
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); alert('Open in Analyzer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                        <IconBeaker className="h-4 w-4"/> Open in Analyzer
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); alert('Open in Optimizer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                        <IconWand className="h-4 w-4"/> Open in Optimizer
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); alert('Open in Simulator clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                        <IconBeaker className="h-4 w-4"/> Open in Simulator
+                                    </button>
+                                    <div className="my-1 border-t border-border-color"></div>
+                                    <button onClick={(e) => { e.stopPropagation(); onShareQueryClick(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                        <IconShare className="h-4 w-4"/> Share Query
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            default: return null;
+        }
+    }
+
     return (
         <div className="flex flex-col h-full bg-background p-4 space-y-4">
             <div className="flex-shrink-0">
@@ -136,15 +210,15 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onSelectQuery, onShareQue
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-shrink-0">
                 <div className="bg-surface p-4 rounded-xl shadow-sm">
                     <p className="text-sm text-text-secondary">Total Queries</p>
-                    <p className="text-3xl font-bold text-text-strong mt-1">{totalQueries.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-text-strong mt-1">{totalQueries.toLocaleString()}</p>
                 </div>
                 <div className="bg-surface p-4 rounded-xl shadow-sm">
                     <p className="text-sm text-text-secondary">Success</p>
-                    <p className="text-3xl font-bold text-status-success mt-1">{successCount.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-status-success mt-1">{successCount.toLocaleString()}</p>
                 </div>
                 <div className="bg-surface p-4 rounded-xl shadow-sm">
                     <p className="text-sm text-text-secondary">Failed</p>
-                    <p className="text-3xl font-bold text-status-error mt-1">{failedCount.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-status-error mt-1">{failedCount.toLocaleString()}</p>
                 </div>
             </div>
             
@@ -196,70 +270,34 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onSelectQuery, onShareQue
                 <div className="flex-grow overflow-y-auto">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
-                            <thead className="text-xs text-text-primary sticky top-0 z-10">
+                            <thead className="text-sm text-text-primary sticky top-0 z-10">
                                 <tr className="border-b border-border-light bg-table-header-bg">
-                                    {allColumns.filter(c => visibleColumns.includes(c.key)).map(col => (
-                                        <th key={col.key} scope="col" className={`px-6 py-4 font-medium tracking-wider ${col.key === 'actions' ? 'text-right' : 'text-left'}`}>{col.label}</th>
+                                    {visibleColsData.map(col => (
+                                        <th 
+                                            key={col.key} 
+                                            scope="col" 
+                                            className={`px-6 py-4 font-semibold transition-colors duration-150 ${col.key === 'actions' ? 'text-right' : 'text-left'} ${hoveredColumnKey === col.key ? 'bg-black/5' : ''}`}
+                                            onMouseEnter={() => setHoveredColumnKey(col.key)}
+                                            onMouseLeave={() => setHoveredColumnKey(null)}
+                                        >
+                                            {col.label}
+                                        </th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody className="text-text-secondary">
                                 {paginatedData.map(q => (
                                     <tr key={q.id} onClick={() => onSelectQuery(q)} className="border-b border-border-light last:border-b-0 hover:bg-surface-hover cursor-pointer">
-                                        {visibleColumns.includes('queryId') && (
-                                            <td className="px-6 py-3">
-                                                <div className="flex items-center gap-3">
-                                                    <span className={`w-1 h-5 rounded-full ${q.status === 'Success' ? 'bg-status-success' : 'bg-status-error'}`}></span>
-                                                    <span className="font-mono text-sm text-text-primary">Q{q.id.substring(7, 13).toUpperCase()}</span>
-                                                </div>
+                                        {visibleColsData.map(col => (
+                                            <td 
+                                                key={col.key}
+                                                className={getTdClassName(col.key)}
+                                                onMouseEnter={() => setHoveredColumnKey(col.key)}
+                                                onMouseLeave={() => setHoveredColumnKey(null)}
+                                            >
+                                                {renderCellContent(q, col.key)}
                                             </td>
-                                        )}
-                                        {visibleColumns.includes('user') && <td className="px-6 py-3 text-text-primary">{q.user}</td>}
-                                        {visibleColumns.includes('warehouse') && <td className="px-6 py-3 text-text-primary">{q.warehouse}</td>}
-                                        {visibleColumns.includes('duration') && <td className="px-6 py-3 font-medium text-text-primary">{getDurationInSeconds(q.duration)}s</td>}
-                                        {visibleColumns.includes('bytesScanned') && <td className="px-6 py-3 font-medium text-text-primary">{formatBytes(q.bytesScanned)}</td>}
-                                        {visibleColumns.includes('cost') && (
-                                            <td className="px-6 py-3">
-                                                <span className="font-medium text-text-primary">${q.costUSD.toFixed(2)}</span>
-                                                <span className="text-text-secondary"> ({q.costCredits.toFixed(2)})</span>
-                                            </td>
-                                        )}
-                                        {visibleColumns.includes('startTime') && <td className="px-6 py-3 text-text-primary">{formatTimestamp(q.timestamp)}</td>}
-                                        {visibleColumns.includes('actions') && (
-                                            <td className="px-6 py-3 text-right">
-                                                <div className="relative inline-block text-left" ref={openMenuId === q.id ? menuRef : null}>
-                                                    <button 
-                                                        onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === q.id ? null : q.id); }} 
-                                                        title="Actions" 
-                                                        className="p-2 text-text-secondary hover:text-primary rounded-full hover:bg-primary/10 transition-colors"
-                                                    >
-                                                        <IconDotsVertical className="h-5 w-5"/>
-                                                    </button>
-                                                    {openMenuId === q.id && (
-                                                        <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-lg bg-surface shadow-lg z-10 border border-border-color">
-                                                            <div className="py-1" role="menu" aria-orientation="vertical">
-                                                                <button onClick={(e) => { e.stopPropagation(); onSelectQuery(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                                                    <IconView className="h-4 w-4"/> Query Preview
-                                                                </button>
-                                                                <button onClick={(e) => { e.stopPropagation(); alert('Open in Analyzer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                                                    <IconBeaker className="h-4 w-4"/> Open in Analyzer
-                                                                </button>
-                                                                <button onClick={(e) => { e.stopPropagation(); alert('Open in Optimizer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                                                    <IconWand className="h-4 w-4"/> Open in Optimizer
-                                                                </button>
-                                                                <button onClick={(e) => { e.stopPropagation(); alert('Open in Simulator clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                                                    <IconBeaker className="h-4 w-4"/> Open in Simulator
-                                                                </button>
-                                                                <div className="my-1 border-t border-border-color"></div>
-                                                                <button onClick={(e) => { e.stopPropagation(); onShareQueryClick(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                                                    <IconShare className="h-4 w-4"/> Share Query
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        )}
+                                        ))}
                                     </tr>
                                 ))}
                             </tbody>

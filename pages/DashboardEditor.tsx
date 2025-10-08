@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { DashboardItem, Widget, Account, WidgetType } from '../types';
 import { availableWidgetsData, overviewMetrics, accountSpend, costBreakdownData, accountCostBreakdown, warehousesData } from '../data/dummyData';
-import { IconAdd, IconSearch, IconClose, IconChevronDown, IconChevronLeft, IconDotsVertical, IconEdit, IconDelete } from '../constants';
+import { IconAdd, IconSearch, IconClose, IconChevronDown, IconChevronLeft, IconDotsVertical, IconEdit, IconDelete, IconArrowUp } from '../constants';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import StatCard from '../components/StatCard';
 import InfoTooltip from '../components/InfoTooltip';
@@ -80,7 +80,11 @@ const DummyTable: React.FC = () => (
         <table className="w-full">
             <thead className="bg-table-header-bg text-xs text-text-primary font-medium">
                 <tr className="text-left">
-                    <th className="font-medium p-1">Event</th>
+                    <th className="font-medium p-1">
+                        <button className="group flex items-center">
+                            Event <IconArrowUp className="w-3 h-3 ml-1" />
+                        </button>
+                    </th>
                     <th className="font-medium p-1">Time</th>
                     <th className="font-medium p-1">Details</th>
                 </tr>
