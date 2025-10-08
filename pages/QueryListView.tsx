@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { queryListData as initialData, warehousesData } from '../data/dummyData';
 import { QueryListItem, QueryType } from '../types';
-import { IconSearch, IconChevronLeft, IconChevronRight, IconChevronDown } from '../constants';
+import { IconSearch, IconChevronLeft, IconChevronRight, IconChevronDown, IconDotsVertical, IconView, IconBeaker, IconWand, IconShare } from '../constants';
 
 interface PaginationProps {
     currentPage: number;
@@ -97,11 +97,12 @@ const Pagination: React.FC<PaginationProps> = ({
 
 interface QueryListViewProps {
     onSelectQuery: (query: QueryListItem) => void;
+    onShareQueryClick: (query: QueryListItem) => void;
 }
 
 const queryTypes: QueryType[] = ['SELECT', 'WHERE', 'JOIN', 'Aggregation', 'INSERT', 'UPDATE', 'DELETE'];
 
-const QueryListView: React.FC<QueryListViewProps> = ({ onSelectQuery }) => {
+const QueryListView: React.FC<QueryListViewProps> = ({ onSelectQuery, onShareQueryClick }) => {
     const [search, setSearch] = useState('');
     const [dateFilter, setDateFilter] = useState('7d');
     const [warehouseFilter, setWarehouseFilter] = useState('All');
@@ -110,6 +111,21 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onSelectQuery }) => {
     
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10); 
+    
+    const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setOpenMenuId(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     const totalQueries = initialData.length;
     const successCount = useMemo(() => initialData.filter(q => q.status === 'Success').length, []);
@@ -227,21 +243,55 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onSelectQuery }) => {
                                 <th scope="col" className="px-6 py-4 text-left font-medium tracking-wider">Query ID</th>
                                 <th scope="col" className="px-6 py-4 text-left font-medium tracking-wider">Duration</th>
                                 <th scope="col" className="px-6 py-4 text-left font-medium tracking-wider">Cost (Credits)</th>
+                                <th scope="col" className="px-6 py-4 text-right font-medium tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="text-text-secondary">
                             {paginatedData.map(q => (
-                                <tr key={q.id} onClick={() => onSelectQuery(q)} className="border-b border-border-light last:border-b-0 hover:bg-surface-hover cursor-pointer">
-                                    <td className="px-6 py-3">
+                                <tr key={q.id} className="border-b border-border-light last:border-b-0 hover:bg-surface-hover">
+                                    <td onClick={() => onSelectQuery(q)} className="px-6 py-3 cursor-pointer">
                                         <div className="flex items-center gap-3">
                                             <span className={`w-1 h-5 rounded-full ${q.status === 'Success' ? 'bg-status-success' : 'bg-status-error'}`}></span>
                                             <span className="font-mono text-sm text-text-primary">Q{q.id.substring(7, 13).toUpperCase()}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-3 font-medium text-text-primary">{getDurationInSeconds(q.duration)}s</td>
-                                    <td className="px-6 py-3">
+                                    <td onClick={() => onSelectQuery(q)} className="px-6 py-3 font-medium text-text-primary cursor-pointer">{getDurationInSeconds(q.duration)}s</td>
+                                    <td onClick={() => onSelectQuery(q)} className="px-6 py-3 cursor-pointer">
                                         <span className="font-medium text-text-primary">${q.costUSD.toFixed(2)}</span>
                                         <span className="text-text-secondary"> ({q.costCredits.toFixed(2)})</span>
+                                    </td>
+                                    <td className="px-6 py-3 text-right">
+                                        <div className="relative inline-block text-left" ref={openMenuId === q.id ? menuRef : null}>
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === q.id ? null : q.id); }} 
+                                                title="Actions" 
+                                                className="p-2 text-text-secondary hover:text-primary rounded-full hover:bg-primary/10 transition-colors"
+                                            >
+                                                <IconDotsVertical className="h-5 w-5"/>
+                                            </button>
+                                            {openMenuId === q.id && (
+                                                <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-lg bg-surface shadow-lg z-10 border border-border-color">
+                                                    <div className="py-1" role="menu" aria-orientation="vertical">
+                                                        <button onClick={(e) => { e.stopPropagation(); onSelectQuery(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                                            <IconView className="h-4 w-4"/> Query Preview
+                                                        </button>
+                                                        <button onClick={(e) => { e.stopPropagation(); alert('Open in Analyzer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                                            <IconBeaker className="h-4 w-4"/> Open in Analyzer
+                                                        </button>
+                                                        <button onClick={(e) => { e.stopPropagation(); alert('Open in Optimizer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                                            <IconWand className="h-4 w-4"/> Open in Optimizer
+                                                        </button>
+                                                         <button onClick={(e) => { e.stopPropagation(); alert('Open in Simulator clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                                            <IconBeaker className="h-4 w-4"/> Open in Simulator
+                                                        </button>
+                                                        <div className="my-1 border-t border-border-color"></div>
+                                                        <button onClick={(e) => { e.stopPropagation(); onShareQueryClick(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                                            <IconShare className="h-4 w-4"/> Share Query
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
