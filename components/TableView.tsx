@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { IconSearch, IconShare } from '../constants';
 import Pagination from './Pagination';
@@ -152,7 +151,7 @@ const TableView: React.FC<TableViewProps> = ({ title, data }) => {
             </div>
             <div className="flex-1 overflow-y-auto">
                  <table className="w-full text-sm text-left text-text-secondary">
-                    <thead className="bg-table-header-bg text-xs text-text-secondary uppercase font-medium sticky top-0 z-10">
+                    <thead className="bg-table-header-bg text-xs text-text-primary font-medium sticky top-0 z-10">
                         <tr>
                             <th scope="col" className="px-6 py-3">
                                 <button onClick={() => requestSort('name')} className="group flex items-center">Name {getSortIndicator('name')}</button>

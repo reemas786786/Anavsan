@@ -46,11 +46,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEdi
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            // FIX: Cast event target to Element to use the `closest` method.
             const target = event.target as Element;
-            // Check if the click is outside the currently open menu
             if (openMenuId && menuRef.current && !menuRef.current.contains(target)) {
-                 // Also check if the click was on another menu's trigger button
                 if (!target.closest(`[data-menu-trigger-id]`)) {
                     setOpenMenuId(null);
                 }
@@ -78,7 +75,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEdi
             <div className="bg-surface p-4 rounded-3xl">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-text-secondary">
-                        <thead className="bg-table-header-bg text-xs text-text-secondary uppercase font-medium">
+                        <thead className="bg-table-header-bg text-xs text-text-primary font-medium">
                             <tr>
                                 <th scope="col" className="px-6 py-3">User</th>
                                 <th scope="col" className="px-6 py-3">Role</th>

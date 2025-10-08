@@ -69,7 +69,7 @@ export const SimilarQueryPatternsView: React.FC = () => {
                     </div>
                      <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left text-text-secondary">
-                            <thead className="bg-table-header-bg text-xs text-text-secondary uppercase font-medium">
+                            <thead className="bg-table-header-bg text-xs text-text-primary font-medium">
                                <tr>
                                     <th scope="col" className="px-6 py-3">Query</th>
                                     <th scope="col" className="px-6 py-3">Similarity</th>
@@ -102,7 +102,7 @@ export const SimilarQueryPatternsView: React.FC = () => {
                 <h2 className="text-base font-semibold text-text-strong mb-4">Similar query patterns</h2>
                  <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-text-secondary">
-                        <thead className="bg-table-header-bg text-xs text-text-secondary uppercase font-medium">
+                        <thead className="bg-table-header-bg text-xs text-text-primary font-medium">
                             <tr>
                                 <th scope="col" className="px-6 py-3">Pattern</th>
                                 <th scope="col" className="px-6 py-3">Query Count</th>
@@ -203,7 +203,7 @@ const QueryPerformanceView: React.FC = () => {
 
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-text-secondary">
-                        <thead className="bg-table-header-bg text-xs text-text-secondary uppercase font-medium">
+                        <thead className="bg-table-header-bg text-xs text-text-primary font-medium">
                             <tr>
                                 <th scope="col" className="px-6 py-3"><button onClick={() => requestSort('name')} className="group flex items-center">Query {getSortIndicator('name')}</button></th>
                                 <th scope="col" className="px-6 py-3"><button onClick={() => requestSort('similarity')} className="group flex items-center">Similarity {getSortIndicator('similarity')}</button></th>

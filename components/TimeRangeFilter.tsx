@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { IconChevronDown } from '../constants';
 
@@ -95,7 +96,6 @@ const TimeRangeFilter: React.FC<TimeRangeFilterProps> = ({ value, onChange }) =>
             {timeRanges.map((range, index) => (
               <button
                 key={range.id}
-                // FIX: Used a block body for the ref callback to ensure it returns void and matches the expected type.
                 ref={el => { menuItemsRef.current[index] = el; }}
                 onClick={() => handleSelect(range.id)}
                 className={`w-full text-left block px-4 py-2 text-sm ${

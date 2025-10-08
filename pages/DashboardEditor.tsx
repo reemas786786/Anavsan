@@ -78,11 +78,11 @@ const dummyTableData = [
 const DummyTable: React.FC = () => (
     <div className="text-[10px] text-text-secondary w-full h-full p-2">
         <table className="w-full">
-            <thead>
+            <thead className="bg-table-header-bg text-xs text-text-primary font-medium">
                 <tr className="text-left">
-                    <th className="font-medium p-1">EVENT</th>
-                    <th className="font-medium p-1">TIME</th>
-                    <th className="font-medium p-1">DETAILS</th>
+                    <th className="font-medium p-1">Event</th>
+                    <th className="font-medium p-1">Time</th>
+                    <th className="font-medium p-1">Details</th>
                 </tr>
             </thead>
             <tbody>
@@ -117,18 +117,7 @@ const WidgetPreviewRenderer: React.FC<{type: WidgetType}> = ({ type }) => {
 
 const RealTotalSpend: React.FC<{ dataSource: Widget['dataSource'] }> = ({ dataSource }) => {
     const isOverall = dataSource.type === 'overall';
-    // FIX: Use optional chaining to safely access nested properties, preventing potential runtime errors if `cost` or `monthly` are undefined.
-    const metric = isOverall ? overviewMetrics.cost : accountSpend?.cost;
-    
-    // FIX: Use a type guard to safely access properties on the metric union type.
-    let value = 0;
-    if (metric) {
-        if ('current' in metric) {
-            value = metric.current;
-        } else if ('monthly' in metric) {
-            value = metric.monthly;
-        }
-    }
+    const value = isOverall ? overviewMetrics.cost.current : accountSpend.cost.monthly;
     
     return (
         <div className="p-4 h-full flex flex-col justify-center">

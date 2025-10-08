@@ -51,7 +51,7 @@ const DatabaseDetailView: React.FC<{ database: Database, onBack: () => void }> =
             <WidgetCard title="Table storage analysis">
                  <div className="overflow-auto max-h-[calc(100vh-300px)]">
                     <table className="w-full text-sm">
-                        <thead className="text-left text-xs text-text-secondary uppercase sticky top-0 bg-surface">
+                        <thead className="text-left text-xs text-text-primary sticky top-0 bg-table-header-bg">
                             <tr>
                                 <th className="py-2 px-3 font-medium">User</th>
                                 <th className="py-2 px-3 font-medium">Table Name</th>
@@ -94,7 +94,7 @@ const DatabaseListView: React.FC<{ onSelectDatabase: (databaseId: string) => voi
             <WidgetCard>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-text-secondary">
-                        <thead className="bg-table-header-bg text-xs text-text-secondary uppercase font-medium">
+                        <thead className="bg-table-header-bg text-xs text-text-primary font-medium">
                             <tr>
                                 <th scope="col" className="px-6 py-3">Database Name</th>
                                 <th scope="col" className="px-6 py-3">Size (GB)</th>

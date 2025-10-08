@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { SQLFile } from '../types';
+import { SQLFile, SQLVersion } from '../types';
+import { sqlFilesData } from '../data/dummyData';
 
-// FIX: Added props interface to accept `sqlFiles` and `onSaveQueryClick` to resolve type error when used in AccountView.
 interface QueryWorkspaceProps {
     sqlFiles: SQLFile[];
     onSaveQueryClick: () => void;
 }
 
-// FIX: Updated Tag component to handle optional tag property as per SQLVersion type.
 const Tag: React.FC<{ tag?: string }> = ({ tag }) => {
     if (!tag) {
         return null;
@@ -21,7 +20,6 @@ const Tag: React.FC<{ tag?: string }> = ({ tag }) => {
 }
 
 const QueryWorkspace: React.FC<QueryWorkspaceProps> = ({ sqlFiles, onSaveQueryClick }) => {
-    // FIX: Used sqlFiles from props instead of hardcoded dummy data, with a fallback for empty arrays.
     const [selectedFile, setSelectedFile] = useState<SQLFile | null>(sqlFiles[0] || null);
     const [selectedVersions, setSelectedVersions] = useState<Set<string>>(new Set());
 
@@ -52,7 +50,6 @@ const QueryWorkspace: React.FC<QueryWorkspaceProps> = ({ sqlFiles, onSaveQueryCl
                 <div className="lg:col-span-1 bg-surface rounded-3xl p-4">
                     <h4 className="font-semibold text-text-strong px-2 mb-4 text-base">Saved Queries</h4>
                     <ul>
-                        {/* FIX: Used `sqlFiles` from props instead of `sqlFilesData`. */}
                         {sqlFiles.map(file => (
                             <li key={file.id}>
                                 <button 
@@ -83,7 +80,7 @@ const QueryWorkspace: React.FC<QueryWorkspaceProps> = ({ sqlFiles, onSaveQueryCl
 
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
-                            <thead className="bg-table-header-bg text-left text-xs text-text-secondary uppercase">
+                            <thead className="bg-table-header-bg text-left text-xs text-text-primary font-medium">
                                 <tr>
                                     <th className="p-2 w-8"></th>
                                     <th className="p-2">Version</th>

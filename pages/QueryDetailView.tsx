@@ -204,8 +204,6 @@ LIMIT 500;
 -- ...
 -- ...
 -- ...
--- ...
--- ...
 -- End of demonstrative query.
 `;
 
@@ -235,11 +233,11 @@ LIMIT 500;
             </div>
             
             <div className="bg-surface rounded-3xl">
-                <h3 className="text-base font-semibold text-text-strong p-4">Query Attributes</h3>
-                <div className="border-t border-border-color text-sm">
+                <h3 className="text-base font-semibold text-text-strong p-4">Details</h3>
+                <div className="text-sm">
                     {/* Row 1 */}
                     <div className="flex flex-col md:flex-row">
-                        <div className="flex-1 flex justify-between p-4 border-b md:border-b-0 md:border-r border-border-color">
+                        <div className="flex-1 flex justify-between p-4 md:border-r border-border-color">
                             <span className="text-text-secondary">Duration</span>
                             <span className="font-semibold text-text-primary">{query.duration}</span>
                         </div>
@@ -249,8 +247,8 @@ LIMIT 500;
                         </div>
                     </div>
                     {/* Row 2 */}
-                    <div className="flex flex-col md:flex-row border-t border-border-color">
-                        <div className="flex-1 flex justify-between p-4 border-b md:border-b-0 md:border-r border-border-color">
+                    <div className="flex flex-col md:flex-row">
+                        <div className="flex-1 flex justify-between p-4 md:border-r border-border-color">
                             <span className="text-text-secondary">Bytes Scanned</span>
                             <span className="font-semibold text-text-primary">{formatBytes(query.bytesScanned)}</span>
                         </div>
@@ -260,8 +258,8 @@ LIMIT 500;
                         </div>
                     </div>
                     {/* Row 3 */}
-                    <div className="flex flex-col md:flex-row border-t border-border-color">
-                        <div className="flex-1 flex justify-between p-4 border-b md:border-b-0 md:border-r border-border-color">
+                    <div className="flex flex-col md:flex-row">
+                        <div className="flex-1 flex justify-between p-4 md:border-r border-border-color">
                             <span className="text-text-secondary">Warehouse</span>
                             <span className="font-semibold text-text-primary">{query.warehouse}</span>
                         </div>
@@ -271,8 +269,8 @@ LIMIT 500;
                         </div>
                     </div>
                     {/* Row 4 */}
-                    <div className="flex flex-col md:flex-row border-t border-border-color">
-                        <div className="flex-1 flex justify-between p-4 border-b border-border-color md:border-b-0 md:border-r">
+                    <div className="flex flex-col md:flex-row">
+                        <div className="flex-1 flex justify-between p-4 md:border-r border-border-color">
                             <span className="text-text-secondary">End Time</span>
                             <span className="font-semibold text-text-primary">{endTime}</span>
                         </div>

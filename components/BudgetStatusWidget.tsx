@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { IconExclamationTriangle } from '../constants';
 import InfoTooltip from './InfoTooltip';
@@ -35,7 +36,6 @@ const BudgetStatusWidget: React.FC<BudgetStatusWidgetProps> = ({ displayMode = '
         textColor = 'text-status-warning-dark';
     }
     
-    // FIX: Declare alertIcon before conditional assignment.
     let alertIcon: React.ReactNode = null;
     if (status === 'warning' || status === 'error') {
         alertIcon = <IconExclamationTriangle className={`w-4 h-4 ml-2 ${textColor}`} />;

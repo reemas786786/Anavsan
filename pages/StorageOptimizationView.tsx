@@ -202,7 +202,7 @@ const StorageAnalysisTableWidget: React.FC<WidgetProps> = ({ handleMenuClick, op
             </div>
             <div className="overflow-auto flex-grow" style={{ maxHeight: '400px' }}>
                 <table className="w-full text-sm">
-                    <thead className="text-left text-xs text-text-secondary uppercase sticky top-0 bg-table-header-bg z-10">
+                    <thead className="text-left text-xs text-text-primary sticky top-0 bg-table-header-bg z-10">
                         <tr>
                             <th scope="col" className="py-2 px-3 font-medium">
                                 <button onClick={() => requestSort('name')} className="group flex items-center w-full text-left focus:outline-none focus:text-text-primary" aria-sort={sortConfig?.key === 'name' ? sortConfig.direction : 'none'}>

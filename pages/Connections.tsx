@@ -70,7 +70,7 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
                 
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-text-secondary">
-                        <thead className="bg-table-header-bg text-xs text-text-secondary uppercase font-medium">
+                        <thead className="bg-table-header-bg text-xs text-text-primary font-medium">
                             <tr>
                                 <th scope="col" className="px-6 py-3">Account Name</th>
                                 <th scope="col" className="px-6 py-3">Identifier</th>

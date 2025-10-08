@@ -3,7 +3,7 @@ import { queryListData as initialData, warehousesData } from '../data/dummyData'
 import { QueryListItem, QueryType } from '../types';
 import { IconSearch, IconChevronLeft, IconChevronRight, IconChevronDown, IconDotsVertical, IconView, IconBeaker, IconWand, IconShare } from '../constants';
 import MultiSelectDropdown from '../components/MultiSelectDropdown';
-import SingleSelectDropdown from '../components/SingleSelectDropdown';
+import DateRangeDropdown from '../components/DateRangeDropdown';
 import Pagination from '../components/Pagination';
 import ColumnSelector from '../components/ColumnSelector';
 
@@ -13,12 +13,6 @@ interface QueryListViewProps {
 }
 
 const queryTypes: QueryType[] = ['SELECT', 'WHERE', 'JOIN', 'Aggregation', 'INSERT', 'UPDATE', 'DELETE'];
-const dateOptions = [
-    { value: '7d', label: '7d' },
-    { value: '1d', label: '24h' },
-    { value: '30d', label: '30d' },
-    { value: 'All', label: 'All Time' }
-];
 
 const formatBytes = (bytes: number, decimals = 2) => {
     if (bytes === 0) return '0 Bytes';
@@ -54,7 +48,7 @@ const defaultColumns = ['queryId', 'actions'];
 
 const QueryListView: React.FC<QueryListViewProps> = ({ onSelectQuery, onShareQueryClick }) => {
     const [search, setSearch] = useState('');
-    const [dateFilter, setDateFilter] = useState('7d');
+    const [dateFilter, setDateFilter] = useState<string | { start: string, end: string }>('7d');
     const [warehouseFilter, setWarehouseFilter] = useState<string[]>([]);
     const [statusFilter, setStatusFilter] = useState<string[]>([]);
     const [queryTypeFilter, setQueryTypeFilter] = useState<string[]>([]);
@@ -92,14 +86,24 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onSelectQuery, onShareQue
             if (warehouseFilter.length > 0 && !warehouseFilter.includes(q.warehouse)) return false;
             if (queryTypeFilter.length > 0 && !queryTypeFilter.some(type => q.type.includes(type))) return false;
             
-            if (dateFilter !== 'All') {
+            if (typeof dateFilter === 'string') {
+                if (dateFilter !== 'All') {
+                    const queryDate = new Date(q.timestamp);
+                    const now = new Date();
+                    let days = 0;
+                    if (dateFilter === '1d') days = 1;
+                    if (dateFilter === '7d') days = 7;
+                    if (dateFilter === '30d') days = 30;
+                    if (days > 0 && now.getTime() - queryDate.getTime() > days * 24 * 60 * 60 * 1000) return false;
+                }
+            } else { // Custom date range object
                 const queryDate = new Date(q.timestamp);
-                const now = new Date();
-                let days = 0;
-                if (dateFilter === '1d') days = 1;
-                if (dateFilter === '7d') days = 7;
-                if (dateFilter === '30d') days = 30;
-                if (days > 0 && now.getTime() - queryDate.getTime() > days * 24 * 60 * 60 * 1000) return false;
+                const startDate = new Date(dateFilter.start);
+                
+                const endDate = new Date(dateFilter.end);
+                endDate.setDate(endDate.getDate() + 1);
+                
+                if (queryDate < startDate || queryDate >= endDate) return false;
             }
             return true;
         });
@@ -123,10 +127,13 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onSelectQuery, onShareQue
     }
 
     return (
-        <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-text-primary">All Queries</h1>
+        <div className="flex flex-col h-full bg-background p-4 space-y-4">
+            <div className="flex-shrink-0">
+                <h1 className="text-2xl font-bold text-text-primary">All Queries</h1>
+            </div>
+            
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-shrink-0">
                 <div className="bg-surface p-4 rounded-xl shadow-sm">
                     <p className="text-sm text-text-secondary">Total Queries</p>
                     <p className="text-3xl font-bold text-text-strong mt-1">{totalQueries.toLocaleString()}</p>
@@ -141,12 +148,11 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onSelectQuery, onShareQue
                 </div>
             </div>
             
-            <div className="bg-surface rounded-xl shadow-sm">
+            <div className="bg-surface rounded-xl shadow-sm flex flex-col flex-grow overflow-hidden">
                 {/* Filter Bar */}
-                <div className="p-3 flex flex-wrap items-center gap-3 border-b border-border-light">
-                    <SingleSelectDropdown
+                <div className="p-3 flex flex-wrap items-center gap-3 border-b border-border-light flex-shrink-0">
+                    <DateRangeDropdown
                         label="Time Range"
-                        options={dateOptions}
                         selectedValue={dateFilter}
                         onChange={setDateFilter}
                     />
@@ -187,87 +193,91 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onSelectQuery, onShareQue
                 </div>
 
                 {/* Table */}
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                        <thead className="text-xs text-text-secondary uppercase">
-                            <tr className="border-b border-border-light">
-                                {allColumns.filter(c => visibleColumns.includes(c.key)).map(col => (
-                                     <th key={col.key} scope="col" className={`px-6 py-4 font-medium tracking-wider ${col.key === 'actions' ? 'text-right' : 'text-left'}`}>{col.label}</th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody className="text-text-secondary">
-                            {paginatedData.map(q => (
-                                <tr key={q.id} onClick={() => onSelectQuery(q)} className="border-b border-border-light last:border-b-0 hover:bg-surface-hover cursor-pointer">
-                                    {visibleColumns.includes('queryId') && (
-                                        <td className="px-6 py-3">
-                                            <div className="flex items-center gap-3">
-                                                <span className={`w-1 h-5 rounded-full ${q.status === 'Success' ? 'bg-status-success' : 'bg-status-error'}`}></span>
-                                                <span className="font-mono text-sm text-text-primary">Q{q.id.substring(7, 13).toUpperCase()}</span>
-                                            </div>
-                                        </td>
-                                    )}
-                                    {visibleColumns.includes('user') && <td className="px-6 py-3 text-text-primary">{q.user}</td>}
-                                    {visibleColumns.includes('warehouse') && <td className="px-6 py-3 text-text-primary">{q.warehouse}</td>}
-                                    {visibleColumns.includes('duration') && <td className="px-6 py-3 font-medium text-text-primary">{getDurationInSeconds(q.duration)}s</td>}
-                                    {visibleColumns.includes('bytesScanned') && <td className="px-6 py-3 font-medium text-text-primary">{formatBytes(q.bytesScanned)}</td>}
-                                    {visibleColumns.includes('cost') && (
-                                        <td className="px-6 py-3">
-                                            <span className="font-medium text-text-primary">${q.costUSD.toFixed(2)}</span>
-                                            <span className="text-text-secondary"> ({q.costCredits.toFixed(2)})</span>
-                                        </td>
-                                    )}
-                                    {visibleColumns.includes('startTime') && <td className="px-6 py-3 text-text-primary">{formatTimestamp(q.timestamp)}</td>}
-                                    {visibleColumns.includes('actions') && (
-                                        <td className="px-6 py-3 text-right">
-                                            <div className="relative inline-block text-left" ref={openMenuId === q.id ? menuRef : null}>
-                                                <button 
-                                                    onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === q.id ? null : q.id); }} 
-                                                    title="Actions" 
-                                                    className="p-2 text-text-secondary hover:text-primary rounded-full hover:bg-primary/10 transition-colors"
-                                                >
-                                                    <IconDotsVertical className="h-5 w-5"/>
-                                                </button>
-                                                {openMenuId === q.id && (
-                                                    <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-lg bg-surface shadow-lg z-10 border border-border-color">
-                                                        <div className="py-1" role="menu" aria-orientation="vertical">
-                                                            <button onClick={(e) => { e.stopPropagation(); onSelectQuery(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                                                <IconView className="h-4 w-4"/> Query Preview
-                                                            </button>
-                                                            <button onClick={(e) => { e.stopPropagation(); alert('Open in Analyzer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                                                <IconBeaker className="h-4 w-4"/> Open in Analyzer
-                                                            </button>
-                                                            <button onClick={(e) => { e.stopPropagation(); alert('Open in Optimizer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                                                <IconWand className="h-4 w-4"/> Open in Optimizer
-                                                            </button>
-                                                             <button onClick={(e) => { e.stopPropagation(); alert('Open in Simulator clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                                                <IconBeaker className="h-4 w-4"/> Open in Simulator
-                                                            </button>
-                                                            <div className="my-1 border-t border-border-color"></div>
-                                                            <button onClick={(e) => { e.stopPropagation(); onShareQueryClick(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                                                <IconShare className="h-4 w-4"/> Share Query
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </td>
-                                    )}
+                <div className="flex-grow overflow-y-auto">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead className="text-xs text-text-primary sticky top-0 z-10">
+                                <tr className="border-b border-border-light bg-table-header-bg">
+                                    {allColumns.filter(c => visibleColumns.includes(c.key)).map(col => (
+                                        <th key={col.key} scope="col" className={`px-6 py-4 font-medium tracking-wider ${col.key === 'actions' ? 'text-right' : 'text-left'}`}>{col.label}</th>
+                                    ))}
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="text-text-secondary">
+                                {paginatedData.map(q => (
+                                    <tr key={q.id} onClick={() => onSelectQuery(q)} className="border-b border-border-light last:border-b-0 hover:bg-surface-hover cursor-pointer">
+                                        {visibleColumns.includes('queryId') && (
+                                            <td className="px-6 py-3">
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`w-1 h-5 rounded-full ${q.status === 'Success' ? 'bg-status-success' : 'bg-status-error'}`}></span>
+                                                    <span className="font-mono text-sm text-text-primary">Q{q.id.substring(7, 13).toUpperCase()}</span>
+                                                </div>
+                                            </td>
+                                        )}
+                                        {visibleColumns.includes('user') && <td className="px-6 py-3 text-text-primary">{q.user}</td>}
+                                        {visibleColumns.includes('warehouse') && <td className="px-6 py-3 text-text-primary">{q.warehouse}</td>}
+                                        {visibleColumns.includes('duration') && <td className="px-6 py-3 font-medium text-text-primary">{getDurationInSeconds(q.duration)}s</td>}
+                                        {visibleColumns.includes('bytesScanned') && <td className="px-6 py-3 font-medium text-text-primary">{formatBytes(q.bytesScanned)}</td>}
+                                        {visibleColumns.includes('cost') && (
+                                            <td className="px-6 py-3">
+                                                <span className="font-medium text-text-primary">${q.costUSD.toFixed(2)}</span>
+                                                <span className="text-text-secondary"> ({q.costCredits.toFixed(2)})</span>
+                                            </td>
+                                        )}
+                                        {visibleColumns.includes('startTime') && <td className="px-6 py-3 text-text-primary">{formatTimestamp(q.timestamp)}</td>}
+                                        {visibleColumns.includes('actions') && (
+                                            <td className="px-6 py-3 text-right">
+                                                <div className="relative inline-block text-left" ref={openMenuId === q.id ? menuRef : null}>
+                                                    <button 
+                                                        onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === q.id ? null : q.id); }} 
+                                                        title="Actions" 
+                                                        className="p-2 text-text-secondary hover:text-primary rounded-full hover:bg-primary/10 transition-colors"
+                                                    >
+                                                        <IconDotsVertical className="h-5 w-5"/>
+                                                    </button>
+                                                    {openMenuId === q.id && (
+                                                        <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-lg bg-surface shadow-lg z-10 border border-border-color">
+                                                            <div className="py-1" role="menu" aria-orientation="vertical">
+                                                                <button onClick={(e) => { e.stopPropagation(); onSelectQuery(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                                                    <IconView className="h-4 w-4"/> Query Preview
+                                                                </button>
+                                                                <button onClick={(e) => { e.stopPropagation(); alert('Open in Analyzer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                                                    <IconBeaker className="h-4 w-4"/> Open in Analyzer
+                                                                </button>
+                                                                <button onClick={(e) => { e.stopPropagation(); alert('Open in Optimizer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                                                    <IconWand className="h-4 w-4"/> Open in Optimizer
+                                                                </button>
+                                                                <button onClick={(e) => { e.stopPropagation(); alert('Open in Simulator clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                                                    <IconBeaker className="h-4 w-4"/> Open in Simulator
+                                                                </button>
+                                                                <div className="my-1 border-t border-border-color"></div>
+                                                                <button onClick={(e) => { e.stopPropagation(); onShareQueryClick(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                                                    <IconShare className="h-4 w-4"/> Share Query
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 
                 {sortedData.length > 0 && (
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        totalItems={sortedData.length}
-                        itemsPerPage={itemsPerPage}
-                        onPageChange={setCurrentPage}
-                        onItemsPerPageChange={handleItemsPerPageChange}
-                    />
+                     <div className="flex-shrink-0">
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            totalItems={sortedData.length}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={setCurrentPage}
+                            onItemsPerPageChange={handleItemsPerPageChange}
+                        />
+                    </div>
                 )}
             </div>
         </div>
