@@ -2,13 +2,6 @@ import React from 'react';
 import { QueryListItem } from '../types';
 import { IconChevronLeft, IconClipboardCopy, IconCheck } from '../constants';
 
-const MetricCard: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className }) => (
-    <div className={`bg-surface-nested p-4 rounded-2xl ${className}`}>
-        <h4 className="text-sm font-medium text-text-secondary">{title}</h4>
-        <div className="text-lg font-semibold text-text-primary mt-1 truncate">{children}</div>
-    </div>
-);
-
 const QueryDetailView: React.FC<{ query: QueryListItem; onBack: () => void; }> = ({ query, onBack }) => {
     const [isCopied, setIsCopied] = React.useState(false);
 
@@ -213,9 +206,6 @@ LIMIT 500;
 -- ...
 -- ...
 -- ...
--- ...
--- ...
--- ...
 -- End of demonstrative query.
 `;
 
@@ -223,15 +213,18 @@ LIMIT 500;
         <div className="max-w-7xl mx-auto p-4 space-y-4">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="flex items-center gap-2">
-                    <button onClick={onBack} className="p-2 rounded-full hover:bg-surface-hover text-text-secondary flex-shrink-0">
+                    <button onClick={onBack} className="w-10 h-10 flex items-center justify-center rounded-full bg-button-secondary-bg text-primary hover:bg-button-secondary-bg-hover transition-colors flex-shrink-0">
                         <IconChevronLeft className="h-5 w-5" />
                         <span className="sr-only">Back</span>
                     </button>
-                    <div className="flex items-center gap-2 overflow-hidden">
-                        <h1 className="text-xl font-bold text-text-primary truncate font-mono" title={query.id}>{query.id}</h1>
-                        <button onClick={handleCopy} className="text-text-secondary hover:text-text-primary flex-shrink-0">
-                            {isCopied ? <IconCheck className="h-5 w-5 text-status-success" /> : <IconClipboardCopy className="h-5 w-5" />}
-                        </button>
+                    <div>
+                        <h1 className="text-2xl font-bold text-text-primary">Query Details</h1>
+                        <div className="flex items-center gap-2 overflow-hidden">
+                            <h2 className="text-base font-medium text-text-secondary truncate font-mono" title={query.id}>{query.id}</h2>
+                            <button onClick={handleCopy} className="text-text-secondary hover:text-text-primary flex-shrink-0">
+                                {isCopied ? <IconCheck className="h-5 w-5 text-status-success" /> : <IconClipboardCopy className="h-5 w-5" />}
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div className="flex items-center justify-end gap-3 flex-shrink-0">
@@ -241,17 +234,53 @@ LIMIT 500;
                 </div>
             </div>
             
-            <div className="bg-surface p-4 rounded-3xl">
-                <h3 className="text-base font-semibold text-text-strong mb-4 px-2">Metrics</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <MetricCard title="Duration">{query.duration}</MetricCard>
-                    <MetricCard title="Credits">{query.costCredits.toFixed(2)}</MetricCard>
-                    <MetricCard title="Bytes Scanned">{formatBytes(query.bytesScanned)}</MetricCard>
-                    <MetricCard title="Bytes Written">{formatBytes(query.bytesWritten)}</MetricCard>
-                    <MetricCard title="Warehouse">{query.warehouse}</MetricCard>
-                    <MetricCard title="Start Time">{startTime}</MetricCard>
-                    <MetricCard title="End Time">{endTime}</MetricCard>
-                    <MetricCard title="Query Tag">{query.queryTag || 'N/A'}</MetricCard>
+            <div className="bg-surface rounded-3xl">
+                <h3 className="text-base font-semibold text-text-strong p-4">Query Attributes</h3>
+                <div className="border-t border-border-color text-sm">
+                    {/* Row 1 */}
+                    <div className="flex flex-col md:flex-row">
+                        <div className="flex-1 flex justify-between p-4 border-b md:border-b-0 md:border-r border-border-color">
+                            <span className="text-text-secondary">Duration</span>
+                            <span className="font-semibold text-text-primary">{query.duration}</span>
+                        </div>
+                        <div className="flex-1 flex justify-between p-4">
+                            <span className="text-text-secondary">Credits</span>
+                            <span className="font-semibold text-text-primary">{query.costCredits.toFixed(2)}</span>
+                        </div>
+                    </div>
+                    {/* Row 2 */}
+                    <div className="flex flex-col md:flex-row border-t border-border-color">
+                        <div className="flex-1 flex justify-between p-4 border-b md:border-b-0 md:border-r border-border-color">
+                            <span className="text-text-secondary">Bytes Scanned</span>
+                            <span className="font-semibold text-text-primary">{formatBytes(query.bytesScanned)}</span>
+                        </div>
+                        <div className="flex-1 flex justify-between p-4">
+                            <span className="text-text-secondary">Bytes Written</span>
+                            <span className="font-semibold text-text-primary">{formatBytes(query.bytesWritten)}</span>
+                        </div>
+                    </div>
+                    {/* Row 3 */}
+                    <div className="flex flex-col md:flex-row border-t border-border-color">
+                        <div className="flex-1 flex justify-between p-4 border-b md:border-b-0 md:border-r border-border-color">
+                            <span className="text-text-secondary">Warehouse</span>
+                            <span className="font-semibold text-text-primary">{query.warehouse}</span>
+                        </div>
+                        <div className="flex-1 flex justify-between p-4">
+                            <span className="text-text-secondary">Start Time</span>
+                            <span className="font-semibold text-text-primary">{startTime}</span>
+                        </div>
+                    </div>
+                    {/* Row 4 */}
+                    <div className="flex flex-col md:flex-row border-t border-border-color">
+                        <div className="flex-1 flex justify-between p-4 border-b border-border-color md:border-b-0 md:border-r">
+                            <span className="text-text-secondary">End Time</span>
+                            <span className="font-semibold text-text-primary">{endTime}</span>
+                        </div>
+                        <div className="flex-1 flex justify-between p-4">
+                            <span className="text-text-secondary">Query Tag</span>
+                            <span className="font-semibold text-text-primary">{query.queryTag || 'N/A'}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 

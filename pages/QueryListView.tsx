@@ -1,81 +1,126 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { queryListData as initialData, warehousesData } from '../data/dummyData';
 import { QueryListItem, QueryType } from '../types';
-import { IconSearch, IconChevronLeft, IconChevronRight, IconChevronDown, IconDotsVertical, IconShare, IconInfo, IconClipboardCopy, IconCheck } from '../constants';
-import Modal from '../components/Modal';
-import InfoTooltip from '../components/InfoTooltip';
+import { IconSearch, IconChevronLeft, IconChevronRight, IconChevronDown } from '../constants';
 
-const SortIndicator: React.FC<{ direction: 'ascending' | 'descending' | null }> = ({ direction }) => {
-    if (!direction) return <span className="w-4 h-4 inline-block opacity-0 group-hover:opacity-100 transition-opacity text-text-muted">↑↓</span>;
-    return <span className="w-4 h-4 inline-block text-text-primary">{direction === 'ascending' ? '↑' : '↓'}</span>;
+interface PaginationProps {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+    onPageChange: (page: number) => void;
+    onItemsPerPageChange: (items: number) => void;
+}
+
+const Pagination: React.FC<PaginationProps> = ({
+    currentPage,
+    totalPages,
+    totalItems,
+    itemsPerPage,
+    onPageChange,
+    onItemsPerPageChange,
+}) => {
+    if (totalItems === 0) {
+        return null;
+    }
+
+    const startItem = totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
+    const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+    const pageOptions = Array.from({ length: totalPages }, (_, i) => i + 1);
+    const itemsPerPageOptions = [10, 20, 50, 100];
+
+    return (
+        <div className="flex justify-between items-center text-sm text-text-secondary px-4 py-2 border-t border-border-light bg-surface rounded-b-xl">
+            <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                    <span>Items per page:</span>
+                    <div className="relative">
+                        <select
+                            value={itemsPerPage}
+                            onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+                            className="appearance-none bg-surface-nested rounded px-2 py-1 pr-7 font-medium text-text-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                            aria-label="Items per page"
+                        >
+                            {itemsPerPageOptions.map(option => (
+                                <option key={option} value={option}>{option}</option>
+                            ))}
+                        </select>
+                        <IconChevronDown className="h-4 w-4 text-text-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                </div>
+                <div className="border-l border-border-color h-6"></div>
+                <span>
+                    {startItem}–{endItem} of {totalItems} items
+                </span>
+            </div>
+            <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                    <div className="relative">
+                        <select
+                            value={currentPage}
+                            onChange={(e) => onPageChange(Number(e.target.value))}
+                            className="appearance-none bg-surface-nested rounded px-2 py-1 pr-7 font-medium text-text-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                            aria-label="Go to page"
+                        >
+                            {pageOptions.map(page => (
+                                <option key={page} value={page}>{page}</option>
+                            ))}
+                        </select>
+                         <IconChevronDown className="h-4 w-4 text-text-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                    <span>of {totalPages} pages</span>
+                </div>
+                <div className="border-l border-border-color h-6"></div>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => onPageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="w-8 h-8 flex items-center justify-center rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-hover transition-colors focus:outline-none focus:ring-1 focus:ring-primary"
+                        aria-label="Previous page"
+                    >
+                        <IconChevronLeft className="h-5 w-5" />
+                    </button>
+                    <button
+                        onClick={() => onPageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="w-8 h-8 flex items-center justify-center rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-hover transition-colors focus:outline-none focus:ring-1 focus:ring-primary"
+                        aria-label="Next page"
+                    >
+                        <IconChevronRight className="h-5 w-5" />
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
 };
 
-
 interface QueryListViewProps {
-    onShareQueryClick: (query: QueryListItem) => void;
     onSelectQuery: (query: QueryListItem) => void;
 }
 
-const QueryListView: React.FC<QueryListViewProps> = ({ onShareQueryClick, onSelectQuery }) => {
+const queryTypes: QueryType[] = ['SELECT', 'WHERE', 'JOIN', 'Aggregation', 'INSERT', 'UPDATE', 'DELETE'];
+
+const QueryListView: React.FC<QueryListViewProps> = ({ onSelectQuery }) => {
     const [search, setSearch] = useState('');
-    const [dateFilter, setDateFilter] = useState('All');
+    const [dateFilter, setDateFilter] = useState('7d');
     const [warehouseFilter, setWarehouseFilter] = useState('All');
     const [statusFilter, setStatusFilter] = useState('All');
-    const [typeFilters, setTypeFilters] = useState<Set<QueryType>>(new Set());
-    const [isTypeFilterOpen, setIsTypeFilterOpen] = useState(false);
+    const [queryTypeFilter, setQueryTypeFilter] = useState('All');
     
-    const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
-    const [sortConfig, setSortConfig] = useState<{ key: keyof QueryListItem; direction: 'ascending' | 'descending' }>({ key: 'timestamp', direction: 'descending' });
     const [currentPage, setCurrentPage] = useState(1);
-    const [rowsPerPage, setRowsPerPage] = useState(100);
-    const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-    const [previewQuery, setPreviewQuery] = useState<QueryListItem | null>(null);
-    const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
-    const [copiedId, setCopiedId] = useState<string | null>(null);
-
-    const menuRef = useRef<HTMLDivElement>(null);
-    const exportMenuRef = useRef<HTMLDivElement>(null);
-    const typeFilterRef = useRef<HTMLDivElement>(null);
+    const [itemsPerPage, setItemsPerPage] = useState(10); 
 
     const totalQueries = initialData.length;
     const successCount = useMemo(() => initialData.filter(q => q.status === 'Success').length, []);
     const failedCount = totalQueries - successCount;
-    
-    const queryTypes: QueryType[] = ['SELECT', 'WHERE', 'JOIN', 'Aggregation'];
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) setOpenMenuId(null);
-            if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) setIsExportMenuOpen(false);
-            if (typeFilterRef.current && !typeFilterRef.current.contains(event.target as Node)) setIsTypeFilterOpen(false);
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    const handleTypeFilterChange = (type: QueryType) => {
-        setTypeFilters(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(type)) newSet.delete(type);
-            else newSet.add(type);
-            return newSet;
-        });
-    };
-
-    const requestSort = (key: keyof QueryListItem) => {
-        let direction: 'ascending' | 'descending' = 'ascending';
-        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
-            direction = 'descending';
-        }
-        setSortConfig({ key, direction });
-    };
 
     const filteredData = useMemo(() => {
         return initialData.filter(q => {
-            if (search && !q.id.toLowerCase().includes(search.toLowerCase())) return false;
+            if (search && !q.queryText.toLowerCase().includes(search.toLowerCase()) && !q.id.toLowerCase().includes(search.toLowerCase())) return false;
             if (statusFilter !== 'All' && q.status !== statusFilter) return false;
             if (warehouseFilter !== 'All' && q.warehouse !== warehouseFilter) return false;
-            if (typeFilters.size > 0 && ![...typeFilters].every(type => q.type.includes(type))) return false;
+            if (queryTypeFilter !== 'All' && !q.type.includes(queryTypeFilter as QueryType)) return false;
             
             if (dateFilter !== 'All') {
                 const queryDate = new Date(q.timestamp);
@@ -88,202 +133,115 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onShareQueryClick, onSele
             }
             return true;
         });
-    }, [search, statusFilter, warehouseFilter, typeFilters, dateFilter]);
+    }, [search, statusFilter, warehouseFilter, dateFilter, queryTypeFilter]);
     
     const sortedData = useMemo(() => {
-        return [...filteredData].sort((a, b) => {
-            if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'ascending' ? -1 : 1;
-            if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'ascending' ? 1 : -1;
-            return 0;
-        });
-    }, [filteredData, sortConfig]);
+        return [...filteredData].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    }, [filteredData]);
+    
+    const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+    const paginatedData = useMemo(() => sortedData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage), [sortedData, currentPage, itemsPerPage]);
 
-    const paginatedData = useMemo(() => sortedData.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage), [sortedData, currentPage, rowsPerPage]);
-
-    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.checked) setSelectedRows(new Set(paginatedData.map(q => q.id)));
-        else setSelectedRows(new Set());
+    const handleItemsPerPageChange = (newSize: number) => {
+        setItemsPerPage(newSize);
+        setCurrentPage(1);
     };
     
-    const handleSelectRow = (id: string) => {
-        setSelectedRows(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(id)) newSet.delete(id);
-            else newSet.add(id);
-            return newSet;
-        });
-    };
-
-    const handleExport = (format: 'csv' | 'json') => {
-        const dataToExport = JSON.stringify(sortedData, null, 2);
-        if (format === 'json') {
-             const blob = new Blob([dataToExport], { type: 'application/json' });
-             const url = URL.createObjectURL(blob);
-             const a = document.createElement('a');
-             a.href = url;
-             a.download = 'queries.json';
-             a.click();
-             URL.revokeObjectURL(url);
-        } else { // CSV
-            const header = Object.keys(sortedData[0]).join(',');
-            const rows = sortedData.map(row => Object.values(row).map(val => Array.isArray(val) ? `"${val.join(';')}"` : `"${String(val).replace(/"/g, '""')}"`).join(','));
-            const csv = [header, ...rows].join('\n');
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'queries.csv';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-        setIsExportMenuOpen(false);
-    };
-
-    const handleCopyToClipboard = (text: string) => {
-        navigator.clipboard.writeText(text).then(() => {
-            setCopiedId(text);
-            setTimeout(() => setCopiedId(null), 2000);
-        });
-    };
+    const getDurationInSeconds = (duration: string) => {
+        const parts = duration.split(':').map(Number);
+        return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    }
 
     return (
-        <div className="space-y-4">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-text-primary">All Queries</h1>
-            </div>
-            
-            <div className="bg-surface shadow-[0_4px_12px_rgba(105,50,213,0.1)] px-4 sm:px-6 py-3 rounded-full flex items-center justify-center flex-wrap gap-x-4 sm:gap-x-6 gap-y-2">
-                <div className="flex items-center space-x-2">
-                    <span className="text-sm font-semibold text-text-strong">Total Queries:</span>
-                    <span className="text-sm font-semibold text-text-strong">{totalQueries}</span>
+        <div className="space-y-6">
+            <h1 className="text-2xl font-bold text-text-primary">All Queries</h1>
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-surface p-4 rounded-xl shadow-sm">
+                    <p className="text-sm text-text-secondary">Total Queries</p>
+                    <p className="text-3xl font-bold text-text-strong mt-1">{totalQueries.toLocaleString()}</p>
                 </div>
-                
-                <div className="flex items-center gap-x-4 sm:gap-x-6">
-                    <div className="w-0.5 h-5 bg-status-success rounded-full"></div>
-                    <div className="flex items-center space-x-2">
-                        <span className="text-sm font-semibold text-text-strong">Success:</span>
-                        <span className="text-sm font-semibold text-text-strong">{successCount}</span>
-                    </div>
+                <div className="bg-surface p-4 rounded-xl shadow-sm">
+                    <p className="text-sm text-text-secondary">Success</p>
+                    <p className="text-3xl font-bold text-status-success mt-1">{successCount.toLocaleString()}</p>
                 </div>
-        
-                <div className="flex items-center gap-x-4 sm:gap-x-6">
-                    <div className="w-0.5 h-5 bg-status-error rounded-full"></div>
-                    <div className="flex items-center space-x-2">
-                        <span className="text-sm font-semibold text-text-strong">Failed:</span>
-                        <span className="text-sm font-semibold text-text-strong">{failedCount}</span>
-                    </div>
+                <div className="bg-surface p-4 rounded-xl shadow-sm">
+                    <p className="text-sm text-text-secondary">Failed</p>
+                    <p className="text-3xl font-bold text-status-error mt-1">{failedCount.toLocaleString()}</p>
                 </div>
             </div>
             
-            <div className="bg-surface rounded-3xl flex-1 flex flex-col overflow-hidden">
-                 <div className="p-4 border-b border-border-color space-y-3">
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="relative flex-grow max-w-md">
-                            <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                            <input id="search-query-id" type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by Query ID..." className="w-full pl-10 pr-4 py-2 bg-input-bg border-border-color rounded-full text-sm"/>
-                        </div>
-                        <div className="relative" ref={exportMenuRef}>
-                            <button onClick={() => setIsExportMenuOpen(!isExportMenuOpen)} className="px-4 py-2 text-sm font-semibold text-text-primary bg-background border border-border-color rounded-full flex items-center gap-2">
-                                Export <IconChevronDown className="h-4 w-4" />
-                            </button>
-                            {isExportMenuOpen && (
-                                 <div className="origin-top-right absolute right-0 top-full mt-2 w-32 rounded-lg bg-surface border border-border-color z-10">
-                                    <div className="py-1" role="menu">
-                                        <button onClick={() => handleExport('csv')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">CSV</button>
-                                        <button onClick={() => handleExport('json')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">JSON</button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+            <div className="bg-surface rounded-xl shadow-sm">
+                {/* Filter Bar */}
+                <div className="p-3 flex flex-wrap items-center gap-3 border-b border-border-light">
+                    <div className="relative bg-background rounded-lg px-3 py-2 flex items-center gap-2">
+                        <label htmlFor="date-filter-select" className="text-sm text-text-secondary">Time Range:</label>
+                        <select id="date-filter-select" value={dateFilter} onChange={e => setDateFilter(e.target.value)} className="appearance-none bg-transparent text-sm font-semibold text-text-primary focus:outline-none pr-5 cursor-pointer">
+                            <option value="7d">7d</option>
+                            <option value="1d">24h</option>
+                            <option value="30d">30d</option>
+                            <option value="All">All Time</option>
+                        </select>
+                        <IconChevronDown className="h-4 w-4 text-text-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
-                    <div className="flex items-center gap-4">
-                        <div className="flex gap-1 bg-input-bg p-1 rounded-full">
-                            {['All', '1d', '7d', '30d', 'Custom'].map(d => <button key={d} onClick={() => setDateFilter(d)} className={`px-3 py-1 text-sm rounded-full ${dateFilter === d ? 'bg-surface shadow-sm text-text-primary font-semibold' : 'text-text-secondary'}`}>{d}</button>)}
-                        </div>
 
-                        <div className="relative">
-                             <select id="warehouse-filter" value={warehouseFilter} onChange={e => setWarehouseFilter(e.target.value)} className="w-full bg-input-bg border-border-color rounded-full text-sm px-3 py-2 appearance-none pr-8">
-                                <option value="All">All Warehouses</option>
-                                {warehousesData.map(w => <option key={w.id} value={w.name}>{w.name}</option>)}
-                            </select>
-                             <IconChevronDown className="h-4 w-4 text-text-secondary absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        </div>
-                        
-                        <div className="relative">
-                             <select id="status-filter" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="w-full bg-input-bg border-border-color rounded-full text-sm px-3 py-2 appearance-none pr-8">
-                                <option value="All">All Status</option>
-                                <option value="Success">Success</option>
-                                <option value="Failed">Failed</option>
-                            </select>
-                            <IconChevronDown className="h-4 w-4 text-text-secondary absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        </div>
-                        
-                        <div className="relative" ref={typeFilterRef}>
-                            <button onClick={() => setIsTypeFilterOpen(!isTypeFilterOpen)} className="px-3 py-2 bg-input-bg border border-border-color rounded-full text-sm flex items-center gap-2">
-                                <span>{typeFilters.size > 0 ? `${typeFilters.size} Type(s)` : 'All Types'}</span>
-                                <IconChevronDown className={`h-4 w-4 text-text-secondary transition-transform ${isTypeFilterOpen ? 'rotate-180' : ''}`} />
-                            </button>
-                            {isTypeFilterOpen && (
-                                <div className="absolute top-full mt-2 w-48 bg-surface rounded-lg shadow-lg border border-border-color z-10 p-2">
-                                    <div className="space-y-1">
-                                        {queryTypes.map(type => (
-                                            <label key={type} className="flex items-center p-2 rounded-md hover:bg-surface-hover cursor-pointer">
-                                                <input type="checkbox" checked={typeFilters.has(type)} onChange={() => handleTypeFilterChange(type)} className="h-4 w-4 rounded text-primary border-border-color focus:ring-primary" />
-                                                <span className="ml-2 text-sm text-text-primary">{type}</span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                    <div className="relative bg-background rounded-lg px-3 py-2 flex items-center gap-2">
+                        <label htmlFor="warehouse-filter-select" className="text-sm text-text-secondary">Warehouse:</label>
+                         <select id="warehouse-filter-select" value={warehouseFilter} onChange={e => setWarehouseFilter(e.target.value)} className="appearance-none bg-transparent text-sm font-semibold text-text-primary focus:outline-none pr-5 cursor-pointer">
+                            <option value="All">All</option>
+                            {warehousesData.map(w => <option key={w.id} value={w.name}>{w.name}</option>)}
+                        </select>
+                        <IconChevronDown className="h-4 w-4 text-text-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+
+                    <div className="relative bg-background rounded-lg px-3 py-2 flex items-center gap-2">
+                         <label htmlFor="status-filter-select" className="text-sm text-text-secondary">Status:</label>
+                        <select id="status-filter-select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="appearance-none bg-transparent text-sm font-semibold text-text-primary focus:outline-none pr-5 cursor-pointer">
+                            <option value="All">All</option>
+                            <option value="Success">Success</option>
+                            <option value="Failed">Failed</option>
+                        </select>
+                        <IconChevronDown className="h-4 w-4 text-text-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                    
+                    <div className="relative bg-background rounded-lg px-3 py-2 flex items-center gap-2">
+                        <label htmlFor="query-type-filter-select" className="text-sm text-text-secondary">Query Type:</label>
+                        <select id="query-type-filter-select" value={queryTypeFilter} onChange={e => setQueryTypeFilter(e.target.value)} className="appearance-none bg-transparent text-sm font-semibold text-text-primary focus:outline-none pr-5 cursor-pointer">
+                            <option value="All">All</option>
+                            {queryTypes.map(type => <option key={type} value={type}>{type}</option>)}
+                        </select>
+                        <IconChevronDown className="h-4 w-4 text-text-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+
+                    <div className="relative ml-auto w-full max-w-xs">
+                        <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search queries..." className="w-full pl-10 pr-4 py-2 bg-background border border-border-color rounded-lg text-sm focus:ring-1 focus:ring-primary" />
                     </div>
                 </div>
-                
-                <div className="overflow-auto flex-1">
-                    <table className="w-full text-sm text-left">
-                        <thead className="bg-background text-xs text-text-secondary uppercase font-medium sticky top-0">
-                            <tr>
-                                <th scope="col" className="p-4 w-12"><input type="checkbox" onChange={handleSelectAll} checked={selectedRows.size === paginatedData.length && paginatedData.length > 0} className="h-4 w-4 rounded"/></th>
-                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('id')} className="group flex items-center">Query ID <SortIndicator direction={sortConfig.key === 'id' ? sortConfig.direction : null} /></button></th>
-                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('duration')} className="group flex items-center">Duration <SortIndicator direction={sortConfig.key === 'duration' ? sortConfig.direction : null} /></button></th>
-                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('warehouse')} className="group flex items-center">Warehouse <SortIndicator direction={sortConfig.key === 'warehouse' ? sortConfig.direction : null} /></button></th>
-                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('costUSD')} className="group flex items-center">Cost <SortIndicator direction={sortConfig.key === 'costUSD' ? sortConfig.direction : null} /></button></th>
-                                <th scope="col" className="px-3 py-3"><button onClick={() => requestSort('estSavingsUSD')} className="group flex items-center">Est. Savings <SortIndicator direction={sortConfig.key === 'estSavingsUSD' ? sortConfig.direction : null} /></button></th>
-                                <th scope="col" className="px-3 py-3 w-12"></th>
+
+                {/* Table */}
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                        <thead className="text-xs text-text-secondary uppercase">
+                            <tr className="border-b border-border-light">
+                                <th scope="col" className="px-6 py-4 text-left font-medium tracking-wider">Query ID</th>
+                                <th scope="col" className="px-6 py-4 text-left font-medium tracking-wider">Duration</th>
+                                <th scope="col" className="px-6 py-4 text-left font-medium tracking-wider">Cost (Credits)</th>
                             </tr>
                         </thead>
                         <tbody className="text-text-secondary">
                             {paginatedData.map(q => (
-                                <tr key={q.id} className={`border-t border-border-color hover:bg-surface-hover ${q.status === 'Success' ? 'border-l-4 border-status-success' : 'border-l-4 border-status-error'}`}>
-                                    <td className="p-4"><input type="checkbox" checked={selectedRows.has(q.id)} onChange={() => handleSelectRow(q.id)} className="h-4 w-4 rounded"/></td>
-                                    <td className="px-3 py-4 font-mono text-xs text-text-primary">
-                                        <div className="flex items-center gap-2 group">
-                                            <button onClick={() => onSelectQuery(q)} title={q.id} className="hover:underline">{q.id.substring(0, 8)}...</button>
-                                            <InfoTooltip text={q.status === 'Success' ? 'Efficient query' : 'Query exceeding cost threshold'} />
-                                            <button onClick={() => handleCopyToClipboard(q.id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-text-muted hover:text-text-primary">
-                                                {copiedId === q.id ? <IconCheck className="h-4 w-4 text-status-success" /> : <IconClipboardCopy className="h-4 w-4" />}
-                                            </button>
+                                <tr key={q.id} onClick={() => onSelectQuery(q)} className="border-b border-border-light last:border-b-0 hover:bg-surface-hover cursor-pointer">
+                                    <td className="px-6 py-3">
+                                        <div className="flex items-center gap-3">
+                                            <span className={`w-1 h-5 rounded-full ${q.status === 'Success' ? 'bg-status-success' : 'bg-status-error'}`}></span>
+                                            <span className="font-mono text-sm text-text-primary">Q{q.id.substring(7, 13).toUpperCase()}</span>
                                         </div>
                                     </td>
-                                    <td className="px-3 py-4">{q.duration}</td>
-                                    <td className="px-3 py-4">{q.warehouse}</td>
-                                    <td className="px-3 py-4"><span className="font-bold text-text-primary">${q.costUSD.toFixed(2)}</span><br/>{q.costCredits.toFixed(2)} cr</td>
-                                    <td className="px-3 py-4 bg-status-success-light"><span className="font-semibold text-status-success-dark">${q.estSavingsUSD.toFixed(2)} ({q.estSavingsPercent}%)</span></td>
-                                    <td className="px-3 py-4 text-right">
-                                        <div className="relative" ref={openMenuId === q.id ? menuRef : null}>
-                                            <button onClick={() => setOpenMenuId(q.id)}><IconDotsVertical className="h-5 w-5"/></button>
-                                            {openMenuId === q.id && (
-                                                 <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg bg-surface border border-border-color z-10">
-                                                    <div className="py-1" role="menu">
-                                                        <button onClick={() => {setPreviewQuery(q); setOpenMenuId(null)}} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Query Preview</button>
-                                                        <button onClick={() => { onShareQueryClick(q); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Share for Optimization</button>
-                                                        <button className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Open in Analyzer</button>
-                                                        <button className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Open in Optimizer</button>
-                                                        <button className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Open in Simulator</button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
+                                    <td className="px-6 py-3 font-medium text-text-primary">{getDurationInSeconds(q.duration)}s</td>
+                                    <td className="px-6 py-3">
+                                        <span className="font-medium text-text-primary">${q.costUSD.toFixed(2)}</span>
+                                        <span className="text-text-secondary"> ({q.costCredits.toFixed(2)})</span>
                                     </td>
                                 </tr>
                             ))}
@@ -291,41 +249,19 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onShareQueryClick, onSele
                     </table>
                 </div>
                 
-                <div className="p-4 flex justify-between items-center text-sm border-t border-border-color">
-                    <div>
-                         <select value={rowsPerPage} onChange={e => {setRowsPerPage(Number(e.target.value)); setCurrentPage(1)}} className="bg-input-bg border-border-color rounded-full text-sm px-3 py-1.5">
-                            <option value={25}>25</option>
-                            <option value={50}>50</option>
-                            <option value={100}>100</option>
-                         </select>
-                         <span className="ml-2">items per page</span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <span>{`1–${paginatedData.length} of ${sortedData.length} items`}</span>
-                        <div className="flex gap-2">
-                            <button onClick={() => setCurrentPage(p => Math.max(1, p-1))} disabled={currentPage === 1} className="p-1 rounded-full disabled:opacity-50 hover:bg-surface-hover"><IconChevronLeft className="h-5 w-5"/></button>
-                            <button onClick={() => setCurrentPage(p => Math.min(Math.ceil(sortedData.length/rowsPerPage), p+1))} disabled={currentPage * rowsPerPage >= sortedData.length} className="p-1 rounded-full disabled:opacity-50 hover:bg-surface-hover"><IconChevronRight className="h-5 w-5"/></button>
-                        </div>
-                    </div>
-                </div>
+                {sortedData.length > 0 && (
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalItems={sortedData.length}
+                        itemsPerPage={itemsPerPage}
+                        onPageChange={setCurrentPage}
+                        onItemsPerPageChange={handleItemsPerPageChange}
+                    />
+                )}
             </div>
-
-            {previewQuery && (
-                <Modal isOpen={!!previewQuery} onClose={() => setPreviewQuery(null)} title="Query preview">
-                    <div className="p-6">
-                        <div className="text-sm space-y-2 mb-4">
-                            <p><strong>Query ID:</strong> <span className="font-mono text-xs">{previewQuery.id}</span></p>
-                            <p><strong>Executed by:</strong> {previewQuery.user}</p>
-                            <p><strong>Timestamp:</strong> {new Date(previewQuery.timestamp).toLocaleString()}</p>
-                        </div>
-                        <pre className="bg-input-bg p-4 rounded-lg border border-border-color text-sm text-text-primary overflow-auto max-h-96">
-                            <code>{previewQuery.queryText}</code>
-                        </pre>
-                    </div>
-                </Modal>
-            )}
         </div>
-    )
+    );
 };
 
 export default QueryListView;

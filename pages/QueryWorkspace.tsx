@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SQLFile } from '../types';
 
@@ -84,7 +83,7 @@ const QueryWorkspace: React.FC<QueryWorkspaceProps> = ({ sqlFiles, onSaveQueryCl
 
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
-                            <thead className="text-left text-xs text-text-secondary uppercase">
+                            <thead className="bg-table-header-bg text-left text-xs text-text-secondary uppercase">
                                 <tr>
                                     <th className="p-2 w-8"></th>
                                     <th className="p-2">Version</th>

@@ -386,7 +386,7 @@ const DashboardEditor: React.FC<DashboardEditorProps> = ({ dashboard, accounts, 
                 {isViewMode && editedDashboard ? (
                     <div className="flex items-center justify-between w-full">
                         <div className="flex items-center gap-2">
-                             <button onClick={onCancel} className="p-2 rounded-full text-text-secondary hover:bg-surface-hover" aria-label="Back to dashboards">
+                             <button onClick={onCancel} className="w-10 h-10 flex items-center justify-center rounded-full bg-button-secondary-bg text-primary hover:bg-button-secondary-bg-hover transition-colors" aria-label="Back to dashboards">
                                 <IconChevronLeft className="h-6 w-6" />
                             </button>
                             <div className="relative" ref={switcherRef}>

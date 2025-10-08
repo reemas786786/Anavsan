@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import {
@@ -109,7 +108,7 @@ const TieringOpportunitiesWidget: React.FC = () => (
     <WidgetCard title="Tiering Opportunities">
         <div className="overflow-auto" style={{ maxHeight: 300 }}>
             <table className="w-full text-sm">
-                <thead className="text-left text-xs text-text-secondary uppercase sticky top-0 bg-surface">
+                <thead className="text-left text-xs text-text-secondary uppercase sticky top-0 bg-table-header-bg">
                     <tr>
                         <th className="py-2 font-medium">Table</th>
                         <th className="py-2 font-medium">Recommendation</th>

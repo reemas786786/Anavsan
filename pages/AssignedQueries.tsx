@@ -47,7 +47,7 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUp
             <div className="bg-surface p-4 rounded-3xl">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-text-secondary">
-                        <thead className="bg-background text-xs text-text-secondary uppercase font-medium">
+                        <thead className="bg-table-header-bg text-xs text-text-secondary uppercase font-medium">
                             <tr>
                                 <th scope="col" className="px-6 py-3">Query</th>
                                 <th scope="col" className="px-6 py-3">Assigned By</th>

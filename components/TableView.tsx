@@ -1,6 +1,97 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
-import { IconSearch, IconChevronLeft, IconChevronRight, IconShare } from '../constants';
+import { IconSearch, IconChevronLeft, IconChevronRight, IconShare, IconChevronDown } from '../constants';
+
+interface PaginationProps {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+    onPageChange: (page: number) => void;
+    onItemsPerPageChange: (items: number) => void;
+}
+
+const Pagination: React.FC<PaginationProps> = ({
+    currentPage,
+    totalPages,
+    totalItems,
+    itemsPerPage,
+    onPageChange,
+    onItemsPerPageChange,
+}) => {
+    if (totalItems === 0) {
+        return null;
+    }
+
+    const startItem = totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
+    const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+    const pageOptions = Array.from({ length: totalPages }, (_, i) => i + 1);
+    const itemsPerPageOptions = [10, 20, 50, 100];
+
+    return (
+        <div className="flex justify-between items-center text-sm text-text-secondary px-4 py-2 border-t border-border-light bg-surface rounded-b-xl">
+            <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                    <span>Items per page:</span>
+                    <div className="relative">
+                        <select
+                            value={itemsPerPage}
+                            onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+                            className="appearance-none bg-surface-nested rounded px-2 py-1 pr-7 font-medium text-text-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                            aria-label="Items per page"
+                        >
+                            {itemsPerPageOptions.map(option => (
+                                <option key={option} value={option}>{option}</option>
+                            ))}
+                        </select>
+                        <IconChevronDown className="h-4 w-4 text-text-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                </div>
+                <div className="border-l border-border-color h-6"></div>
+                <span>
+                    {startItem}–{endItem} of {totalItems} items
+                </span>
+            </div>
+            <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                    <div className="relative">
+                        <select
+                            value={currentPage}
+                            onChange={(e) => onPageChange(Number(e.target.value))}
+                            className="appearance-none bg-surface-nested rounded px-2 py-1 pr-7 font-medium text-text-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                            aria-label="Go to page"
+                        >
+                            {pageOptions.map(page => (
+                                <option key={page} value={page}>{page}</option>
+                            ))}
+                        </select>
+                         <IconChevronDown className="h-4 w-4 text-text-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                    <span>of {totalPages} pages</span>
+                </div>
+                <div className="border-l border-border-color h-6"></div>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => onPageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="w-8 h-8 flex items-center justify-center rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-hover transition-colors focus:outline-none focus:ring-1 focus:ring-primary"
+                        aria-label="Previous page"
+                    >
+                        <IconChevronLeft className="h-5 w-5" />
+                    </button>
+                    <button
+                        onClick={() => onPageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="w-8 h-8 flex items-center justify-center rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-hover transition-colors focus:outline-none focus:ring-1 focus:ring-primary"
+                        aria-label="Next page"
+                    >
+                        <IconChevronRight className="h-5 w-5" />
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 interface TableViewData {
     name: string;
@@ -38,7 +129,7 @@ const TableView: React.FC<TableViewProps> = ({ title, data }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState<{ key: keyof TableViewData; direction: 'ascending' | 'descending' } | null>({ key: 'cost', direction: 'descending' });
     const [currentPage, setCurrentPage] = useState(1);
-    const rowsPerPage = 15;
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
     const sortedAndFilteredData = useMemo(() => {
         let sortedData = [...data];
@@ -68,24 +159,16 @@ const TableView: React.FC<TableViewProps> = ({ title, data }) => {
         setCurrentPage(1);
     }, [searchTerm, sortConfig]);
 
-    const totalPages = Math.ceil(sortedAndFilteredData.length / rowsPerPage);
+    const totalPages = Math.ceil(sortedAndFilteredData.length / itemsPerPage);
     const paginatedData = sortedAndFilteredData.slice(
-        (currentPage - 1) * rowsPerPage,
-        currentPage * rowsPerPage
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
     );
 
-    const handleNextPage = () => {
-        if (currentPage < totalPages) {
-            setCurrentPage(currentPage + 1);
-        }
+    const handleItemsPerPageChange = (newSize: number) => {
+        setItemsPerPage(newSize);
+        setCurrentPage(1);
     };
-
-    const handlePrevPage = () => {
-        if (currentPage > 1) {
-            setCurrentPage(currentPage - 1);
-        }
-    };
-
 
     const requestSort = (key: keyof TableViewData) => {
         let direction: 'ascending' | 'descending' = 'ascending';
@@ -159,7 +242,7 @@ const TableView: React.FC<TableViewProps> = ({ title, data }) => {
             </div>
             <div className="flex-1 overflow-y-auto">
                  <table className="w-full text-sm text-left text-text-secondary">
-                    <thead className="bg-background text-xs text-text-secondary uppercase font-medium sticky top-0 z-10">
+                    <thead className="bg-table-header-bg text-xs text-text-secondary uppercase font-medium sticky top-0 z-10">
                         <tr>
                             <th scope="col" className="px-6 py-3">
                                 <button onClick={() => requestSort('name')} className="group flex items-center">Name {getSortIndicator('name')}</button>
@@ -187,40 +270,15 @@ const TableView: React.FC<TableViewProps> = ({ title, data }) => {
                     </tbody>
                 </table>
             </div>
-            {totalPages > 1 && (
-                <div className="p-4 bg-background flex justify-between items-center text-sm flex-shrink-0">
-                    <div>
-                        <p className="text-text-secondary">
-                            Showing{' '}
-                            <span className="font-semibold text-text-primary">
-                                {(currentPage - 1) * rowsPerPage + 1}-
-                                {Math.min(currentPage * rowsPerPage, sortedAndFilteredData.length)}
-                            </span>{' '}
-                            of <span className="font-semibold text-text-primary">{sortedAndFilteredData.length}</span>
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={handlePrevPage}
-                            disabled={currentPage === 1}
-                            className="p-1.5 rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-hover transition-colors"
-                            aria-label="Previous page"
-                        >
-                            <IconChevronLeft className="h-5 w-5 text-text-secondary" />
-                        </button>
-                        <span className="text-text-secondary">
-                            Page <span className="font-semibold text-text-primary">{currentPage}</span> of <span className="font-semibold text-text-primary">{totalPages}</span>
-                        </span>
-                        <button
-                            onClick={handleNextPage}
-                            disabled={currentPage === totalPages}
-                            className="p-1.5 rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-hover transition-colors"
-                            aria-label="Next page"
-                        >
-                            <IconChevronRight className="h-5 w-5 text-text-secondary" />
-                        </button>
-                    </div>
-                </div>
+            {sortedAndFilteredData.length > 0 && (
+                 <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={sortedAndFilteredData.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={handleItemsPerPageChange}
+                />
             )}
         </div>
     );

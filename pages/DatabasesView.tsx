@@ -40,7 +40,7 @@ const DatabaseDetailView: React.FC<{ database: Database, onBack: () => void }> =
             <div className="flex items-center gap-2">
                 <button 
                     onClick={onBack} 
-                    className="p-2 rounded-full hover:bg-surface-hover text-text-secondary hover:text-text-primary transition-colors"
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-button-secondary-bg text-primary hover:bg-button-secondary-bg-hover transition-colors"
                     aria-label="Back to databases list"
                 >
                     <IconChevronLeft className="h-6 w-6" />
@@ -94,7 +94,7 @@ const DatabaseListView: React.FC<{ onSelectDatabase: (databaseId: string) => voi
             <WidgetCard>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-text-secondary">
-                        <thead className="bg-background text-xs text-text-secondary uppercase font-medium">
+                        <thead className="bg-table-header-bg text-xs text-text-secondary uppercase font-medium">
                             <tr>
                                 <th scope="col" className="px-6 py-3">Database Name</th>
                                 <th scope="col" className="px-6 py-3">Size (GB)</th>
