@@ -2,98 +2,10 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { queryListData as initialData, warehousesData } from '../data/dummyData';
 import { QueryListItem, QueryType } from '../types';
 import { IconSearch, IconChevronLeft, IconChevronRight, IconChevronDown, IconDotsVertical, IconView, IconBeaker, IconWand, IconShare } from '../constants';
-
-interface PaginationProps {
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
-    onPageChange: (page: number) => void;
-    onItemsPerPageChange: (items: number) => void;
-}
-
-const Pagination: React.FC<PaginationProps> = ({
-    currentPage,
-    totalPages,
-    totalItems,
-    itemsPerPage,
-    onPageChange,
-    onItemsPerPageChange,
-}) => {
-    if (totalItems === 0) {
-        return null;
-    }
-
-    const startItem = totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
-    const endItem = Math.min(currentPage * itemsPerPage, totalItems);
-
-    const pageOptions = Array.from({ length: totalPages }, (_, i) => i + 1);
-    const itemsPerPageOptions = [10, 20, 50, 100];
-
-    return (
-        <div className="flex justify-between items-center text-sm text-text-secondary px-4 py-2 border-t border-border-light bg-surface rounded-b-xl">
-            <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                    <span>Items per page:</span>
-                    <div className="relative">
-                        <select
-                            value={itemsPerPage}
-                            onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-                            className="appearance-none bg-surface-nested rounded px-2 py-1 pr-7 font-medium text-text-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                            aria-label="Items per page"
-                        >
-                            {itemsPerPageOptions.map(option => (
-                                <option key={option} value={option}>{option}</option>
-                            ))}
-                        </select>
-                        <IconChevronDown className="h-4 w-4 text-text-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    </div>
-                </div>
-                <div className="border-l border-border-color h-6"></div>
-                <span>
-                    {startItem}–{endItem} of {totalItems} items
-                </span>
-            </div>
-            <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                    <div className="relative">
-                        <select
-                            value={currentPage}
-                            onChange={(e) => onPageChange(Number(e.target.value))}
-                            className="appearance-none bg-surface-nested rounded px-2 py-1 pr-7 font-medium text-text-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                            aria-label="Go to page"
-                        >
-                            {pageOptions.map(page => (
-                                <option key={page} value={page}>{page}</option>
-                            ))}
-                        </select>
-                         <IconChevronDown className="h-4 w-4 text-text-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    </div>
-                    <span>of {totalPages} pages</span>
-                </div>
-                <div className="border-l border-border-color h-6"></div>
-                <div className="flex items-center gap-1">
-                    <button
-                        onClick={() => onPageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        className="w-8 h-8 flex items-center justify-center rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-hover transition-colors focus:outline-none focus:ring-1 focus:ring-primary"
-                        aria-label="Previous page"
-                    >
-                        <IconChevronLeft className="h-5 w-5" />
-                    </button>
-                    <button
-                        onClick={() => onPageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        className="w-8 h-8 flex items-center justify-center rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-hover transition-colors focus:outline-none focus:ring-1 focus:ring-primary"
-                        aria-label="Next page"
-                    >
-                        <IconChevronRight className="h-5 w-5" />
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
+import MultiSelectDropdown from '../components/MultiSelectDropdown';
+import SingleSelectDropdown from '../components/SingleSelectDropdown';
+import Pagination from '../components/Pagination';
+import ColumnSelector from '../components/ColumnSelector';
 
 interface QueryListViewProps {
     onSelectQuery: (query: QueryListItem) => void;
@@ -101,19 +13,61 @@ interface QueryListViewProps {
 }
 
 const queryTypes: QueryType[] = ['SELECT', 'WHERE', 'JOIN', 'Aggregation', 'INSERT', 'UPDATE', 'DELETE'];
+const dateOptions = [
+    { value: '7d', label: '7d' },
+    { value: '1d', label: '24h' },
+    { value: '30d', label: '30d' },
+    { value: 'All', label: 'All Time' }
+];
+
+const formatBytes = (bytes: number, decimals = 2) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+};
+
+const formatTimestamp = (isoString: string) => {
+    return new Date(isoString).toLocaleString([], {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+};
+
+const allColumns = [
+    { key: 'queryId', label: 'Query ID' },
+    { key: 'user', label: 'User' },
+    { key: 'warehouse', label: 'Warehouse' },
+    { key: 'duration', label: 'Duration' },
+    { key: 'bytesScanned', label: 'Bytes Scanned' },
+    { key: 'cost', label: 'Cost (Credits)' },
+    { key: 'startTime', label: 'Start Time' },
+    { key: 'actions', label: 'Actions' },
+];
+
+const defaultColumns = ['queryId', 'actions'];
 
 const QueryListView: React.FC<QueryListViewProps> = ({ onSelectQuery, onShareQueryClick }) => {
     const [search, setSearch] = useState('');
     const [dateFilter, setDateFilter] = useState('7d');
-    const [warehouseFilter, setWarehouseFilter] = useState('All');
-    const [statusFilter, setStatusFilter] = useState('All');
-    const [queryTypeFilter, setQueryTypeFilter] = useState('All');
+    const [warehouseFilter, setWarehouseFilter] = useState<string[]>([]);
+    const [statusFilter, setStatusFilter] = useState<string[]>([]);
+    const [queryTypeFilter, setQueryTypeFilter] = useState<string[]>([]);
     
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10); 
     
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+    
+    const [visibleColumns, setVisibleColumns] = useState<string[]>([
+        'queryId', 'user', 'warehouse', 'duration', 'bytesScanned', 'cost', 'startTime', 'actions'
+    ]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -134,9 +88,9 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onSelectQuery, onShareQue
     const filteredData = useMemo(() => {
         return initialData.filter(q => {
             if (search && !q.queryText.toLowerCase().includes(search.toLowerCase()) && !q.id.toLowerCase().includes(search.toLowerCase())) return false;
-            if (statusFilter !== 'All' && q.status !== statusFilter) return false;
-            if (warehouseFilter !== 'All' && q.warehouse !== warehouseFilter) return false;
-            if (queryTypeFilter !== 'All' && !q.type.includes(queryTypeFilter as QueryType)) return false;
+            if (statusFilter.length > 0 && !statusFilter.includes(q.status)) return false;
+            if (warehouseFilter.length > 0 && !warehouseFilter.includes(q.warehouse)) return false;
+            if (queryTypeFilter.length > 0 && !queryTypeFilter.some(type => q.type.includes(type))) return false;
             
             if (dateFilter !== 'All') {
                 const queryDate = new Date(q.timestamp);
@@ -190,48 +144,45 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onSelectQuery, onShareQue
             <div className="bg-surface rounded-xl shadow-sm">
                 {/* Filter Bar */}
                 <div className="p-3 flex flex-wrap items-center gap-3 border-b border-border-light">
-                    <div className="relative bg-background rounded-lg px-3 py-2 flex items-center gap-2">
-                        <label htmlFor="date-filter-select" className="text-sm text-text-secondary">Time Range:</label>
-                        <select id="date-filter-select" value={dateFilter} onChange={e => setDateFilter(e.target.value)} className="appearance-none bg-transparent text-sm font-semibold text-text-primary focus:outline-none pr-5 cursor-pointer">
-                            <option value="7d">7d</option>
-                            <option value="1d">24h</option>
-                            <option value="30d">30d</option>
-                            <option value="All">All Time</option>
-                        </select>
-                        <IconChevronDown className="h-4 w-4 text-text-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    </div>
+                    <SingleSelectDropdown
+                        label="Time Range"
+                        options={dateOptions}
+                        selectedValue={dateFilter}
+                        onChange={setDateFilter}
+                    />
 
-                    <div className="relative bg-background rounded-lg px-3 py-2 flex items-center gap-2">
-                        <label htmlFor="warehouse-filter-select" className="text-sm text-text-secondary">Warehouse:</label>
-                         <select id="warehouse-filter-select" value={warehouseFilter} onChange={e => setWarehouseFilter(e.target.value)} className="appearance-none bg-transparent text-sm font-semibold text-text-primary focus:outline-none pr-5 cursor-pointer">
-                            <option value="All">All</option>
-                            {warehousesData.map(w => <option key={w.id} value={w.name}>{w.name}</option>)}
-                        </select>
-                        <IconChevronDown className="h-4 w-4 text-text-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    </div>
+                    <MultiSelectDropdown
+                        label="Warehouse"
+                        options={warehousesData.map(w => w.name)}
+                        selectedOptions={warehouseFilter}
+                        onChange={setWarehouseFilter}
+                    />
 
-                    <div className="relative bg-background rounded-lg px-3 py-2 flex items-center gap-2">
-                         <label htmlFor="status-filter-select" className="text-sm text-text-secondary">Status:</label>
-                        <select id="status-filter-select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="appearance-none bg-transparent text-sm font-semibold text-text-primary focus:outline-none pr-5 cursor-pointer">
-                            <option value="All">All</option>
-                            <option value="Success">Success</option>
-                            <option value="Failed">Failed</option>
-                        </select>
-                        <IconChevronDown className="h-4 w-4 text-text-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    </div>
+                    <MultiSelectDropdown
+                        label="Status"
+                        options={['Success', 'Failed']}
+                        selectedOptions={statusFilter}
+                        onChange={setStatusFilter}
+                    />
                     
-                    <div className="relative bg-background rounded-lg px-3 py-2 flex items-center gap-2">
-                        <label htmlFor="query-type-filter-select" className="text-sm text-text-secondary">Query Type:</label>
-                        <select id="query-type-filter-select" value={queryTypeFilter} onChange={e => setQueryTypeFilter(e.target.value)} className="appearance-none bg-transparent text-sm font-semibold text-text-primary focus:outline-none pr-5 cursor-pointer">
-                            <option value="All">All</option>
-                            {queryTypes.map(type => <option key={type} value={type}>{type}</option>)}
-                        </select>
-                        <IconChevronDown className="h-4 w-4 text-text-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    </div>
+                    <MultiSelectDropdown
+                        label="Query Type"
+                        options={queryTypes}
+                        selectedOptions={queryTypeFilter}
+                        onChange={setQueryTypeFilter}
+                    />
 
-                    <div className="relative ml-auto w-full max-w-xs">
-                        <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
-                        <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search queries..." className="w-full pl-10 pr-4 py-2 bg-background border border-border-color rounded-lg text-sm focus:ring-1 focus:ring-primary" />
+                    <div className="relative ml-auto w-full max-w-xs flex items-center gap-2">
+                        <div className="relative flex-grow">
+                             <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                            <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search queries..." className="w-full pl-10 pr-4 py-2 bg-background border border-border-color rounded-lg text-sm focus:ring-1 focus:ring-primary" />
+                        </div>
+                        <ColumnSelector
+                            columns={allColumns}
+                            visibleColumns={visibleColumns}
+                            onVisibleColumnsChange={setVisibleColumns}
+                            defaultColumns={defaultColumns}
+                        />
                     </div>
                 </div>
 
@@ -240,59 +191,68 @@ const QueryListView: React.FC<QueryListViewProps> = ({ onSelectQuery, onShareQue
                     <table className="w-full text-sm">
                         <thead className="text-xs text-text-secondary uppercase">
                             <tr className="border-b border-border-light">
-                                <th scope="col" className="px-6 py-4 text-left font-medium tracking-wider">Query ID</th>
-                                <th scope="col" className="px-6 py-4 text-left font-medium tracking-wider">Duration</th>
-                                <th scope="col" className="px-6 py-4 text-left font-medium tracking-wider">Cost (Credits)</th>
-                                <th scope="col" className="px-6 py-4 text-right font-medium tracking-wider">Actions</th>
+                                {allColumns.filter(c => visibleColumns.includes(c.key)).map(col => (
+                                     <th key={col.key} scope="col" className={`px-6 py-4 font-medium tracking-wider ${col.key === 'actions' ? 'text-right' : 'text-left'}`}>{col.label}</th>
+                                ))}
                             </tr>
                         </thead>
                         <tbody className="text-text-secondary">
                             {paginatedData.map(q => (
-                                <tr key={q.id} className="border-b border-border-light last:border-b-0 hover:bg-surface-hover">
-                                    <td onClick={() => onSelectQuery(q)} className="px-6 py-3 cursor-pointer">
-                                        <div className="flex items-center gap-3">
-                                            <span className={`w-1 h-5 rounded-full ${q.status === 'Success' ? 'bg-status-success' : 'bg-status-error'}`}></span>
-                                            <span className="font-mono text-sm text-text-primary">Q{q.id.substring(7, 13).toUpperCase()}</span>
-                                        </div>
-                                    </td>
-                                    <td onClick={() => onSelectQuery(q)} className="px-6 py-3 font-medium text-text-primary cursor-pointer">{getDurationInSeconds(q.duration)}s</td>
-                                    <td onClick={() => onSelectQuery(q)} className="px-6 py-3 cursor-pointer">
-                                        <span className="font-medium text-text-primary">${q.costUSD.toFixed(2)}</span>
-                                        <span className="text-text-secondary"> ({q.costCredits.toFixed(2)})</span>
-                                    </td>
-                                    <td className="px-6 py-3 text-right">
-                                        <div className="relative inline-block text-left" ref={openMenuId === q.id ? menuRef : null}>
-                                            <button 
-                                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === q.id ? null : q.id); }} 
-                                                title="Actions" 
-                                                className="p-2 text-text-secondary hover:text-primary rounded-full hover:bg-primary/10 transition-colors"
-                                            >
-                                                <IconDotsVertical className="h-5 w-5"/>
-                                            </button>
-                                            {openMenuId === q.id && (
-                                                <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-lg bg-surface shadow-lg z-10 border border-border-color">
-                                                    <div className="py-1" role="menu" aria-orientation="vertical">
-                                                        <button onClick={(e) => { e.stopPropagation(); onSelectQuery(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                                            <IconView className="h-4 w-4"/> Query Preview
-                                                        </button>
-                                                        <button onClick={(e) => { e.stopPropagation(); alert('Open in Analyzer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                                            <IconBeaker className="h-4 w-4"/> Open in Analyzer
-                                                        </button>
-                                                        <button onClick={(e) => { e.stopPropagation(); alert('Open in Optimizer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                                            <IconWand className="h-4 w-4"/> Open in Optimizer
-                                                        </button>
-                                                         <button onClick={(e) => { e.stopPropagation(); alert('Open in Simulator clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                                            <IconBeaker className="h-4 w-4"/> Open in Simulator
-                                                        </button>
-                                                        <div className="my-1 border-t border-border-color"></div>
-                                                        <button onClick={(e) => { e.stopPropagation(); onShareQueryClick(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                                            <IconShare className="h-4 w-4"/> Share Query
-                                                        </button>
+                                <tr key={q.id} onClick={() => onSelectQuery(q)} className="border-b border-border-light last:border-b-0 hover:bg-surface-hover cursor-pointer">
+                                    {visibleColumns.includes('queryId') && (
+                                        <td className="px-6 py-3">
+                                            <div className="flex items-center gap-3">
+                                                <span className={`w-1 h-5 rounded-full ${q.status === 'Success' ? 'bg-status-success' : 'bg-status-error'}`}></span>
+                                                <span className="font-mono text-sm text-text-primary">Q{q.id.substring(7, 13).toUpperCase()}</span>
+                                            </div>
+                                        </td>
+                                    )}
+                                    {visibleColumns.includes('user') && <td className="px-6 py-3 text-text-primary">{q.user}</td>}
+                                    {visibleColumns.includes('warehouse') && <td className="px-6 py-3 text-text-primary">{q.warehouse}</td>}
+                                    {visibleColumns.includes('duration') && <td className="px-6 py-3 font-medium text-text-primary">{getDurationInSeconds(q.duration)}s</td>}
+                                    {visibleColumns.includes('bytesScanned') && <td className="px-6 py-3 font-medium text-text-primary">{formatBytes(q.bytesScanned)}</td>}
+                                    {visibleColumns.includes('cost') && (
+                                        <td className="px-6 py-3">
+                                            <span className="font-medium text-text-primary">${q.costUSD.toFixed(2)}</span>
+                                            <span className="text-text-secondary"> ({q.costCredits.toFixed(2)})</span>
+                                        </td>
+                                    )}
+                                    {visibleColumns.includes('startTime') && <td className="px-6 py-3 text-text-primary">{formatTimestamp(q.timestamp)}</td>}
+                                    {visibleColumns.includes('actions') && (
+                                        <td className="px-6 py-3 text-right">
+                                            <div className="relative inline-block text-left" ref={openMenuId === q.id ? menuRef : null}>
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === q.id ? null : q.id); }} 
+                                                    title="Actions" 
+                                                    className="p-2 text-text-secondary hover:text-primary rounded-full hover:bg-primary/10 transition-colors"
+                                                >
+                                                    <IconDotsVertical className="h-5 w-5"/>
+                                                </button>
+                                                {openMenuId === q.id && (
+                                                    <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-lg bg-surface shadow-lg z-10 border border-border-color">
+                                                        <div className="py-1" role="menu" aria-orientation="vertical">
+                                                            <button onClick={(e) => { e.stopPropagation(); onSelectQuery(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                                                <IconView className="h-4 w-4"/> Query Preview
+                                                            </button>
+                                                            <button onClick={(e) => { e.stopPropagation(); alert('Open in Analyzer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                                                <IconBeaker className="h-4 w-4"/> Open in Analyzer
+                                                            </button>
+                                                            <button onClick={(e) => { e.stopPropagation(); alert('Open in Optimizer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                                                <IconWand className="h-4 w-4"/> Open in Optimizer
+                                                            </button>
+                                                             <button onClick={(e) => { e.stopPropagation(); alert('Open in Simulator clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                                                <IconBeaker className="h-4 w-4"/> Open in Simulator
+                                                            </button>
+                                                            <div className="my-1 border-t border-border-color"></div>
+                                                            <button onClick={(e) => { e.stopPropagation(); onShareQueryClick(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                                                <IconShare className="h-4 w-4"/> Share Query
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </td>
+                                                )}
+                                            </div>
+                                        </td>
+                                    )}
                                 </tr>
                             ))}
                         </tbody>
