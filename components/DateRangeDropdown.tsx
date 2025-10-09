@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { IconChevronDown, IconChevronLeft, IconChevronRight, IconCalendar } from '../constants';
 
 interface DateRangeDropdownProps {
-    label: string;
     selectedValue: string | { start: string; end: string };
     onChange: (selected: string | { start: string; end: string }) => void;
 }
@@ -24,7 +23,7 @@ const formatDisplayDate = (date: Date | null): string => {
     return date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
 };
 
-const DateRangeDropdown: React.FC<DateRangeDropdownProps> = ({ label, selectedValue, onChange }) => {
+const DateRangeDropdown: React.FC<DateRangeDropdownProps> = ({ selectedValue, onChange }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isCustomViewOpen, setIsCustomViewOpen] = useState(false);
     const [viewDate, setViewDate] = useState(new Date());
@@ -122,18 +121,15 @@ const DateRangeDropdown: React.FC<DateRangeDropdownProps> = ({ label, selectedVa
 
     return (
         <div className="relative" ref={wrapperRef}>
-            <div className="bg-background rounded-lg flex items-center">
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center justify-between gap-2 text-sm font-semibold text-text-primary focus:outline-none px-3 py-2"
-                    aria-haspopup="listbox"
-                    aria-expanded={isOpen}
-                >
-                    <span className="text-sm text-text-secondary font-normal whitespace-nowrap">{label}:</span>
-                    <span className="truncate flex-grow text-left min-w-[120px]">{displayLabel()}</span>
-                    <IconChevronDown className={`h-4 w-4 text-text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                </button>
-            </div>
+             <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center justify-between gap-2 text-sm font-bold text-text-primary focus:outline-none rounded-lg min-w-[120px]"
+                aria-haspopup="listbox"
+                aria-expanded={isOpen}
+            >
+                <span className="truncate flex-grow text-left">{displayLabel()}</span>
+                <IconChevronDown className={`h-4 w-4 text-text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
             {isOpen && (
                 <div className="absolute top-full mt-1 bg-surface rounded-lg shadow-lg z-20 border border-border-color flex">
                     <div className={`w-40 p-2 ${isCustomViewOpen ? 'border-r border-border-color' : ''}`}>

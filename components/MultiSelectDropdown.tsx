@@ -2,13 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { IconChevronDown, IconCheck } from '../constants';
 
 interface MultiSelectDropdownProps {
-    label: string;
     options: string[];
     selectedOptions: string[];
     onChange: (selected: string[]) => void;
 }
 
-const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({ label, options, selectedOptions, onChange }) => {
+const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({ options, selectedOptions, onChange }) => {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -22,58 +21,48 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({ label, option
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const allAreSelected = selectedOptions.length === options.length;
-    const noneAreSelected = selectedOptions.length === 0;
-
     const handleOptionClick = (option: string) => {
-        let newSelection: string[];
         if (option === 'All') {
-            if (allAreSelected) {
-                newSelection = [];
-            } else {
-                newSelection = options;
-            }
+            onChange([]); // 'All' corresponds to an empty selection array.
         } else {
-            if (selectedOptions.includes(option)) {
-                newSelection = selectedOptions.filter(item => item !== option);
+            // If the clicked option is already selected, deselect it (toggling back to 'All').
+            if (selectedOptions.length === 1 && selectedOptions[0] === option) {
+                onChange([]);
             } else {
-                newSelection = [...selectedOptions, option];
+                // Otherwise, make it the only selected option.
+                onChange([option]);
             }
         }
-        onChange(newSelection);
     };
 
     const isSelected = (option: string) => {
-        if (option === 'All') return allAreSelected && options.length > 0;
+        if (option === 'All') {
+            return selectedOptions.length === 0;
+        }
         return selectedOptions.includes(option);
     };
 
     const displayValue = () => {
-        if (noneAreSelected || allAreSelected) {
+        if (selectedOptions.length === 0) {
             return 'All';
         }
-        if (selectedOptions.length === 1) {
-            return selectedOptions[0];
-        }
-        return `${selectedOptions.length} selected`;
+        // With single-select logic, there will only ever be one item.
+        return selectedOptions[0];
     };
 
     const allOptions = ['All', ...options];
 
     return (
         <div className="relative" ref={wrapperRef}>
-            <div className="bg-background rounded-lg flex items-center">
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center justify-between gap-2 text-sm font-semibold text-text-primary focus:outline-none w-40 px-3 py-2"
-                    aria-haspopup="listbox"
-                    aria-expanded={isOpen}
-                >
-                    <span className="text-sm text-text-secondary font-normal">{label}:</span>
-                    <span className="truncate flex-grow text-left">{displayValue()}</span>
-                    <IconChevronDown className={`h-4 w-4 text-text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                </button>
-            </div>
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center justify-between gap-2 text-sm font-bold text-text-primary focus:outline-none rounded-lg min-w-[100px]"
+                aria-haspopup="listbox"
+                aria-expanded={isOpen}
+            >
+                <span className="truncate flex-grow text-left">{displayValue()}</span>
+                <IconChevronDown className={`h-4 w-4 text-text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
             {isOpen && (
                 <div className="absolute top-full mt-1 w-56 bg-surface rounded-lg shadow-lg z-20 border border-border-color">
                     <ul className="py-1 max-h-60 overflow-y-auto" role="listbox">

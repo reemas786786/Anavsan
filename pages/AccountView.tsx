@@ -332,8 +332,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
     };
 
     const activeParent = getActiveParent();
-    const isListView = activePage === 'All queries' || activePage === 'Slow queries';
-
+    const isListView = ['All queries', 'Slow queries', 'Similar query patterns'].includes(activePage);
 
     return (
         <div className="flex h-full bg-background">
@@ -480,14 +479,16 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
             )}
 
             {/* Main Content */}
-            <main className={`flex-1 overflow-x-hidden bg-background ${isListView ? 'overflow-y-hidden' : 'overflow-y-auto'}`}>
-                {!isDatabaseDetailView && !selectedQuery && (
-                    <div className="lg:hidden p-4 border-b border-border-color bg-surface sticky top-0 z-10">
-                        <MobileNav activePage={activePage} onPageChange={onPageChange} accountNavItems={accountNavItems} />
+            <main className={`flex-1 flex flex-col overflow-hidden bg-background`}>
+                <div className={`flex-1 ${isListView ? 'overflow-y-hidden' : 'overflow-y-auto'}`}>
+                    {!isDatabaseDetailView && !selectedQuery && (
+                        <div className="lg:hidden p-4 border-b border-border-color bg-surface sticky top-0 z-10">
+                            <MobileNav activePage={activePage} onPageChange={onPageChange} accountNavItems={accountNavItems} />
+                        </div>
+                    )}
+                    <div className={isDatabaseDetailView || selectedQuery || isListView ? "h-full" : "p-4 h-full"}>
+                        {renderContent()}
                     </div>
-                )}
-                <div className={isDatabaseDetailView || selectedQuery || isListView ? "" : "p-4"}>
-                    {renderContent()}
                 </div>
             </main>
         </div>

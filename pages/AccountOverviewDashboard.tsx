@@ -1,7 +1,7 @@
 // FIX: Corrected import statement for React hooks.
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, TopQuery, Warehouse } from '../types';
-import { accountSpend, topQueriesData, accountCostBreakdown, warehousesData } from '../data/dummyData';
+import { accountSpend, topQueriesData, accountCostBreakdown, warehousesData, queryListData } from '../data/dummyData';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis } from 'recharts';
 import BudgetStatusWidget from '../components/BudgetStatusWidget';
 import { IconDotsVertical, IconEdit, IconDragHandle, IconClose } from '../constants';
@@ -76,10 +76,10 @@ interface AccountOverviewDashboardProps {
 }
 
 type WidgetConfig = {
-  id: 'spend' | 'budget' | 'breakdown' | 'queries' | 'warehouses';
+  id: 'spend' | 'budget' | 'breakdown' | 'queries' | 'warehouses' | 'totalQueries';
 };
 
-const kpiWidgetIds: WidgetConfig['id'][] = ['spend', 'budget'];
+const kpiWidgetIds: WidgetConfig['id'][] = ['spend', 'budget', 'totalQueries'];
 
 const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ account, displayMode }) => {
     const [openMenu, setOpenMenu] = useState<string | null>(null);
@@ -92,7 +92,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
     const [isEditMode, setIsEditMode] = useState(false);
     
     const initialLayout: WidgetConfig[] = [
-      { id: 'spend' }, { id: 'budget' }, { id: 'breakdown' }, { id: 'queries' }, { id: 'warehouses' },
+      { id: 'spend' }, { id: 'budget' }, { id: 'totalQueries' }, { id: 'breakdown' }, { id: 'queries' }, { id: 'warehouses' },
     ];
     
     const [widgets, setWidgets] = useState<WidgetConfig[]>(initialLayout);
@@ -236,6 +236,23 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                                 </>
                             )}
                         </div>
+                    </div>
+                </div>
+            </Card>
+        );
+    };
+
+    const TotalQueriesCard: React.FC = () => {
+        return (
+            <Card>
+                <div className="flex items-center mb-4">
+                    <h4 className="text-base font-semibold text-text-strong">Total Queries</h4>
+                    <InfoTooltip text="Total number of queries executed in this account for the selected period." />
+                </div>
+                <div className="bg-surface-nested p-4 rounded-3xl">
+                    <p className="text-text-secondary text-sm">Queries executed</p>
+                    <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
+                        <span>{queryListData.length.toLocaleString()}</span>
                     </div>
                 </div>
             </Card>
@@ -398,6 +415,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
     const widgetComponentMap: Record<WidgetConfig['id'], React.FC<any>> = {
       spend: SpendForecastCard,
       budget: BudgetStatusWidget,
+      totalQueries: TotalQueriesCard,
       breakdown: SpendBreakdownCard,
       queries: TopQueriesCard,
       warehouses: TopWarehousesCard,
@@ -449,7 +467,10 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
     return (
         <div className="space-y-4 pb-16">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-text-primary">Account Overview</h1>
+                <div>
+                    <h1 className="text-2xl font-bold text-text-primary">{account.name}</h1>
+                    <p className="text-text-secondary mt-1">Account Overview</p>
+                </div>
                 <div className="flex items-center gap-4">
                      {!isEditMode && (
                         <button onClick={handleEditDashboard} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-text-primary bg-white rounded-full shadow-sm hover:bg-gray-50">

@@ -32,16 +32,23 @@ const ColumnSelector: React.FC<ColumnSelectorProps> = ({ columns, visibleColumns
     };
 
     return (
-        <div className="relative" ref={wrapperRef}>
+        <div className="relative group" ref={wrapperRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-2 bg-background border border-border-color rounded-lg text-sm font-semibold text-text-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="flex items-center justify-center p-2 rounded-full text-primary hover:bg-button-secondary-bg focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary transition-colors"
                 aria-haspopup="listbox"
                 aria-expanded={isOpen}
+                aria-label="Select columns"
             >
-                <IconAdjustments className="h-5 w-5 text-text-muted" />
-                <span>Columns</span>
+                <IconAdjustments className="h-5 w-5" />
             </button>
+            <div 
+                role="tooltip"
+                className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-sidebar-topbar text-white text-xs font-semibold rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30"
+            >
+                Columns
+                <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-sidebar-topbar"></div>
+            </div>
             {isOpen && (
                 <div className="absolute top-full right-0 mt-1 w-56 bg-surface rounded-lg shadow-lg z-20 border border-border-color">
                     <ul className="py-1 max-h-60 overflow-y-auto" role="listbox">
