@@ -123,15 +123,16 @@ const DateRangeDropdown: React.FC<DateRangeDropdownProps> = ({ selectedValue, on
         <div className="relative" ref={wrapperRef}>
              <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center justify-between gap-2 text-sm font-bold text-text-primary focus:outline-none rounded-lg min-w-[120px]"
+                className="flex items-center gap-2 text-sm focus:outline-none"
                 aria-haspopup="listbox"
                 aria-expanded={isOpen}
             >
-                <span className="truncate flex-grow text-left">{displayLabel()}</span>
+                <span className="text-text-secondary">Time range:</span>
+                <span className="font-bold text-text-primary">{displayLabel()}</span>
                 <IconChevronDown className={`h-4 w-4 text-text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
             {isOpen && (
-                <div className="absolute top-full mt-1 bg-surface rounded-lg shadow-lg z-20 border border-border-color flex">
+                <div className="absolute top-full mt-2 bg-surface rounded-lg shadow-lg z-20 border border-border-color flex">
                     <div className={`w-40 p-2 ${isCustomViewOpen ? 'border-r border-border-color' : ''}`}>
                         <ul className="space-y-1">
                             {presetOptions.map(option => (

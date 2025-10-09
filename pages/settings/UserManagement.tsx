@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { User, UserStatus } from '../../types';
-import { IconAdd, IconDotsVertical, IconArrowUp, IconArrowDown } from '../../constants';
+import { IconAdd, IconDotsVertical, IconArrowUp, IconArrowDown, IconSearch } from '../../constants';
+import Pagination from '../../components/Pagination';
 
 const StatusBadge: React.FC<{ status: UserStatus }> = ({ status }) => {
     const colorClasses: Record<UserStatus, string> = {
@@ -44,11 +45,27 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEdi
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const [sortConfig, setSortConfig] = useState<{ key: keyof User; direction: 'ascending' | 'descending' } | null>({ key: 'name', direction: 'ascending' });
+    const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
-    const sortedUsers = useMemo(() => {
-        let sortableItems = [...users];
+    const userStats = useMemo(() => {
+        return {
+            total: users.length,
+            active: users.filter(u => u.status === 'Active').length,
+            suspended: users.filter(u => u.status === 'Suspended').length,
+            invited: users.filter(u => u.status === 'Invited').length,
+        };
+    }, [users]);
+    
+    const sortedAndFilteredUsers = useMemo(() => {
+        let filteredUsers = users.filter(user => 
+            user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.email.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        
         if (sortConfig !== null) {
-            sortableItems.sort((a, b) => {
+            filteredUsers.sort((a, b) => {
                 if (a[sortConfig.key] < b[sortConfig.key]) {
                     return sortConfig.direction === 'ascending' ? -1 : 1;
                 }
@@ -58,8 +75,11 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEdi
                 return 0;
             });
         }
-        return sortableItems;
-    }, [users, sortConfig]);
+        return filteredUsers;
+    }, [users, sortConfig, searchTerm]);
+    
+    const totalPages = Math.ceil(sortedAndFilteredUsers.length / itemsPerPage);
+    const paginatedData = useMemo(() => sortedAndFilteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage), [sortedAndFilteredUsers, currentPage, itemsPerPage]);
 
     const requestSort = (key: keyof User) => {
         let direction: 'ascending' | 'descending' = 'ascending';
@@ -83,6 +103,10 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEdi
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [openMenuId]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, itemsPerPage]);
     
     const SortIcon: React.FC<{ columnKey: keyof User }> = ({ columnKey }) => {
         if (!sortConfig || sortConfig.key !== columnKey) {
@@ -95,50 +119,76 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEdi
     };
 
     return (
-        <div className="space-y-4">
-            <div className="flex justify-between items-center">
+        <div className="flex flex-col h-full bg-background space-y-4">
+            <div className="flex-shrink-0">
                 <h1 className="text-2xl font-bold text-text-primary">User Management</h1>
-                <button
-                    onClick={onAddUser}
-                    className="bg-primary text-white font-semibold px-4 py-2 rounded-full flex items-center gap-2 hover:bg-primary-hover transition-colors whitespace-nowrap shadow-sm"
-                >
-                    <IconAdd className="h-5 w-5" />
-                    Add User
-                </button>
+                 <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
+                        Total Users: <span className="font-bold text-text-strong">{userStats.total}</span>
+                    </div>
+                    <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
+                        Active: <span className="font-bold text-status-success-dark">{userStats.active}</span>
+                    </div>
+                    <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
+                        Suspended: <span className="font-bold text-text-secondary">{userStats.suspended}</span>
+                    </div>
+                </div>
             </div>
 
-            <div className="bg-surface p-4 rounded-3xl">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left text-text-secondary">
-                        <thead className="bg-table-header-bg text-xs text-text-primary font-medium">
+            <div className="bg-surface rounded-xl flex flex-col flex-grow min-h-0">
+                 <div className="p-2 mb-2 flex-shrink-0">
+                     <div className="flex justify-between items-center">
+                        <div className="relative">
+                            <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                            <input 
+                                type="search" 
+                                value={searchTerm} 
+                                onChange={e => setSearchTerm(e.target.value)} 
+                                placeholder="Search users..." 
+                                className="w-full md:w-64 pl-10 pr-4 py-2 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary" 
+                            />
+                        </div>
+                        <button
+                            onClick={onAddUser}
+                            className="bg-primary text-white font-semibold px-6 py-2 rounded-full flex items-center gap-2 hover:bg-primary-hover transition-colors whitespace-nowrap shadow-sm"
+                        >
+                            <span>Add User</span>
+                            <IconAdd className="h-5 w-5" />
+                        </button>
+                    </div>
+                </div>
+
+                <div className="overflow-y-auto flex-grow min-h-0">
+                    <table className="w-full text-sm">
+                        <thead className="text-sm text-text-primary sticky top-0 z-10 bg-table-header-bg">
                             <tr>
-                                <th scope="col" className="px-6 py-3">
+                                <th scope="col" className="px-6 py-4 font-semibold text-left">
                                     <button onClick={() => requestSort('name')} className="group flex items-center">
                                         User <SortIcon columnKey="name" />
                                     </button>
                                 </th>
-                                <th scope="col" className="px-6 py-3">
+                                <th scope="col" className="px-6 py-4 font-semibold text-left">
                                      <button onClick={() => requestSort('role')} className="group flex items-center">
                                         Role <SortIcon columnKey="role" />
                                     </button>
                                 </th>
-                                <th scope="col" className="px-6 py-3">
+                                <th scope="col" className="px-6 py-4 font-semibold text-left">
                                      <button onClick={() => requestSort('status')} className="group flex items-center">
                                         Status <SortIcon columnKey="status" />
                                     </button>
                                 </th>
-                                <th scope="col" className="px-6 py-3">
+                                <th scope="col" className="px-6 py-4 font-semibold text-left">
                                     <button onClick={() => requestSort('dateAdded')} className="group flex items-center">
                                         Date Added <SortIcon columnKey="dateAdded" />
                                     </button>
                                 </th>
-                                <th scope="col" className="px-6 py-3 text-right">Actions</th>
+                                <th scope="col" className="px-6 py-4 font-semibold text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {sortedUsers.map(user => (
-                                <tr key={user.id} className="border-t border-border-color hover:bg-surface-hover">
-                                    <td className="px-6 py-4 font-medium text-text-primary whitespace-nowrap">
+                        <tbody className="text-text-secondary">
+                            {paginatedData.map(user => (
+                                <tr key={user.id} className="border-b border-border-light last:border-b-0 hover:bg-surface-nested" data-row-hover>
+                                    <td className="px-6 py-3 font-medium text-text-primary whitespace-nowrap">
                                         <div className="flex items-center gap-3">
                                             <UserAvatar name={user.name} />
                                             <div>
@@ -147,10 +197,10 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEdi
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">{user.role}</td>
-                                    <td className="px-6 py-4"><StatusBadge status={user.status} /></td>
-                                    <td className="px-6 py-4">{user.dateAdded}</td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-6 py-3">{user.role}</td>
+                                    <td className="px-6 py-3"><StatusBadge status={user.status} /></td>
+                                    <td className="px-6 py-3">{user.dateAdded}</td>
+                                    <td className="px-6 py-3 text-right">
                                         <div className="relative inline-block text-left" ref={openMenuId === user.id ? menuRef : null}>
                                             <button
                                                 onClick={() => setOpenMenuId(openMenuId === user.id ? null : user.id)}
@@ -164,7 +214,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEdi
                                                 <IconDotsVertical className="h-5 w-5" />
                                             </button>
                                             {openMenuId === user.id && (
-                                                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                                                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-20 border border-border-color">
                                                     <div className="py-1" role="menu" aria-orientation="vertical">
                                                         <button onClick={() => { onEditUserRole(user); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Edit Role</button>
                                                         {user.status === 'Suspended' ? (
@@ -183,6 +233,18 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEdi
                         </tbody>
                     </table>
                 </div>
+                 {sortedAndFilteredUsers.length > 10 && (
+                     <div className="flex-shrink-0">
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            totalItems={sortedAndFilteredUsers.length}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={setCurrentPage}
+                            onItemsPerPageChange={(size) => setItemsPerPage(size)}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );

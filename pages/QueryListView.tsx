@@ -35,7 +35,7 @@ const allColumns = [
     { key: 'warehouse', label: 'Warehouse' },
     { key: 'duration', label: 'Duration' },
     { key: 'bytesScanned', label: 'Bytes scanned' },
-    { key: 'cost', label: 'Cost (credits)' },
+    { key: 'cost', label: 'Cost (USD)' },
     { key: 'startTime', label: 'Start time' },
     { key: 'actions', label: 'Actions' },
 ];
@@ -46,6 +46,7 @@ const QueryListView: React.FC<{
     onSelectQuery: (query: QueryListItem) => void;
     onShareQueryClick: (query: QueryListItem) => void;
 }> = ({ onSelectQuery, onShareQueryClick }) => {
+    const [activeFilter, setActiveFilter] = useState<'Total' | 'Success' | 'Failed'>('Total');
     const [search, setSearch] = useState('');
     const [dateFilter, setDateFilter] = useState<string | { start: string, end: string }>('7d');
     const [warehouseFilter, setWarehouseFilter] = useState<string[]>([]);
@@ -59,7 +60,7 @@ const QueryListView: React.FC<{
     const menuRef = useRef<HTMLDivElement>(null);
     
     const [visibleColumns, setVisibleColumns] = useState<string[]>([
-        'queryId', 'user', 'warehouse', 'duration', 'bytesScanned', 'cost', 'startTime', 'actions'
+        'queryId', 'cost', 'duration', 'warehouse', 'user', 'bytesScanned', 'startTime', 'actions'
     ]);
 
     useEffect(() => {
@@ -76,7 +77,10 @@ const QueryListView: React.FC<{
         return initialData.filter(q => {
             const searchText = search.toLowerCase();
             if (search && !q.queryText.toLowerCase().includes(searchText) && !q.id.toLowerCase().includes(searchText) && !q.user.toLowerCase().includes(searchText)) return false;
-            if (statusFilter.length > 0 && !statusFilter.includes(q.status)) return false;
+            
+            const currentStatusFilter = statusFilter;
+            if (currentStatusFilter.length > 0 && !currentStatusFilter.includes(q.status)) return false;
+            
             if (warehouseFilter.length > 0 && !warehouseFilter.includes(q.warehouse)) return false;
             if (queryTypeFilter.length > 0 && !queryTypeFilter.some(type => q.type.includes(type as QueryType))) return false;
             
@@ -102,7 +106,7 @@ const QueryListView: React.FC<{
     }, [search, statusFilter, warehouseFilter, dateFilter, queryTypeFilter]);
 
     const queryStats = useMemo(() => {
-        const total = baseFilteredData.length;
+        const total = baseFilteredData.length; 
         const success = baseFilteredData.filter(q => q.status === 'Success').length;
         const failed = total - success;
         return { total, success, failed };
@@ -184,71 +188,66 @@ const QueryListView: React.FC<{
     }
 
     return (
-        <div className="flex flex-col h-full bg-background p-4 space-y-4">
-             <div className="flex-shrink-0">
-                <h1 className="text-2xl font-bold text-text-primary mb-2">All queries</h1>
-                <div className="flex items-center gap-2">
-                    <div
-                        className="px-4 py-2 rounded-full text-sm font-medium border bg-surface border-border-color"
-                    >
+        <div className="flex flex-col h-full bg-background space-y-4">
+             <div className="flex-shrink-0 pt-2 px-4">
+                <h1 className="text-2xl font-bold text-text-primary">All queries</h1>
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface hover:bg-surface-hover transition-colors'}>
                         Total Queries: <span className="font-bold text-text-strong">{queryStats.total.toLocaleString()}</span>
                     </div>
-                    <div
-                        className="px-4 py-2 rounded-full text-sm font-medium border bg-surface border-border-color"
-                    >
+                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface hover:bg-surface-hover transition-colors'}>
                         Success: <span className="font-bold text-status-success-dark">{queryStats.success.toLocaleString()}</span>
                     </div>
-                    <div
-                        className="px-4 py-2 rounded-full text-sm font-medium border bg-surface border-border-color"
-                    >
+                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface hover:bg-surface-hover transition-colors'}>
                         Failed: <span className="font-bold text-status-error-dark">{queryStats.failed.toLocaleString()}</span>
                     </div>
                 </div>
             </div>
 
-            <div className="bg-surface rounded-xl shadow-sm flex flex-col flex-grow border border-border-color min-h-0">
+            <div className="bg-surface rounded-xl flex flex-col flex-grow min-h-0 mx-4">
                 {/* Filter Bar */}
-                <div className="p-3 border-b border-border-light flex-shrink-0">
-                    <div className="flex items-center gap-4 bg-surface rounded-xl p-2">
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-text-secondary whitespace-nowrap">Time range:</span>
-                            <DateRangeDropdown
-                                selectedValue={dateFilter}
-                                onChange={setDateFilter}
-                            />
-                        </div>
-                        <div className="h-6 border-l border-border-light"></div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-text-secondary">Warehouse:</span>
-                            <MultiSelectDropdown
-                                options={warehousesData.map(w => w.name)}
-                                selectedOptions={warehouseFilter}
-                                onChange={setWarehouseFilter}
-                            />
-                        </div>
-                        <div className="h-6 border-l border-border-light"></div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-text-secondary">Status:</span>
-                            <MultiSelectDropdown
-                                options={['Success', 'Failed']}
-                                selectedOptions={statusFilter}
-                                onChange={setStatusFilter}
-                            />
-                        </div>
-                        <div className="h-6 border-l border-border-light"></div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-text-secondary">Query type:</span>
-                            <MultiSelectDropdown
-                                options={queryTypes}
-                                selectedOptions={queryTypeFilter}
-                                onChange={setQueryTypeFilter}
-                            />
+                 <div className="p-2 mb-2 flex-shrink-0">
+                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                        <div className="flex items-center divide-x divide-border-color flex-wrap">
+                            <div className="px-3 py-1">
+                                <DateRangeDropdown
+                                    selectedValue={dateFilter}
+                                    onChange={setDateFilter}
+                                />
+                            </div>
+                            <div className="px-3 py-1">
+                                <MultiSelectDropdown
+                                    label="Warehouse"
+                                    options={warehousesData.map(w => w.name)}
+                                    selectedOptions={warehouseFilter}
+                                    onChange={setWarehouseFilter}
+                                    selectionMode="multiple"
+                                />
+                            </div>
+                            <div className="px-3 py-1">
+                                <MultiSelectDropdown
+                                    label="Status"
+                                    options={['Success', 'Failed']}
+                                    selectedOptions={statusFilter}
+                                    onChange={setStatusFilter}
+                                    selectionMode="single"
+                                />
+                            </div>
+                            <div className="px-3 py-1">
+                                 <MultiSelectDropdown
+                                    label="Query type"
+                                    options={queryTypes}
+                                    selectedOptions={queryTypeFilter}
+                                    onChange={setQueryTypeFilter}
+                                    selectionMode="multiple"
+                                />
+                            </div>
                         </div>
 
-                        <div className="relative ml-auto w-full max-w-xs flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                             <div className="relative flex-grow">
                                 <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
-                                <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search input text" className="w-full pl-10 pr-4 py-2 bg-[#f4f4f4] border-0 rounded-lg text-sm focus:ring-1 focus:ring-primary" />
+                                <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search input text" className="w-full pl-10 pr-4 py-2 bg-background border border-border-color rounded-full text-sm focus:ring-1 focus:ring-primary" />
                             </div>
                             <ColumnSelector
                                 columns={allColumns}
@@ -296,7 +295,7 @@ const QueryListView: React.FC<{
                 </div>
                 
                 {/* Pagination */}
-                {sortedData.length > 0 && (
+                {sortedData.length > 10 && (
                      <div className="flex-shrink-0">
                         <Pagination
                             currentPage={currentPage}
