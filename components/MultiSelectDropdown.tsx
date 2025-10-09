@@ -51,7 +51,7 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({ label, option
         if (selectedOptions.length === 0) return 'All';
         if (!isSingle && selectedOptions.length === options.length) return 'All';
         if (selectedOptions.length === 1) return selectedOptions[0];
-        if (!isSingle) return selectedOptions.join(', ');
+        if (!isSingle && selectedOptions.length > 1) return `${selectedOptions.length} selected`;
         return selectedOptions[0];
     };
 

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { queryListData as initialData, warehousesData } from '../data/dummyData';
+import { queryListData as initialData, warehousesData, usersData as allUsersData } from '../data/dummyData';
 import { QueryListItem, QueryType } from '../types';
-import { IconSearch, IconDotsVertical, IconView, IconBeaker, IconWand, IconShare, IconAdjustments } from '../constants';
+import { IconSearch, IconDotsVertical, IconView, IconBeaker, IconWand, IconShare, IconFilter } from '../constants';
 import MultiSelectDropdown from '../components/MultiSelectDropdown';
 import DateRangeDropdown from '../components/DateRangeDropdown';
 import Pagination from '../components/Pagination';
@@ -40,50 +40,74 @@ const allColumns = [
     { key: 'actions', label: 'Actions' },
 ];
 
-const highlightedColumns: string[] = [];
-
 const QueryListView: React.FC<{
     onSelectQuery: (query: QueryListItem) => void;
     onShareQueryClick: (query: QueryListItem) => void;
 }> = ({ onSelectQuery, onShareQueryClick }) => {
-    const [activeFilter, setActiveFilter] = useState<'Total' | 'Success' | 'Failed'>('Total');
     const [search, setSearch] = useState('');
+    // Direct filters
     const [dateFilter, setDateFilter] = useState<string | { start: string, end: string }>('7d');
-    const [warehouseFilter, setWarehouseFilter] = useState<string[]>([]);
+    const [userFilter, setUserFilter] = useState<string[]>([]);
     const [statusFilter, setStatusFilter] = useState<string[]>([]);
+    // Dropdown filters
+    const [warehouseFilter, setWarehouseFilter] = useState<string[]>([]);
     const [queryTypeFilter, setQueryTypeFilter] = useState<string[]>([]);
+    const [durationFilter, setDurationFilter] = useState<{ min: number | null, max: number | null }>({ min: null, max: null });
+
+    // Temp state for dropdown
+    const [tempWarehouseFilter, setTempWarehouseFilter] = useState<string[]>([]);
+    const [tempQueryTypeFilter, setTempQueryTypeFilter] = useState<string[]>([]);
+    const [tempDurationFilter, setTempDurationFilter] = useState<{ min: number | null, max: number | null }>({ min: null, max: null });
     
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10); 
     
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-    const menuRef = useRef<HTMLDivElement>(null);
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
     
+    const menuRef = useRef<HTMLDivElement>(null);
+    const filterRef = useRef<HTMLDivElement>(null);
+
     const [visibleColumns, setVisibleColumns] = useState<string[]>([
-        'queryId', 'cost', 'duration', 'warehouse', 'user', 'bytesScanned', 'startTime', 'actions'
+        'queryId', 'user', 'warehouse', 'duration', 'bytesScanned', 'cost', 'startTime', 'actions'
     ]);
+    
+    const allUsers = useMemo(() => Array.from(new Set(initialData.map(q => q.user))).sort(), []);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setOpenMenuId(null);
-            }
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) setOpenMenuId(null);
+            if (filterRef.current && !filterRef.current.contains(event.target as Node)) setIsFilterOpen(false);
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    useEffect(() => {
+        if (isFilterOpen) {
+            setTempWarehouseFilter(warehouseFilter);
+            setTempQueryTypeFilter(queryTypeFilter);
+            setTempDurationFilter(durationFilter);
+        }
+    }, [isFilterOpen, warehouseFilter, queryTypeFilter, durationFilter]);
+
+    const getDurationInSeconds = (duration: string) => {
+        const parts = duration.split(':').map(Number);
+        return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    }
+
     const baseFilteredData = useMemo(() => {
         return initialData.filter(q => {
-            const searchText = search.toLowerCase();
-            if (search && !q.queryText.toLowerCase().includes(searchText) && !q.id.toLowerCase().includes(searchText) && !q.user.toLowerCase().includes(searchText)) return false;
-            
-            const currentStatusFilter = statusFilter;
-            if (currentStatusFilter.length > 0 && !currentStatusFilter.includes(q.status)) return false;
-            
+            if (search && !(q.queryText.toLowerCase().includes(search.toLowerCase()) || q.id.toLowerCase().includes(search.toLowerCase()) || q.user.toLowerCase().includes(search.toLowerCase()))) return false;
+            if (statusFilter.length > 0 && !statusFilter.includes(q.status)) return false;
+            if (userFilter.length > 0 && !userFilter.includes(q.user)) return false;
             if (warehouseFilter.length > 0 && !warehouseFilter.includes(q.warehouse)) return false;
             if (queryTypeFilter.length > 0 && !queryTypeFilter.some(type => q.type.includes(type as QueryType))) return false;
             
+            const durationInSeconds = getDurationInSeconds(q.duration);
+            if (durationFilter.min !== null && durationInSeconds < durationFilter.min) return false;
+            if (durationFilter.max !== null && durationInSeconds > durationFilter.max) return false;
+
             if (typeof dateFilter === 'string') {
                 if (dateFilter !== 'All') {
                     const queryDate = new Date(q.timestamp);
@@ -103,19 +127,26 @@ const QueryListView: React.FC<{
             }
             return true;
         });
-    }, [search, statusFilter, warehouseFilter, dateFilter, queryTypeFilter]);
+    }, [search, statusFilter, warehouseFilter, dateFilter, queryTypeFilter, userFilter, durationFilter]);
 
-    const queryStats = useMemo(() => {
-        const total = baseFilteredData.length; 
-        const success = baseFilteredData.filter(q => q.status === 'Success').length;
-        const failed = total - success;
-        return { total, success, failed };
-    }, [baseFilteredData]);
+    const queryStats = useMemo(() => ({
+        total: baseFilteredData.length,
+        success: baseFilteredData.filter(q => q.status === 'Success').length,
+        failed: baseFilteredData.filter(q => q.status === 'Failed').length,
+    }), [baseFilteredData]);
+
+    const activeFilterCount = useMemo(() => {
+        let count = 0;
+        if (dateFilter !== '7d') count++;
+        if (userFilter.length > 0) count++;
+        if (statusFilter.length > 0) count++;
+        if (warehouseFilter.length > 0) count++;
+        if (queryTypeFilter.length > 0) count++;
+        if (durationFilter.min !== null || durationFilter.max !== null) count++;
+        return count;
+    }, [dateFilter, userFilter, statusFilter, warehouseFilter, queryTypeFilter, durationFilter]);
     
-    const sortedData = useMemo(() => {
-        return [...baseFilteredData].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    }, [baseFilteredData]);
-    
+    const sortedData = useMemo(() => [...baseFilteredData].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()), [baseFilteredData]);
     const totalPages = Math.ceil(sortedData.length / itemsPerPage);
     const paginatedData = useMemo(() => sortedData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage), [sortedData, currentPage, itemsPerPage]);
 
@@ -123,11 +154,19 @@ const QueryListView: React.FC<{
         setItemsPerPage(newSize);
         setCurrentPage(1);
     };
-    
-    const getDurationInSeconds = (duration: string) => {
-        const parts = duration.split(':').map(Number);
-        return parts[0] * 3600 + parts[1] * 60 + parts[2];
-    }
+
+    const handleApplyFilters = () => {
+        setWarehouseFilter(tempWarehouseFilter);
+        setQueryTypeFilter(tempQueryTypeFilter);
+        setDurationFilter(tempDurationFilter);
+        setIsFilterOpen(false);
+    };
+
+    const handleClearFilters = () => {
+        setTempWarehouseFilter([]);
+        setTempQueryTypeFilter([]);
+        setTempDurationFilter({ min: null, max: null });
+    };
 
     const visibleColsData = useMemo(() => allColumns.filter(c => visibleColumns.includes(c.key)), [visibleColumns]);
 
@@ -144,40 +183,22 @@ const QueryListView: React.FC<{
             case 'warehouse': return q.warehouse;
             case 'duration': return `${getDurationInSeconds(q.duration)}s`;
             case 'bytesScanned': return formatBytes(q.bytesScanned);
-            case 'cost':
-                return (
-                    <>
-                        <span className="font-medium text-text-primary">${q.costUSD.toFixed(2)}</span>
-                        <span className="text-text-secondary"> ({q.costCredits.toFixed(2)})</span>
-                    </>
-                );
+            case 'cost': return <><span className="font-medium text-text-primary">${q.costUSD.toFixed(2)}</span><span className="text-text-secondary"> ({q.costCredits.toFixed(2)})</span></>;
             case 'startTime': return formatTimestamp(q.timestamp);
             case 'actions':
                 return (
                     <div className="relative inline-block text-left" ref={openMenuId === q.id ? menuRef : null}>
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === q.id ? null : q.id); }} 
-                            title="Actions" 
-                            className="p-2 text-text-secondary hover:text-primary rounded-full hover:bg-primary/10 transition-colors"
-                        >
+                        <button onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === q.id ? null : q.id); }} title="Actions" className="p-2 text-text-secondary hover:text-primary rounded-full hover:bg-primary/10 transition-colors">
                             <IconDotsVertical className="h-5 w-5"/>
                         </button>
                         {openMenuId === q.id && (
                             <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-lg bg-surface shadow-lg z-20 border border-border-color">
                                 <div className="py-1" role="menu" aria-orientation="vertical">
-                                    <button onClick={(e) => { e.stopPropagation(); onSelectQuery(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                        <IconView className="h-4 w-4"/> Query Preview
-                                    </button>
-                                    <button onClick={(e) => { e.stopPropagation(); alert('Open in Analyzer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                        <IconBeaker className="h-4 w-4"/> Open in Analyzer
-                                    </button>
-                                    <button onClick={(e) => { e.stopPropagation(); alert('Open in Optimizer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                        <IconWand className="h-4 w-4"/> Open in Optimizer
-                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); onSelectQuery(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem"><IconView className="h-4 w-4"/> Query Preview</button>
+                                    <button onClick={(e) => { e.stopPropagation(); alert('Open in Analyzer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem"><IconBeaker className="h-4 w-4"/> Open in Analyzer</button>
+                                    <button onClick={(e) => { e.stopPropagation(); alert('Open in Optimizer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem"><IconWand className="h-4 w-4"/> Open in Optimizer</button>
                                     <div className="my-1 border-t border-border-color"></div>
-                                    <button onClick={(e) => { e.stopPropagation(); onShareQueryClick(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                        <IconShare className="h-4 w-4"/> Share Query
-                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); onShareQueryClick(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem"><IconShare className="h-4 w-4"/> Share Query</button>
                                 </div>
                             </div>
                         )}
@@ -192,119 +213,82 @@ const QueryListView: React.FC<{
              <div className="flex-shrink-0 pt-2 px-4">
                 <h1 className="text-2xl font-bold text-text-primary">All queries</h1>
                 <div className="mt-4 flex flex-wrap items-center gap-2">
-                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface hover:bg-surface-hover transition-colors'}>
-                        Total Queries: <span className="font-bold text-text-strong">{queryStats.total.toLocaleString()}</span>
-                    </div>
-                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface hover:bg-surface-hover transition-colors'}>
-                        Success: <span className="font-bold text-status-success-dark">{queryStats.success.toLocaleString()}</span>
-                    </div>
-                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface hover:bg-surface-hover transition-colors'}>
-                        Failed: <span className="font-bold text-status-error-dark">{queryStats.failed.toLocaleString()}</span>
-                    </div>
+                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface'}>Total Queries: <span className="font-bold text-text-strong">{queryStats.total.toLocaleString()}</span></div>
+                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface'}>Success: <span className="font-bold text-status-success-dark">{queryStats.success.toLocaleString()}</span></div>
+                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface'}>Failed: <span className="font-bold text-status-error-dark">{queryStats.failed.toLocaleString()}</span></div>
                 </div>
             </div>
 
             <div className="bg-surface rounded-xl flex flex-col flex-grow min-h-0 mx-4">
-                {/* Filter Bar */}
-                 <div className="p-2 mb-2 flex-shrink-0">
-                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                        <div className="flex items-center divide-x divide-border-color flex-wrap">
-                            <div className="px-3 py-1">
-                                <DateRangeDropdown
-                                    selectedValue={dateFilter}
-                                    onChange={setDateFilter}
-                                />
-                            </div>
-                            <div className="px-3 py-1">
-                                <MultiSelectDropdown
-                                    label="Warehouse"
-                                    options={warehousesData.map(w => w.name)}
-                                    selectedOptions={warehouseFilter}
-                                    onChange={setWarehouseFilter}
-                                    selectionMode="multiple"
-                                />
-                            </div>
-                            <div className="px-3 py-1">
-                                <MultiSelectDropdown
-                                    label="Status"
-                                    options={['Success', 'Failed']}
-                                    selectedOptions={statusFilter}
-                                    onChange={setStatusFilter}
-                                    selectionMode="single"
-                                />
-                            </div>
-                            <div className="px-3 py-1">
-                                 <MultiSelectDropdown
-                                    label="Query type"
-                                    options={queryTypes}
-                                    selectedOptions={queryTypeFilter}
-                                    onChange={setQueryTypeFilter}
-                                    selectionMode="multiple"
-                                />
-                            </div>
+                <div className="p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 flex-shrink-0 border-b border-border-light">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                        <DateRangeDropdown selectedValue={dateFilter} onChange={setDateFilter} />
+                        <div className="h-4 w-px bg-border-light"></div>
+                        <MultiSelectDropdown label="User" options={allUsers} selectedOptions={userFilter} onChange={setUserFilter} selectionMode="multiple" />
+                        <div className="h-4 w-px bg-border-light"></div>
+                        <MultiSelectDropdown label="Status" options={['Success', 'Failed']} selectedOptions={statusFilter} onChange={setStatusFilter} selectionMode="single" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="relative flex-grow">
+                            <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                            <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search queries..." className="w-full md:w-64 pl-10 pr-4 py-2 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary" />
                         </div>
-
-                        <div className="flex items-center gap-2">
-                            <div className="relative flex-grow">
-                                <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
-                                <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search input text" className="w-full pl-10 pr-4 py-2 bg-background border border-border-color rounded-full text-sm focus:ring-1 focus:ring-primary" />
-                            </div>
-                            <ColumnSelector
-                                columns={allColumns}
-                                visibleColumns={visibleColumns}
-                                onVisibleColumnsChange={setVisibleColumns}
-                                defaultColumns={['queryId', 'actions']}
-                            />
+                        <div className="relative" ref={filterRef}>
+                            <button onClick={() => setIsFilterOpen(!isFilterOpen)} className="flex items-center justify-center p-2 rounded-md text-text-secondary hover:bg-button-secondary-bg focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary transition-colors relative" aria-haspopup="true" aria-expanded={isFilterOpen}>
+                                <IconFilter className="h-5 w-5" />
+                                {activeFilterCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-primary text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center text-[10px]">{activeFilterCount}</span>
+                                )}
+                            </button>
+                            {isFilterOpen && (
+                                <div className="absolute top-full right-0 mt-2 w-80 bg-surface rounded-lg shadow-lg z-20 border border-border-color p-4">
+                                    <h3 className="text-sm font-semibold text-text-strong mb-4">Additional Filters</h3>
+                                    <div className="space-y-4">
+                                        <MultiSelectDropdown label="Warehouse" options={warehousesData.map(w => w.name)} selectedOptions={tempWarehouseFilter} onChange={setTempWarehouseFilter} selectionMode="multiple" />
+                                        <MultiSelectDropdown label="Query type" options={queryTypes} selectedOptions={tempQueryTypeFilter} onChange={setTempQueryTypeFilter} selectionMode="multiple" />
+                                        <div>
+                                            <label className="block text-sm font-medium text-text-secondary mb-1">Duration (seconds)</label>
+                                            <div className="flex items-center gap-2">
+                                                <input type="number" placeholder="Min" value={tempDurationFilter.min ?? ''} onChange={e => setTempDurationFilter(prev => ({...prev, min: e.target.value ? Number(e.target.value) : null}))} className="w-full border border-border-color rounded-full px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg placeholder-text-secondary" />
+                                                <span className="text-text-muted">-</span>
+                                                <input type="number" placeholder="Max" value={tempDurationFilter.max ?? ''} onChange={e => setTempDurationFilter(prev => ({...prev, max: e.target.value ? Number(e.target.value) : null}))} className="w-full border border-border-color rounded-full px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg placeholder-text-secondary" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-center mt-6 pt-4 border-t border-border-color">
+                                        <button onClick={handleClearFilters} className="text-sm font-semibold text-link hover:underline">Clear</button>
+                                        <div className="flex items-center gap-2">
+                                            <button onClick={() => setIsFilterOpen(false)} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-gray-50">Cancel</button>
+                                            <button onClick={handleApplyFilters} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full">Apply</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
+                        <ColumnSelector columns={allColumns} visibleColumns={visibleColumns} onVisibleColumnsChange={setVisibleColumns} defaultColumns={['queryId', 'actions']} />
                     </div>
                 </div>
 
-                {/* Table Body Scroll Container */}
                 <div className="overflow-y-auto flex-grow min-h-0" role="region" aria-label="Query history table content scrollable region">
                     <table className="w-full text-sm">
                         <thead className="text-sm text-text-primary sticky top-0 z-10 bg-table-header-bg border-b border-border-color">
                             <tr>
-                                {visibleColsData.map(col => (
-                                    <th 
-                                        key={col.key} 
-                                        scope="col" 
-                                        className={`px-6 py-4 font-semibold ${col.key === 'actions' ? 'text-right' : 'text-left'}`}
-                                    >
-                                        {col.label}
-                                    </th>
-                                ))}
+                                {visibleColsData.map(col => <th key={col.key} scope="col" className={`px-6 py-4 font-semibold ${col.key === 'actions' ? 'text-right' : 'text-left'}`}>{col.label}</th>)}
                             </tr>
                         </thead>
                         <tbody className="text-text-secondary">
                             {paginatedData.map(q => (
                                 <tr key={q.id} onClick={() => onSelectQuery(q)} className="border-b border-border-light last:border-b-0 hover:bg-surface-nested cursor-pointer" data-row-hover>
-                                    {visibleColsData.map(col => (
-                                        <td 
-                                            key={col.key}
-                                            className={`px-6 py-3 transition-colors duration-150 whitespace-nowrap ${highlightedColumns.includes(col.key) ? 'bg-surface-hover' : ''}`}
-                                        >
-                                            <div className={`flex ${col.key === 'actions' ? 'justify-end' : 'justify-start'}`}>
-                                                {renderCellContent(q, col.key)}
-                                            </div>
-                                        </td>
-                                    ))}
+                                    {visibleColsData.map(col => <td key={col.key} className={`px-6 py-3 whitespace-nowrap`}><div className={`flex ${col.key === 'actions' ? 'justify-end' : 'justify-start'}`}>{renderCellContent(q, col.key)}</div></td>)}
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
                 
-                {/* Pagination */}
                 {sortedData.length > 10 && (
                      <div className="flex-shrink-0">
-                        <Pagination
-                            currentPage={currentPage}
-                            totalPages={totalPages}
-                            totalItems={sortedData.length}
-                            itemsPerPage={itemsPerPage}
-                            onPageChange={setCurrentPage}
-                            onItemsPerPageChange={handleItemsPerPageChange}
-                        />
+                        <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={sortedData.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} onItemsPerPageChange={handleItemsPerPageChange}/>
                     </div>
                 )}
             </div>
