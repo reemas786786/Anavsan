@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 
 export type Page = 
@@ -140,6 +138,7 @@ export interface SimilarQuery {
 
 export type QueryStatus = 'Success' | 'Failed';
 export type QueryType = 'SELECT' | 'WHERE' | 'JOIN' | 'Aggregation' | 'INSERT' | 'UPDATE' | 'DELETE';
+export type QuerySeverity = 'Low' | 'Medium' | 'High';
 
 
 export interface QueryListItem {
@@ -158,7 +157,29 @@ export interface QueryListItem {
   bytesScanned: number;
   bytesWritten: number;
   queryTag?: string;
+  severity: QuerySeverity;
 }
+
+export interface QueryListFilters {
+    search: string;
+    dateFilter: string | { start: string; end: string };
+    userFilter: string[];
+    statusFilter: string[];
+    warehouseFilter: string[];
+    queryTypeFilter: string[];
+    durationFilter: { min: number | null; max: number | null };
+    currentPage: number;
+    itemsPerPage: number;
+    visibleColumns: string[];
+}
+
+export interface SlowQueryFilters {
+    search: string;
+    dateFilter: string | { start: string; end: string };
+    warehouseFilter: string[];
+    severityFilter: string[];
+}
+
 
 export interface StorageBreakdownItem {
   name: string;

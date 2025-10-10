@@ -2,7 +2,16 @@ import React from 'react';
 import { QueryListItem } from '../types';
 import { IconChevronLeft, IconClipboardCopy, IconCheck } from '../constants';
 
-const QueryDetailView: React.FC<{ query: QueryListItem; onBack: () => void; }> = ({ query, onBack }) => {
+interface QueryDetailViewProps {
+    query: QueryListItem;
+    onBack: () => void;
+    onAnalyzeQuery: (query: QueryListItem, source: string) => void;
+    onOptimizeQuery: (query: QueryListItem, source: string) => void;
+    onSimulateQuery: (query: QueryListItem, source: string) => void;
+    sourcePage: string;
+}
+
+const QueryDetailView: React.FC<QueryDetailViewProps> = ({ query, onBack, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, sourcePage }) => {
     const [isCopied, setIsCopied] = React.useState(false);
 
     const handleCopy = () => {
@@ -202,8 +211,6 @@ LIMIT 500;
 -- ...
 -- ...
 -- ...
--- ...
--- ...
 -- End of demonstrative query.
 `;
 
@@ -226,9 +233,9 @@ LIMIT 500;
                     </div>
                 </div>
                 <div className="flex items-center justify-end gap-3 flex-shrink-0">
-                    <button className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-surface-hover">Analyze</button>
-                    <button className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-surface-hover">Optimize</button>
-                    <button className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full">Simulate</button>
+                    <button onClick={() => onAnalyzeQuery(query, sourcePage)} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-surface-hover">Analyze</button>
+                    <button onClick={() => onOptimizeQuery(query, sourcePage)} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-surface-hover">Optimize</button>
+                    <button onClick={() => onSimulateQuery(query, sourcePage)} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full">Simulate</button>
                 </div>
             </div>
             

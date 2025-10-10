@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Account, SQLFile, BigScreenWidget, QueryListItem, PullRequest, User } from '../types';
+import { Account, SQLFile, BigScreenWidget, QueryListItem, PullRequest, User, QueryListFilters, SlowQueryFilters } from '../types';
 import AccountOverviewDashboard from './AccountOverviewDashboard';
 import { SimilarQueryPatternsView } from './QueryPerformanceView';
 import { 
@@ -31,15 +31,17 @@ import PullRequestDetailView from './PullRequestDetailView';
 import MyBranchesView from './Dashboard'; // Re-using Dashboard.tsx for MyBranchesView
 import QueryVersionsView from './QueryWorkspace'; // Re-using QueryWorkspace.tsx for QueryVersionsView
 import QueryAnalyzerView from './QueryAnalyzerView';
+import QueryOptimizerView from './QueryOptimizerView';
+import QuerySimulatorView from './QuerySimulatorView';
+import SlowQueriesView from './SlowQueriesView';
 
 
 interface AccountViewProps {
     account: Account;
     accounts: Account[];
-    onBack: () => void;
     onSwitchAccount: (account: Account) => void;
     sqlFiles: SQLFile[];
-    onSaveQueryClick: () => void;
+    onSaveQueryClick: (tag: string) => void;
     onSetBigScreenWidget: (widget: BigScreenWidget) => void;
     activePage: string;
     onPageChange: (page: string) => void;
@@ -47,12 +49,15 @@ interface AccountViewProps {
     selectedQuery: QueryListItem | null;
     setSelectedQuery: (query: QueryListItem | null) => void;
     analyzingQuery: QueryListItem | null;
-    onAnalyzeQuery: (query: QueryListItem | null) => void;
+    onAnalyzeQuery: (query: QueryListItem | null, source: string) => void;
+    onOptimizeQuery: (query: QueryListItem | null, source: string) => void;
+    onSimulateQuery: (query: QueryListItem | null, source: string) => void;
     pullRequests: PullRequest[];
     selectedPullRequest: PullRequest | null;
     setSelectedPullRequest: (pr: PullRequest | null) => void;
     displayMode: 'cost' | 'credits';
     users: User[];
+    navigationSource: string | null;
 }
 
 const accountNavItems = [
@@ -271,17 +276,40 @@ const AccountAvatar: React.FC<{ name: string }> = ({ name }) => {
 };
 
 
-const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, onSwitchAccount, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, displayMode, users }) => {
+const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAccount, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, displayMode, users, navigationSource }) => {
     const [selectedDatabaseId, setSelectedDatabaseId] = useState<string | null>(null);
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
     const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
     const accountSwitcherRef = useRef<HTMLDivElement>(null);
     const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({
         'Query performance': true,
-        'Optimization': false,
+        'Optimization': true,
         'Storage and Cost': true,
         'Query Workspace': true,
     });
+
+    // State for All Queries filters
+    const [allQueriesFilters, setAllQueriesFilters] = useState<QueryListFilters>({
+        search: '',
+        dateFilter: '7d',
+        userFilter: [],
+        statusFilter: [],
+        warehouseFilter: [],
+        queryTypeFilter: [],
+        durationFilter: { min: null, max: null },
+        currentPage: 1,
+        itemsPerPage: 10,
+        visibleColumns: ['queryId', 'user', 'warehouse', 'duration', 'bytesScanned', 'cost', 'startTime', 'actions'],
+    });
+
+    // State for Slow Queries filters
+    const [slowQueriesFilters, setSlowQueriesFilters] = useState<SlowQueryFilters>({
+        search: '',
+        dateFilter: '7d',
+        warehouseFilter: [],
+        severityFilter: [],
+    });
+
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -312,6 +340,11 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
         setSelectedDatabaseId(null);
     };
 
+    const handleBackFromTool = () => {
+        onPageChange(navigationSource || 'All queries');
+        onAnalyzeQuery(null, ''); // This clears the analyzingQuery state and source
+    };
+
     const isDatabaseDetailView = activePage === 'Databases' && !!selectedDatabaseId;
     
     const renderContent = () => {
@@ -319,7 +352,14 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
             return <PullRequestDetailView pullRequest={selectedPullRequest} onBack={() => setSelectedPullRequest(null)} users={users} />;
         }
         if (selectedQuery) {
-            return <QueryDetailView query={selectedQuery} onBack={() => setSelectedQuery(null)} />;
+            return <QueryDetailView 
+                query={selectedQuery} 
+                onBack={() => setSelectedQuery(null)} 
+                onAnalyzeQuery={onAnalyzeQuery}
+                onOptimizeQuery={onOptimizeQuery}
+                onSimulateQuery={onSimulateQuery}
+                sourcePage={activePage}
+            />;
         }
 
         if (activePage.includes("Similar query patterns")) {
@@ -336,15 +376,44 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
             case 'Query analyzer':
                 return <QueryAnalyzerView
                     query={analyzingQuery}
-                    onBack={() => onAnalyzeQuery(null)}
+                    onBack={handleBackFromTool}
                     onSaveClick={onSaveQueryClick}
                     onBrowseQueries={() => onPageChange('All queries')}
+                    onOptimizeQuery={(q) => onOptimizeQuery(q, 'Query analyzer')}
+                />;
+            case 'Query optimizer':
+                return <QueryOptimizerView
+                    query={analyzingQuery}
+                    onBack={handleBackFromTool}
+                    onSaveClick={onSaveQueryClick}
+                    onSimulateQuery={(q) => onSimulateQuery(q, 'Query optimizer')}
+                />;
+            case 'Query simulator':
+                 return <QuerySimulatorView
+                    query={analyzingQuery}
+                    onBack={handleBackFromTool}
+                    onSaveClick={onSaveQueryClick}
                 />;
             case 'Pull Requests':
                 return <PullRequestsView pullRequests={pullRequests} onSelectPullRequest={setSelectedPullRequest} />;
             case 'All queries':
+                 return <QueryListView 
+                    onShareQueryClick={onShareQueryClick} 
+                    onSelectQuery={setSelectedQuery} 
+                    onAnalyzeQuery={(q) => onAnalyzeQuery(q, 'All queries')}
+                    onOptimizeQuery={(q) => onOptimizeQuery(q, 'All queries')}
+                    onSimulateQuery={(q) => onSimulateQuery(q, 'All queries')}
+                    filters={allQueriesFilters}
+                    setFilters={setAllQueriesFilters}
+                 />;
             case 'Slow queries':
-                 return <QueryListView onShareQueryClick={onShareQueryClick} onSelectQuery={setSelectedQuery} onAnalyzeQuery={onAnalyzeQuery} />;
+                return <SlowQueriesView 
+                    onAnalyzeQuery={(q) => onAnalyzeQuery(q, 'Slow queries')}
+                    onOptimizeQuery={(q) => onOptimizeQuery(q, 'Slow queries')}
+                    onSimulateQuery={(q) => onSimulateQuery(q, 'Slow queries')}
+                    filters={slowQueriesFilters}
+                    setFilters={setSlowQueriesFilters}
+                />;
             case 'Storage summary':
                 return <StorageSummaryView onSelectDatabase={handleSelectDatabaseFromSummary} onSetBigScreenWidget={onSetBigScreenWidget} />;
             case 'Databases':
@@ -365,7 +434,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
     };
 
     const activeParent = getActiveParent();
-    const isListView = ['All queries', 'Slow queries', 'Similar query patterns', 'Query analyzer'].includes(activePage);
+    const isListView = ['All queries', 'Slow queries', 'Similar query patterns', 'Query analyzer', 'Query optimizer'].includes(activePage);
 
     return (
         <div className="flex h-full bg-background">

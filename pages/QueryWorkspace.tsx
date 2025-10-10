@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { SQLFile, SQLVersion } from '../types';
 // FIX: Import `IconSearch` to resolve reference error.

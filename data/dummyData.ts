@@ -1,6 +1,4 @@
-
-
-import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget, SimilarQuery, QueryListItem, QueryStatus, QueryType, StorageBreakdownItem, TopStorageConsumer, StorageGrowthPoint, UnusedTable, StorageActivityLogItem, StorageByTeamItem, DuplicateDataPattern, StorageOptimizationOpportunity, DataAgeDistributionItem, StorageTierItem, TieringOpportunityItem, CostForecastPoint, TierForecastPoint, AnomalyAlertItem, SavingsProjection, Database, DatabaseTable, StorageByTypeItem, AssignedQuery, PullRequest } from '../types';
+import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget, SimilarQuery, QueryListItem, QueryStatus, QueryType, QuerySeverity, StorageBreakdownItem, TopStorageConsumer, StorageGrowthPoint, UnusedTable, StorageActivityLogItem, StorageByTeamItem, DuplicateDataPattern, StorageOptimizationOpportunity, DataAgeDistributionItem, StorageTierItem, TieringOpportunityItem, CostForecastPoint, TierForecastPoint, AnomalyAlertItem, SavingsProjection, Database, DatabaseTable, StorageByTypeItem, AssignedQuery, PullRequest } from '../types';
 
 export const availableWidgetsData: Omit<Widget, 'id' | 'dataSource' | 'imageUrl'>[] = [
     { 
@@ -242,6 +240,17 @@ export const queryListData: QueryListItem[] = Array.from({ length: 500 }, (_, i)
     const durationMins = Math.floor(Math.random() * 5);
     const durationSecs = Math.floor(Math.random() * 60);
     const estSavings = cost * (Math.random() * 0.5);
+    const durationInSeconds = durationMins * 60 + durationSecs;
+
+    let severity: QuerySeverity;
+    if (durationInSeconds > 60) { // Queries over 60s are now High
+        severity = 'High';
+    } else if (durationInSeconds > 30) {
+        severity = 'Medium';
+    } else {
+        severity = 'Low';
+    }
+
     return {
         id: `q-list-${i}-${Date.now()}`,
         status: Math.random() > 0.1 ? 'Success' : 'Failed',
@@ -258,6 +267,7 @@ export const queryListData: QueryListItem[] = Array.from({ length: 500 }, (_, i)
         bytesScanned: Math.floor(Math.random() * 10000000000), // up to 10GB
         bytesWritten: Math.random() > 0.5 ? Math.floor(Math.random() * 100000000) : 0, // up to 100MB
         queryTag: ['ETL', 'Dashboard', 'Ad-hoc', undefined][i % 4],
+        severity,
     };
 });
 

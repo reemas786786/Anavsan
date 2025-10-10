@@ -40,6 +40,7 @@ const App: React.FC = () => {
   const [selectedQuery, setSelectedQuery] = useState<QueryListItem | null>(null);
   const [analyzingQuery, setAnalyzingQuery] = useState<QueryListItem | null>(null);
   const [selectedPullRequest, setSelectedPullRequest] = useState<PullRequest | null>(null);
+  const [navigationSource, setNavigationSource] = useState<string | null>(null);
   
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [sqlFiles, setSqlFiles] = useState<SQLFile[]>(initialSqlFiles);
@@ -140,6 +141,7 @@ const App: React.FC = () => {
     setSelectedQuery(null);
     setAnalyzingQuery(null);
     setSelectedPullRequest(null);
+    setNavigationSource(null);
     
     if (page === 'Settings') {
         setIsSettingsViewActive(true);
@@ -165,6 +167,7 @@ const App: React.FC = () => {
     setSelectedQuery(null);
     setAnalyzingQuery(null);
     setSelectedPullRequest(null);
+    setNavigationSource(null);
     setIsSidebarOpen(false);
   }, []);
 
@@ -226,7 +229,7 @@ const App: React.FC = () => {
         }));
     }
     handleCloseSidePanel();
-    showToast("Query saved successfully!");
+    showToast("Query version saved successfully.");
   };
 
   const handleSelectAccount = (account: Account) => {
@@ -239,6 +242,7 @@ const App: React.FC = () => {
     setSelectedQuery(null);
     setAnalyzingQuery(null);
     setSelectedPullRequest(null);
+    setNavigationSource(null);
   };
 
   const handleSelectUser = (user: User) => {
@@ -249,6 +253,7 @@ const App: React.FC = () => {
       setSelectedQuery(null);
       setAnalyzingQuery(null);
       setSelectedPullRequest(null);
+      setNavigationSource(null);
   };
 
   const handleBackToAccounts = useCallback(() => {
@@ -257,6 +262,7 @@ const App: React.FC = () => {
     setSelectedQuery(null);
     setAnalyzingQuery(null);
     setSelectedPullRequest(null);
+    setNavigationSource(null);
   }, []);
 
   const handleBackFromUserView = useCallback(() => {
@@ -428,11 +434,35 @@ const App: React.FC = () => {
     showToast(`Assignment status updated to "${status}"`);
   };
 
-  const handleAnalyzeQuery = (query: QueryListItem | null) => {
+  const handleAnalyzeQuery = (query: QueryListItem | null, source: string) => {
     setAnalyzingQuery(query);
+    setNavigationSource(source || null);
     if (query) {
         setActiveAccountSubPage('Query analyzer');
+        setSelectedQuery(null);
     }
+  };
+  
+  const handleOptimizeQuery = (query: QueryListItem | null, source: string) => {
+    setAnalyzingQuery(query); // Re-use the same state for simplicity
+    setNavigationSource(source || null);
+    if (query) {
+        setActiveAccountSubPage('Query optimizer');
+        setSelectedQuery(null);
+    }
+  };
+
+  const handleSimulateQuery = (query: QueryListItem | null, source: string) => {
+    setAnalyzingQuery(query); // Re-use the same state for simplicity
+    setNavigationSource(source || null);
+    if (query) {
+        setActiveAccountSubPage('Query simulator');
+        setSelectedQuery(null);
+    }
+  };
+
+  const handleOpenSaveQuery = (tag: string) => {
+    setActiveSidePanel({ type: 'saveQuery', props: { contextualTag: tag } });
   };
 
   const handleAccountSubPageChange = (subPage: string) => {
@@ -440,6 +470,7 @@ const App: React.FC = () => {
     setSelectedQuery(null);
     setAnalyzingQuery(null);
     setSelectedPullRequest(null);
+    setNavigationSource(null);
   };
 
   const breadcrumbItems = useMemo(() => {
@@ -466,11 +497,20 @@ const App: React.FC = () => {
             ];
 
             if (analyzingQuery) {
-                return [
-                    ...baseItems,
-                    { label: activeAccountSubPage, onClick: () => handleAnalyzeQuery(null) },
-                    { label: 'Query Analyzer' }
-                ];
+                const sourceLabel = navigationSource || 'All queries';
+                const sourcePage = navigationSource || 'All queries';
+                let toolLabel = '';
+                if (activeAccountSubPage === 'Query analyzer') toolLabel = 'Query Analyzer';
+                if (activeAccountSubPage === 'Query optimizer') toolLabel = 'Query Optimizer';
+                if (activeAccountSubPage === 'Query simulator') toolLabel = 'Query Simulator';
+                
+                if (toolLabel) {
+                    return [
+                        ...baseItems,
+                        { label: sourceLabel, onClick: () => { handleAnalyzeQuery(null, ''); handleAccountSubPageChange(sourcePage); } },
+                        { label: toolLabel }
+                    ];
+                }
             }
             if (selectedPullRequest) {
                 return [
@@ -498,7 +538,7 @@ const App: React.FC = () => {
       }
 
       return [];
-  }, [activePage, selectedAccount, activeAccountSubPage, selectedUser, isSettingsViewActive, activeSubPage, isProfileSettingsPageActive, activeProfileSubPage, handleLogoClick, handleBackToAccounts, handleBackFromUserView, selectedQuery, selectedPullRequest, analyzingQuery]);
+  }, [activePage, selectedAccount, activeAccountSubPage, selectedUser, isSettingsViewActive, activeSubPage, isProfileSettingsPageActive, activeProfileSubPage, handleLogoClick, handleBackToAccounts, handleBackFromUserView, selectedQuery, selectedPullRequest, analyzingQuery, navigationSource]);
 
   const showBreadcrumb = breadcrumbItems.length > 0;
 
@@ -613,25 +653,27 @@ const App: React.FC = () => {
             <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background">
               {selectedAccount ? (
                   <AccountView
-                  account={selectedAccount}
-                  accounts={accounts}
-                  onBack={handleBackToAccounts}
-                  onSwitchAccount={handleSelectAccount}
-                  sqlFiles={sqlFiles}
-                  onSaveQueryClick={() => setActiveSidePanel({ type: 'saveQuery' })}
-                  onSetBigScreenWidget={setBigScreenWidget}
-                  activePage={activeAccountSubPage}
-                  onPageChange={handleAccountSubPageChange}
-                  onShareQueryClick={handleOpenAssignQuery}
-                  selectedQuery={selectedQuery}
-                  setSelectedQuery={setSelectedQuery}
-                  analyzingQuery={analyzingQuery}
-                  onAnalyzeQuery={handleAnalyzeQuery}
-                  pullRequests={pullRequestsData}
-                  selectedPullRequest={selectedPullRequest}
-                  setSelectedPullRequest={setSelectedPullRequest}
-                  displayMode={displayMode}
-                  users={users}
+                      account={selectedAccount}
+                      accounts={accounts}
+                      onSwitchAccount={handleSelectAccount}
+                      sqlFiles={sqlFiles}
+                      onSaveQueryClick={handleOpenSaveQuery}
+                      onSetBigScreenWidget={setBigScreenWidget}
+                      activePage={activeAccountSubPage}
+                      onPageChange={handleAccountSubPageChange}
+                      onShareQueryClick={handleOpenAssignQuery}
+                      selectedQuery={selectedQuery}
+                      setSelectedQuery={setSelectedQuery}
+                      analyzingQuery={analyzingQuery}
+                      onAnalyzeQuery={handleAnalyzeQuery}
+                      onOptimizeQuery={handleOptimizeQuery}
+                      onSimulateQuery={handleSimulateQuery}
+                      pullRequests={pullRequestsData}
+                      selectedPullRequest={selectedPullRequest}
+                      setSelectedPullRequest={setSelectedPullRequest}
+                      displayMode={displayMode}
+                      users={users}
+                      navigationSource={navigationSource}
                   />
               ) : selectedUser ? (
                   <UserView user={selectedUser} onBack={() => setSelectedUser(null)} />
@@ -677,7 +719,7 @@ const App: React.FC = () => {
       </SidePanel>
 
       <SidePanel isOpen={activeSidePanel?.type === 'saveQuery'} onClose={handleCloseSidePanel} title="Save Query Version">
-        <SaveQueryFlow files={sqlFiles} onCancel={handleCloseSidePanel} onSave={handleSaveQuery} />
+        {activeSidePanel?.type === 'saveQuery' && <SaveQueryFlow files={sqlFiles} onCancel={handleCloseSidePanel} onSave={handleSaveQuery} {...activeSidePanel.props} />}
       </SidePanel>
       
       <SidePanel isOpen={activeSidePanel?.type === 'addUser'} onClose={handleCloseSidePanel} title="Add User">

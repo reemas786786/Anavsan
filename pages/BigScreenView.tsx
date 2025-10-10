@@ -1,5 +1,6 @@
 
 
+
 import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, AreaChart, Area } from 'recharts';
 import { BigScreenWidget, Account, User } from '../types';
@@ -221,6 +222,7 @@ const BigScreenView: React.FC<BigScreenViewProps> = ({ widget, accounts, users, 
                             <div className="relative w-64 h-64">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
+                                        {/* FIX: Mapped data to resolve TypeScript error regarding index signatures in recharts. */}
                                         <Pie data={storageByTypeChartData.map(item => ({...item}))} dataKey="storageGB" nameKey="type" cx="50%" cy="50%" innerRadius="65%" outerRadius="85%" fill="#8884d8" paddingAngle={5} stroke="none">
                                             {storageByTypeChartData.map((entry) => <Cell key={`cell-${entry.type}`} fill={entry.color} />)}
                                         </Pie>

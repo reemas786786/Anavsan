@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { QueryListItem } from '../types';
-import { IconChevronLeft, IconSave, IconClipboardCopy, IconRefresh, IconDotsVertical, IconKey, IconSearch, IconDatabase, IconCheck, IconFilter, IconLayers, IconBeaker, IconTrendingUp } from '../constants';
+import { IconChevronLeft, IconSave, IconClipboardCopy, IconRefresh, IconKey, IconSearch, IconDatabase, IconCheck, IconFilter, IconLayers, IconBeaker, IconTrendingUp, IconWand } from '../constants';
 
 interface AnalysisResult {
     id: string;
@@ -135,15 +135,17 @@ const AnalysisResultCard: React.FC<{ result: AnalysisResult }> = ({ result }) =>
 const QueryAnalyzerView: React.FC<{
     query: QueryListItem | null;
     onBack: () => void;
-    onSaveClick: () => void;
+    onSaveClick: (tag: string) => void;
     onBrowseQueries: () => void;
-}> = ({ query, onBack, onSaveClick, onBrowseQueries }) => {
-    const [editedQuery, setEditedQuery] = useState(realWorldQuery);
+    onOptimizeQuery: (query: QueryListItem) => void;
+}> = ({ query, onBack, onSaveClick, onBrowseQueries, onOptimizeQuery }) => {
+    const originalQuery = query ? realWorldQuery : '';
+    const [editedQuery, setEditedQuery] = useState(originalQuery);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
     const [isCopied, setIsCopied] = useState(false);
     
-    const isDirty = editedQuery !== realWorldQuery;
+    const isDirty = editedQuery !== originalQuery;
 
     useEffect(() => {
         setEditedQuery(query ? realWorldQuery : '');
@@ -166,87 +168,118 @@ const QueryAnalyzerView: React.FC<{
     };
 
     const handleReset = () => {
-        setEditedQuery(realWorldQuery);
+        setEditedQuery(originalQuery);
     };
-
-    if (!query) {
-        return (
-            <div className="h-full flex flex-col items-center justify-center text-center p-8">
-                <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center mb-4 border border-border-color">
-                    <IconSearch className="w-8 h-8 text-primary" />
-                </div>
-                <h2 className="text-xl font-bold text-text-primary">Analyze your Snowflake queries</h2>
-                <p className="mt-2 text-text-secondary max-w-md">Select a query from the All Queries or Slow Queries section to begin analysis.</p>
-                <button
-                    onClick={onBrowseQueries}
-                    className="mt-6 text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full shadow-sm"
-                >
-                    Browse Queries
-                </button>
+    
+    const coreResults = analysisResults.filter(r => r.category === 'core');
+    const performanceResults = analysisResults.filter(r => r.category === 'performance');
+    
+    const EmptyState = () => (
+        <div className="h-full flex flex-col items-center justify-center text-center p-8">
+            <div className="w-16 h-16 bg-surface-nested rounded-full flex items-center justify-center mb-4 border border-border-color">
+                <IconSearch className="w-8 h-8 text-primary" />
             </div>
-        );
-    }
+            <h3 className="text-lg font-semibold text-text-primary">Analyze your Snowflake queries</h3>
+            <p className="text-text-secondary mt-1 max-w-md">Select a query from the "All Queries" list to begin analysis, or paste your query directly into the editor to get started.</p>
+        </div>
+    );
 
     return (
         <div className="p-4 space-y-4 h-full flex flex-col">
             <header className="flex-shrink-0">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                         <button onClick={onBack} className="w-10 h-10 flex items-center justify-center rounded-full bg-button-secondary-bg text-primary hover:bg-button-secondary-bg-hover transition-colors flex-shrink-0">
-                            <IconChevronLeft className="h-5 w-5" />
-                            <span className="sr-only">Back</span>
-                        </button>
-                        <h1 className="text-2xl font-bold text-text-primary">Query to be analyzed</h1>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <button onClick={handleAnalyze} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full shadow-sm">Analyze</button>
-                        <button disabled className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color bg-surface text-text-muted cursor-not-allowed">Optimize</button>
-                        <button onClick={onSaveClick} className="p-2 rounded-full hover:bg-surface-hover" title="Save"><IconSave className="h-5 w-5 text-text-secondary" /></button>
-                        <button onClick={handleCopy} className="p-2 rounded-full hover:bg-surface-hover" title="Copy">
-                            {isCopied ? <IconCheck className="h-5 w-5 text-status-success" /> : <IconClipboardCopy className="h-5 w-5 text-text-secondary" />}
-                        </button>
-                        {isDirty && <button onClick={handleReset} className="p-2 rounded-full hover:bg-surface-hover" title="Reset"><IconRefresh className="h-5 w-5 text-text-secondary" /></button>}
-                         <button className="p-2 rounded-full hover:bg-surface-hover" title="More actions"><IconDotsVertical className="h-5 w-5 text-text-secondary" /></button>
-                    </div>
-                </div>
+                {query && (
+                    <button onClick={onBack} className="flex items-center gap-1 text-sm font-semibold text-link hover:underline mb-2">
+                        <IconChevronLeft className="h-4 w-4" /> Back to All Queries
+                    </button>
+                )}
+                <h1 className="text-2xl font-bold text-text-primary">Query Analyzer</h1>
             </header>
 
-            <main className="flex-grow flex flex-col space-y-6 overflow-hidden">
-                <div className="bg-surface p-4 rounded-xl flex flex-col flex-shrink-0">
-                    <textarea
-                        value={editedQuery}
-                        onChange={(e) => setEditedQuery(e.target.value)}
-                        className="w-full bg-input-bg font-mono text-sm p-4 rounded-lg border border-border-color focus:ring-primary focus:border-primary resize-none"
-                        style={{ height: '400px' }}
-                        aria-label="SQL Query Editor"
-                    />
+            <main className="flex-grow flex flex-col md:flex-row gap-4 overflow-hidden">
+                {/* Editor Panel */}
+                <div className="w-full md:w-3/5 flex flex-col">
+                     <div className="flex-grow bg-surface p-4 rounded-xl border border-border-color flex flex-col">
+                        <h3 className="text-base font-semibold text-text-strong mb-2">Query to be Analyzed</h3>
+                        <textarea
+                            value={editedQuery}
+                            onChange={(e) => setEditedQuery(e.target.value)}
+                            className="w-full flex-grow bg-input-bg font-mono text-sm p-4 rounded-lg border border-border-color focus:ring-primary focus:border-primary resize-none"
+                            aria-label="SQL Query Editor"
+                            placeholder="Paste or write a query to start analysis."
+                        />
+                        <div className="flex items-center gap-2 pt-4 mt-auto">
+                            <button
+                                onClick={handleAnalyze}
+                                disabled={!editedQuery.trim()}
+                                className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full shadow-sm disabled:bg-gray-300 disabled:cursor-not-allowed"
+                            >
+                                Analyze
+                            </button>
+                            <button
+                                onClick={() => query && onOptimizeQuery(query)}
+                                disabled={analysisResults.length === 0}
+                                className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color bg-surface hover:bg-surface-hover text-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Optimize
+                            </button>
+                            <button
+                                onClick={() => onSaveClick('Analyzed')}
+                                disabled={analysisResults.length === 0}
+                                className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color bg-surface hover:bg-surface-hover text-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Save
+                            </button>
+                            <button
+                                onClick={handleCopy}
+                                className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color bg-surface hover:bg-surface-hover text-text-primary"
+                            >
+                                {isCopied ? 'Copied!' : 'Copy'}
+                            </button>
+                            {isDirty && (
+                                <button
+                                    onClick={handleReset}
+                                    disabled={!isDirty}
+                                    className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color bg-surface hover:bg-surface-hover text-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Reset
+                                </button>
+                            )}
+                        </div>
+                    </div>
                 </div>
-                
-                <div className="overflow-y-auto pb-8 flex-grow">
-                    {isAnalyzing && (
-                        <div className="flex flex-col items-center justify-center text-center p-8">
+
+                {/* Analysis Panel */}
+                <div className="w-full md:w-2/5 flex flex-col">
+                    {isAnalyzing ? (
+                        <div className="bg-surface rounded-xl border border-border-color h-full flex flex-col items-center justify-center text-center p-8">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
                             <p className="mt-4 text-sm text-text-secondary max-w-md">
                                  <b>What’s happening:</b> Analyzing your query execution plan, identifying performance bottlenecks, scanning table statistics, and generating optimization recommendations. Complex queries may require additional processing time.
                             </p>
                         </div>
-                    )}
-
-                    {!isAnalyzing && analysisResults.length > 0 && (
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-text-strong">Analysis Results</h3>
-                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                <div className="space-y-4">
-                                    {analysisResults.filter(r => r.category === 'core').map(result => (
-                                        <AnalysisResultCard key={result.id} result={result} />
-                                    ))}
-                                </div>
-                                <div className="space-y-4">
-                                    {analysisResults.filter(r => r.category === 'performance').map(result => (
-                                        <AnalysisResultCard key={result.id} result={result} />
-                                    ))}
+                    ) : analysisResults.length > 0 ? (
+                        <div className="bg-surface rounded-xl border border-border-color h-full flex flex-col">
+                            <h3 className="text-base font-semibold text-text-strong p-4 border-b border-border-color flex-shrink-0">Analysis Results</h3>
+                            <div className="overflow-y-auto p-4">
+                                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                                    <div className="space-y-4">
+                                        <h4 className="text-sm font-semibold text-text-secondary">Core Optimization</h4>
+                                        {coreResults.map(result => <AnalysisResultCard key={result.id} result={result} />)}
+                                    </div>
+                                    <div className="space-y-4">
+                                        <h4 className="text-sm font-semibold text-text-secondary">Performance Insights</h4>
+                                        {performanceResults.map(result => <AnalysisResultCard key={result.id} result={result} />)}
+                                    </div>
                                 </div>
                             </div>
+                        </div>
+                    ) : (
+                        <div className="bg-surface rounded-xl border border-border-color h-full flex flex-col items-center justify-center text-center p-8">
+                            <div className="w-16 h-16 bg-surface-nested rounded-full flex items-center justify-center mb-4 border border-border-color">
+                                <IconBeaker className="w-8 h-8 text-primary" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-text-primary">Ready for Analysis</h3>
+                            <p className="text-text-secondary mt-1">Click "Analyze" to see optimization recommendations.</p>
                         </div>
                     )}
                 </div>
