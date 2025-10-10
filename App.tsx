@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -20,8 +19,8 @@ import EditUserRoleFlow from './components/EditUserRoleFlow';
 import ConfirmationModal from './components/ConfirmationModal';
 import Toast from './components/Toast';
 import BigScreenView from './components/BigScreenView';
-import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem, BigScreenWidget, QueryListItem, AssignedQuery, AssignmentPriority, AssignmentStatus } from './types';
-import { connectionsData, sqlFilesData as initialSqlFiles, usersData, dashboardsData as initialDashboardsData, assignedQueriesData } from './data/dummyData';
+import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem, BigScreenWidget, QueryListItem, AssignedQuery, AssignmentPriority, AssignmentStatus, PullRequest } from './types';
+import { connectionsData, sqlFilesData as initialSqlFiles, usersData, dashboardsData as initialDashboardsData, assignedQueriesData, pullRequestsData } from './data/dummyData';
 import SettingsPage from './pages/SettingsPage';
 import Dashboards from './pages/Dashboards';
 import DashboardEditor from './pages/DashboardEditor';
@@ -39,6 +38,8 @@ const App: React.FC = () => {
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedQuery, setSelectedQuery] = useState<QueryListItem | null>(null);
+  const [analyzingQuery, setAnalyzingQuery] = useState<QueryListItem | null>(null);
+  const [selectedPullRequest, setSelectedPullRequest] = useState<PullRequest | null>(null);
   
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [sqlFiles, setSqlFiles] = useState<SQLFile[]>(initialSqlFiles);
@@ -137,6 +138,8 @@ const App: React.FC = () => {
     setViewingDashboard(null);
     setEditingDashboard(null);
     setSelectedQuery(null);
+    setAnalyzingQuery(null);
+    setSelectedPullRequest(null);
     
     if (page === 'Settings') {
         setIsSettingsViewActive(true);
@@ -160,6 +163,8 @@ const App: React.FC = () => {
     setViewingDashboard(null);
     setEditingDashboard(null);
     setSelectedQuery(null);
+    setAnalyzingQuery(null);
+    setSelectedPullRequest(null);
     setIsSidebarOpen(false);
   }, []);
 
@@ -200,7 +205,8 @@ const App: React.FC = () => {
                 date: new Date().toISOString().split('T')[0],
                 description,
                 tag
-            }]
+            }],
+            createdDate: new Date().toISOString().split('T')[0],
         };
         setSqlFiles(prev => [...prev, newFile]);
     } else if (saveType === 'existing' && fileId) {
@@ -231,6 +237,8 @@ const App: React.FC = () => {
     setActivePage('Snowflake Accounts');
     setActiveAccountSubPage('Account overview'); // Reset sub-page on account change
     setSelectedQuery(null);
+    setAnalyzingQuery(null);
+    setSelectedPullRequest(null);
   };
 
   const handleSelectUser = (user: User) => {
@@ -239,12 +247,16 @@ const App: React.FC = () => {
       setIsSettingsViewActive(false);
       setIsProfileSettingsPageActive(false);
       setSelectedQuery(null);
+      setAnalyzingQuery(null);
+      setSelectedPullRequest(null);
   };
 
   const handleBackToAccounts = useCallback(() => {
     setSelectedAccount(null);
     setActivePage('Snowflake Accounts');
     setSelectedQuery(null);
+    setAnalyzingQuery(null);
+    setSelectedPullRequest(null);
   }, []);
 
   const handleBackFromUserView = useCallback(() => {
@@ -416,9 +428,18 @@ const App: React.FC = () => {
     showToast(`Assignment status updated to "${status}"`);
   };
 
+  const handleAnalyzeQuery = (query: QueryListItem | null) => {
+    setAnalyzingQuery(query);
+    if (query) {
+        setActiveAccountSubPage('Query analyzer');
+    }
+  };
+
   const handleAccountSubPageChange = (subPage: string) => {
     setActiveAccountSubPage(subPage);
     setSelectedQuery(null);
+    setAnalyzingQuery(null);
+    setSelectedPullRequest(null);
   };
 
   const breadcrumbItems = useMemo(() => {
@@ -444,6 +465,21 @@ const App: React.FC = () => {
               { label: selectedAccount.name, onClick: () => handleAccountSubPageChange('Account overview') },
             ];
 
+            if (analyzingQuery) {
+                return [
+                    ...baseItems,
+                    { label: activeAccountSubPage, onClick: () => handleAnalyzeQuery(null) },
+                    { label: 'Query Analyzer' }
+                ];
+            }
+            if (selectedPullRequest) {
+                return [
+                    ...baseItems,
+                    { label: 'Pull Requests', onClick: () => setSelectedPullRequest(null) },
+                    { label: `#${selectedPullRequest.id}: ${selectedPullRequest.title}` }
+                ];
+            }
+
             if (selectedQuery) {
                 return [
                     ...baseItems,
@@ -462,7 +498,7 @@ const App: React.FC = () => {
       }
 
       return [];
-  }, [activePage, selectedAccount, activeAccountSubPage, selectedUser, isSettingsViewActive, activeSubPage, isProfileSettingsPageActive, activeProfileSubPage, handleLogoClick, handleBackToAccounts, handleBackFromUserView, selectedQuery]);
+  }, [activePage, selectedAccount, activeAccountSubPage, selectedUser, isSettingsViewActive, activeSubPage, isProfileSettingsPageActive, activeProfileSubPage, handleLogoClick, handleBackToAccounts, handleBackFromUserView, selectedQuery, selectedPullRequest, analyzingQuery]);
 
   const showBreadcrumb = breadcrumbItems.length > 0;
 
@@ -589,7 +625,13 @@ const App: React.FC = () => {
                   onShareQueryClick={handleOpenAssignQuery}
                   selectedQuery={selectedQuery}
                   setSelectedQuery={setSelectedQuery}
+                  analyzingQuery={analyzingQuery}
+                  onAnalyzeQuery={handleAnalyzeQuery}
+                  pullRequests={pullRequestsData}
+                  selectedPullRequest={selectedPullRequest}
+                  setSelectedPullRequest={setSelectedPullRequest}
                   displayMode={displayMode}
+                  users={users}
                   />
               ) : selectedUser ? (
                   <UserView user={selectedUser} onBack={() => setSelectedUser(null)} />

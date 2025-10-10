@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 
 export type Page = 
@@ -64,12 +66,14 @@ export interface SQLVersion {
   date: string;
   tag?: string;
   description: string;
+  sql?: string;
 }
 
 export interface SQLFile {
   id: string;
   name: string;
   versions: SQLVersion[];
+  createdDate: string;
 }
 
 export interface TopQuery {
@@ -295,4 +299,43 @@ export interface AssignedQuery {
     assignedOn: string; // ISO string
     cost: number;
     credits: number;
+}
+
+// --- Pull Request Types ---
+export type PullRequestStatus = 'Open' | 'Merged' | 'Closed' | 'Draft';
+export type AutomatedCheckStatus = 'Passed' | 'Failed' | 'Pending';
+
+export interface PerformanceMetric {
+    metric: string;
+    before: string;
+    after: string;
+    delta: string;
+}
+
+export interface AutomatedCheck {
+    name: string;
+    status: AutomatedCheckStatus;
+    description: string;
+}
+
+export interface Reviewer {
+    id: string;
+    name: string;
+    role: string;
+    approved: boolean;
+}
+
+export interface PullRequest {
+    id: number;
+    title: string;
+    author: string;
+    status: PullRequestStatus;
+    sourceBranch: string;
+    targetBranch: string;
+    createdAt: string; // ISO string
+    performanceMetrics: PerformanceMetric[];
+    automatedChecks: AutomatedCheck[];
+    reviewers: Reviewer[];
+    oldCode: string;
+    newCode: string;
 }

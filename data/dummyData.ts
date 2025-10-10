@@ -1,4 +1,6 @@
-import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget, SimilarQuery, QueryListItem, QueryStatus, QueryType, StorageBreakdownItem, TopStorageConsumer, StorageGrowthPoint, UnusedTable, StorageActivityLogItem, StorageByTeamItem, DuplicateDataPattern, StorageOptimizationOpportunity, DataAgeDistributionItem, StorageTierItem, TieringOpportunityItem, CostForecastPoint, TierForecastPoint, AnomalyAlertItem, SavingsProjection, Database, DatabaseTable, StorageByTypeItem, AssignedQuery } from '../types';
+
+
+import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget, SimilarQuery, QueryListItem, QueryStatus, QueryType, StorageBreakdownItem, TopStorageConsumer, StorageGrowthPoint, UnusedTable, StorageActivityLogItem, StorageByTeamItem, DuplicateDataPattern, StorageOptimizationOpportunity, DataAgeDistributionItem, StorageTierItem, TieringOpportunityItem, CostForecastPoint, TierForecastPoint, AnomalyAlertItem, SavingsProjection, Database, DatabaseTable, StorageByTypeItem, AssignedQuery, PullRequest } from '../types';
 
 export const availableWidgetsData: Omit<Widget, 'id' | 'dataSource' | 'imageUrl'>[] = [
     { 
@@ -96,20 +98,45 @@ export const dashboardsData: DashboardItem[] = [
     }
 ];
 
+const oldSalesQuery = `SELECT 
+  region, 
+  SUM(amount) 
+FROM sales
+GROUP BY region;`;
+
+const newSalesQuery = `SELECT 
+  region, 
+  SUM(amount)
+FROM sales
+WHERE sale_date >= DATEADD(month, -3, CURRENT_DATE())
+GROUP BY region;`;
+
 export const sqlFilesData: SQLFile[] = [
     {
         id: 'file-1',
-        name: 'daily_metrics.sql',
+        name: 'daily_metrics_aggregation.sql',
+        createdDate: '2023-10-28',
         versions: [
-            { id: 'v1-1', version: 2, date: '2023-11-15', tag: 'Production', description: 'Optimized join condition.' },
-            { id: 'v1-2', version: 1, date: '2023-11-12', tag: 'Archived', description: 'Initial commit.' },
+            { id: 'v1-3', version: 3, date: '2023-11-18', tag: 'Optimized', description: 'Refactored joins for better performance.', sql: newSalesQuery },
+            { id: 'v1-2', version: 2, date: '2023-11-15', tag: 'Analyzed', description: 'Added filter for last 3 months.', sql: newSalesQuery },
+            { id: 'v1-1', version: 1, date: '2023-11-12', description: 'Initial version, full table scan.', sql: oldSalesQuery },
         ]
     },
     {
         id: 'file-2',
-        name: 'user_segmentation_query.sql',
+        name: 'user_segmentation_logic.sql',
+        createdDate: '2023-11-05',
         versions: [
-            { id: 'v2-1', version: 1, date: '2023-11-10', tag: 'Staging', description: 'First draft of segmentation logic.' },
+            { id: 'v2-2', version: 2, date: '2023-11-20', tag: 'Simulated', description: 'Tested with new clustering algorithm.' },
+            { id: 'v2-1', version: 1, date: '2023-11-10', description: 'First draft of segmentation logic.' },
+        ]
+    },
+    {
+        id: 'file-3',
+        name: 'marketing_campaign_roi.sql',
+        createdDate: '2023-09-15',
+        versions: [
+             { id: 'v3-1', version: 1, date: '2023-09-15', description: 'Initial commit for ROI calculation.' },
         ]
     }
 ];
@@ -169,6 +196,37 @@ export const usersData: User[] = [
     { id: 'user-5', name: 'Eve Davis', email: 'eve.d@example.com', role: 'Admin', status: 'Invited', dateAdded: '2023-05-22', cost: 0, credits: 0, message: 'Invitation pending' },
     { id: 'user-6', name: 'Frank White', email: 'frank.w@example.com', role: 'Analyst', status: 'Active', dateAdded: '2023-06-18', cost: 980, credits: 392 },
     { id: 'user-7', name: 'Grace Hall', email: 'grace.h@example.com', role: 'Viewer', status: 'Active', dateAdded: '2023-07-01', cost: 90, credits: 36 },
+    { id: 'user-8', name: 'Priya Patel', email: 'priya.p@example.com', role: 'Admin', status: 'Active', dateAdded: '2023-01-10', cost: 1500, credits: 600, roleTitle: 'Data Engineer' },
+    { id: 'user-9', name: 'Arjun Singh', email: 'arjun.s@example.com', role: 'Admin', status: 'Active', dateAdded: '2023-01-12', cost: 1100, credits: 440, roleTitle: 'DataOps' },
+];
+
+export const pullRequestsData: PullRequest[] = [
+    {
+        id: 42,
+        title: 'Optimize sales_summary query (limit historical data to 3 months)',
+        author: 'Priya Patel',
+        status: 'Open',
+        sourceBranch: 'feature/optimize_sales_summary',
+        targetBranch: 'main',
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+        performanceMetrics: [
+            { metric: 'Runtime', before: '12.3s', after: '4.8s', delta: '↓ 61%' },
+            { metric: 'Credits', before: '0.45', after: '0.21', delta: '↓ 53%' },
+            { metric: 'Warehouse', before: 'XSMALL_WH', after: 'same', delta: '' },
+            { metric: 'Tables Scanned', before: 'sales (12M rows)', after: 'sales (3.2M rows)', delta: 'reduced 73%' },
+            { metric: 'Est. Cost Savings', before: '$42/month', after: '', delta: '' },
+        ],
+        automatedChecks: [
+            { name: 'Plan-Diff Guard', status: 'Passed', description: 'No join explosion or full scan detected.' },
+            { name: 'Cost Estimator', status: 'Passed', description: 'Credit usage decreased.' },
+            { name: 'Schema Drift', status: 'Passed', description: 'No deprecated columns referenced.' },
+        ],
+        reviewers: [
+            { id: 'user-9', name: 'Arjun Singh', role: 'DataOps', approved: false },
+        ],
+        oldCode: oldSalesQuery,
+        newCode: newSalesQuery,
+    }
 ];
 
 export const similarQueriesData: SimilarQuery[] = [

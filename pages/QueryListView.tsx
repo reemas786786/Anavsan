@@ -43,7 +43,8 @@ const allColumns = [
 const QueryListView: React.FC<{
     onSelectQuery: (query: QueryListItem) => void;
     onShareQueryClick: (query: QueryListItem) => void;
-}> = ({ onSelectQuery, onShareQueryClick }) => {
+    onAnalyzeQuery: (query: QueryListItem) => void;
+}> = ({ onSelectQuery, onShareQueryClick, onAnalyzeQuery }) => {
     const [search, setSearch] = useState('');
     // Direct filters
     const [dateFilter, setDateFilter] = useState<string | { start: string, end: string }>('7d');
@@ -195,7 +196,7 @@ const QueryListView: React.FC<{
                             <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-lg bg-surface shadow-lg z-20 border border-border-color">
                                 <div className="py-1" role="menu" aria-orientation="vertical">
                                     <button onClick={(e) => { e.stopPropagation(); onSelectQuery(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem"><IconView className="h-4 w-4"/> Query Preview</button>
-                                    <button onClick={(e) => { e.stopPropagation(); alert('Open in Analyzer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem"><IconBeaker className="h-4 w-4"/> Open in Analyzer</button>
+                                    <button onClick={(e) => { e.stopPropagation(); onAnalyzeQuery(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem"><IconBeaker className="h-4 w-4"/> Open in Analyzer</button>
                                     <button onClick={(e) => { e.stopPropagation(); alert('Open in Optimizer clicked'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem"><IconWand className="h-4 w-4"/> Open in Optimizer</button>
                                     <div className="my-1 border-t border-border-color"></div>
                                     <button onClick={(e) => { e.stopPropagation(); onShareQueryClick(q); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem"><IconShare className="h-4 w-4"/> Share Query</button>

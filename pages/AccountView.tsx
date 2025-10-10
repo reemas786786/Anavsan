@@ -1,10 +1,7 @@
-
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Account, SQLFile, BigScreenWidget, QueryListItem } from '../types';
-import QueryWorkspace from './QueryWorkspace';
+import { Account, SQLFile, BigScreenWidget, QueryListItem, PullRequest, User } from '../types';
 import AccountOverviewDashboard from './AccountOverviewDashboard';
-import QueryPerformanceView, { SimilarQueryPatternsView } from './QueryPerformanceView';
+import { SimilarQueryPatternsView } from './QueryPerformanceView';
 import { 
     IconChevronDown, 
     IconChevronLeft, 
@@ -22,11 +19,18 @@ import {
     IconCode,
     IconSummary,
     IconCheck,
+    IconPullRequest,
+    IconGitBranch,
 } from '../constants';
 import QueryListView from './QueryListView';
 import StorageSummaryView from './StorageSummaryView';
 import DatabasesView from './DatabasesView';
 import QueryDetailView from './QueryDetailView';
+import PullRequestsView from './PullRequestsView';
+import PullRequestDetailView from './PullRequestDetailView';
+import MyBranchesView from './Dashboard'; // Re-using Dashboard.tsx for MyBranchesView
+import QueryVersionsView from './QueryWorkspace'; // Re-using QueryWorkspace.tsx for QueryVersionsView
+import QueryAnalyzerView from './QueryAnalyzerView';
 
 
 interface AccountViewProps {
@@ -42,7 +46,13 @@ interface AccountViewProps {
     onShareQueryClick: (query: QueryListItem) => void;
     selectedQuery: QueryListItem | null;
     setSelectedQuery: (query: QueryListItem | null) => void;
+    analyzingQuery: QueryListItem | null;
+    onAnalyzeQuery: (query: QueryListItem | null) => void;
+    pullRequests: PullRequest[];
+    selectedPullRequest: PullRequest | null;
+    setSelectedPullRequest: (pr: PullRequest | null) => void;
     displayMode: 'cost' | 'credits';
+    users: User[];
 }
 
 const accountNavItems = [
@@ -73,7 +83,15 @@ const accountNavItems = [
             { name: 'Databases', icon: IconList },
         ] 
     },
-    { name: 'Query workspace', icon: IconCode, children: [] },
+    { 
+        name: 'Query Workspace', 
+        icon: IconCode, 
+        children: [
+            { name: 'My Branches', icon: IconGitBranch },
+            { name: 'Pull Requests', icon: IconPullRequest },
+            { name: 'Query Versions', icon: IconClock }
+        ] 
+    },
     { name: 'AI and insights', icon: IconBrain, children: [] },
 ];
 
@@ -253,7 +271,7 @@ const AccountAvatar: React.FC<{ name: string }> = ({ name }) => {
 };
 
 
-const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, onSwitchAccount, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, selectedQuery, setSelectedQuery, displayMode }) => {
+const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, onSwitchAccount, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, displayMode, users }) => {
     const [selectedDatabaseId, setSelectedDatabaseId] = useState<string | null>(null);
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
     const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
@@ -262,6 +280,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
         'Query performance': true,
         'Optimization': false,
         'Storage and Cost': true,
+        'Query Workspace': true,
     });
 
     useEffect(() => {
@@ -296,6 +315,9 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
     const isDatabaseDetailView = activePage === 'Databases' && !!selectedDatabaseId;
     
     const renderContent = () => {
+        if (selectedPullRequest) {
+            return <PullRequestDetailView pullRequest={selectedPullRequest} onBack={() => setSelectedPullRequest(null)} users={users} />;
+        }
         if (selectedQuery) {
             return <QueryDetailView query={selectedQuery} onBack={() => setSelectedQuery(null)} />;
         }
@@ -307,11 +329,22 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
         switch (activePage) {
             case 'Account overview':
                 return <AccountOverviewDashboard account={account} displayMode={displayMode} />;
-            case 'Query workspace':
-                return <QueryWorkspace sqlFiles={sqlFiles} onSaveQueryClick={onSaveQueryClick} />;
+            case 'My Branches':
+                return <MyBranchesView />;
+            case 'Query Versions':
+                return <QueryVersionsView sqlFiles={sqlFiles} />;
+            case 'Query analyzer':
+                return <QueryAnalyzerView
+                    query={analyzingQuery}
+                    onBack={() => onAnalyzeQuery(null)}
+                    onSaveClick={onSaveQueryClick}
+                    onBrowseQueries={() => onPageChange('All queries')}
+                />;
+            case 'Pull Requests':
+                return <PullRequestsView pullRequests={pullRequests} onSelectPullRequest={setSelectedPullRequest} />;
             case 'All queries':
             case 'Slow queries':
-                 return <QueryListView onShareQueryClick={onShareQueryClick} onSelectQuery={setSelectedQuery} />;
+                 return <QueryListView onShareQueryClick={onShareQueryClick} onSelectQuery={setSelectedQuery} onAnalyzeQuery={onAnalyzeQuery} />;
             case 'Storage summary':
                 return <StorageSummaryView onSelectDatabase={handleSelectDatabaseFromSummary} onSetBigScreenWidget={onSetBigScreenWidget} />;
             case 'Databases':
@@ -332,12 +365,12 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
     };
 
     const activeParent = getActiveParent();
-    const isListView = ['All queries', 'Slow queries', 'Similar query patterns'].includes(activePage);
+    const isListView = ['All queries', 'Slow queries', 'Similar query patterns', 'Query analyzer'].includes(activePage);
 
     return (
         <div className="flex h-full bg-background">
             {/* Contextual Sidebar */}
-            {!isDatabaseDetailView && !selectedQuery && (
+            {!isDatabaseDetailView && !selectedQuery && !selectedPullRequest && (
                 <aside className={`hidden lg:flex bg-surface flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out ${isSidebarExpanded ? 'w-64' : 'w-16'}`}>
                     <div ref={accountSwitcherRef} className="relative p-2">
                         {isSidebarExpanded ? (
@@ -481,12 +514,12 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onBack, on
             {/* Main Content */}
             <main className={`flex-1 flex flex-col overflow-hidden bg-background`}>
                 <div className={`flex-1 ${isListView ? 'overflow-y-hidden' : 'overflow-y-auto'}`}>
-                    {!isDatabaseDetailView && !selectedQuery && (
+                    {!isDatabaseDetailView && !selectedQuery && !selectedPullRequest && (
                         <div className="lg:hidden p-4 border-b border-border-color bg-surface sticky top-0 z-10">
                             <MobileNav activePage={activePage} onPageChange={onPageChange} accountNavItems={accountNavItems} />
                         </div>
                     )}
-                    <div className={isDatabaseDetailView || selectedQuery || isListView ? "h-full" : "p-4 h-full"}>
+                    <div className={isDatabaseDetailView || selectedQuery || selectedPullRequest || isListView ? "h-full" : "p-4 h-full"}>
                         {renderContent()}
                     </div>
                 </div>

@@ -1,4 +1,4 @@
-// FIX: Corrected import statement for React hooks.
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, TopQuery, Warehouse } from '../types';
 import { accountSpend, topQueriesData, accountCostBreakdown, warehousesData, queryListData } from '../data/dummyData';
