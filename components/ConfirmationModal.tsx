@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useRef } from 'react';
 import { IconClose } from '../constants';
 
@@ -82,14 +80,14 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
       <div
         ref={modalRef}
         tabIndex={-1}
-        className="relative bg-surface rounded-3xl w-full max-w-lg m-4 transform transition-all duration-300 ease-in-out scale-100 flex flex-col"
+        className="relative bg-surface rounded-2xl w-full max-w-lg m-4 transform transition-all duration-300 ease-in-out scale-100 flex flex-col"
       >
         {/* Header */}
-        <div className="p-6 flex items-center justify-between flex-shrink-0">
+        <div className="p-6 flex items-start justify-between flex-shrink-0">
           <h2 id="modal-title" className="text-xl font-semibold text-text-primary">{title}</h2>
           <button
             type="button"
-            className="p-1 rounded-full text-text-secondary hover:bg-surface-hover hover:text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+            className="p-1 -m-1 rounded-full text-text-secondary hover:bg-surface-hover hover:text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
             onClick={onClose}
             aria-label="Close modal"
           >
@@ -98,23 +96,23 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
         </div>
 
         {/* Content */}
-        <div className="p-8">
+        <div className="px-6 pb-6">
           <p className="text-sm text-text-secondary">{message}</p>
         </div>
         
         {/* Footer */}
-        <div className="p-6 bg-background flex justify-end items-center gap-3 flex-shrink-0">
+        <div className="px-6 pb-6 flex justify-end items-center gap-3 flex-shrink-0">
           <button
             type="button"
             onClick={onClose} 
-            className="text-sm font-semibold px-4 py-2 rounded-full bg-surface-hover text-primary hover:bg-primary/20 transition-colors"
+            className="text-sm font-semibold px-6 py-2.5 rounded-full bg-button-secondary-bg text-primary hover:bg-button-secondary-bg-hover transition-colors"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onConfirm} 
-            className={`px-4 py-2 text-sm font-semibold text-white rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${variantClasses[confirmVariant]}`}
+            className={`px-6 py-2.5 text-sm font-semibold text-white rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${variantClasses[confirmVariant]}`}
           >
             {confirmText}
           </button>

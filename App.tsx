@@ -17,6 +17,7 @@ import SaveQueryFlow from './components/SaveQueryFlow';
 import InviteUserFlow from './components/InviteUserFlow';
 import EditUserRoleFlow from './components/EditUserRoleFlow';
 import ConfirmationModal from './components/ConfirmationModal';
+import Modal from './components/Modal';
 import Toast from './components/Toast';
 import BigScreenView from './components/BigScreenView';
 import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem, BigScreenWidget, QueryListItem, AssignedQuery, AssignmentPriority, AssignmentStatus, PullRequest } from './types';
@@ -28,8 +29,11 @@ import ProfileSettingsPage from './pages/ProfileSettingsPage';
 import Breadcrumb from './components/Breadcrumb';
 import AssignQueryFlow from './components/AssignQueryFlow';
 import AssignedQueries from './pages/AssignedQueries';
+import QueryPreviewContent from './components/QueryPreviewModal';
 
-type SidePanelType = 'addAccount' | 'saveQuery' | 'addUser' | 'editUser' | 'assignQuery';
+
+type SidePanelType = 'addAccount' | 'saveQuery' | 'editUser' | 'assignQuery' | 'queryPreview';
+type ModalType = 'addUser';
 type Theme = 'light' | 'dark';
 
 const App: React.FC = () => {
@@ -84,6 +88,7 @@ const App: React.FC = () => {
   const [hasNewAssignment, setHasNewAssignment] = useState(true);
 
   const [activeSidePanel, setActiveSidePanel] = useState<{ type: SidePanelType; props?: any } | null>(null);
+  const [activeModal, setActiveModal] = useState<ModalType | null>(null);
   const [displayMode, setDisplayMode] = useState<'cost' | 'credits'>('cost');
   const [theme, setTheme] = useState<Theme>('light');
 
@@ -269,22 +274,24 @@ const App: React.FC = () => {
     setSelectedUser(null);
   }, []);
   
-  const handleAddUser = (data: { name: string; role: UserRole; }) => {
+  const handleAddUser = (data: { email: string; }) => {
+    const nameFromEmail = data.email.split('@')[0].replace(/[^a-zA-Z]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     const newCost = Math.floor(Math.random() * 3000);
     const newUser: User = {
         id: `user-${Date.now()}`,
-        name: data.name,
-        email: `${data.name.toLowerCase().replace(/\s+/g, '.')}@example.com`,
-        role: data.role,
-        status: 'Active',
+        name: nameFromEmail,
+        email: data.email,
+        role: 'Analyst',
+        status: 'Invited',
         dateAdded: new Date().toISOString().split('T')[0],
         cost: newCost,
         credits: parseFloat((newCost * 0.4).toFixed(2)),
+        message: 'Invitation sent',
     };
     
     setUsers(prevUsers => [newUser, ...prevUsers]);
-    handleCloseSidePanel();
-    showToast('User added (mock data)');
+    setActiveModal(null);
+    showToast(`Invite sent to ${data.email}`);
   };
 
   const handleUpdateUserRole = (userId: string, newRole: UserRole) => {
@@ -398,6 +405,10 @@ const App: React.FC = () => {
 
   const handleOpenAssignQuery = (query: QueryListItem) => {
     setActiveSidePanel({ type: 'assignQuery', props: { query } });
+  };
+  
+  const handlePreviewQuery = (query: QueryListItem) => {
+    setActiveSidePanel({ type: 'queryPreview', props: { query } });
   };
 
   const handleAssignQuery = (details: { assigneeId: string; priority: AssignmentPriority; message: string; }) => {
@@ -662,6 +673,7 @@ const App: React.FC = () => {
                       activePage={activeAccountSubPage}
                       onPageChange={handleAccountSubPageChange}
                       onShareQueryClick={handleOpenAssignQuery}
+                      onPreviewQuery={handlePreviewQuery}
                       selectedQuery={selectedQuery}
                       setSelectedQuery={setSelectedQuery}
                       analyzingQuery={analyzingQuery}
@@ -686,7 +698,7 @@ const App: React.FC = () => {
                         setIsSettingsViewActive(false);
                         setActivePage('Data Cloud Overview');
                     }}
-                    onAddUserClick={() => setActiveSidePanel({ type: 'addUser' })}
+                    onAddUserClick={() => setActiveModal('addUser')}
                     onEditUserRoleClick={(user) => setActiveSidePanel({ type: 'editUser', props: { user } })}
                     onSuspendUserClick={(user) => setUserToSuspend(user)}
                     onActivateUserClick={(user) => setUserToActivate(user)}
@@ -722,10 +734,6 @@ const App: React.FC = () => {
         {activeSidePanel?.type === 'saveQuery' && <SaveQueryFlow files={sqlFiles} onCancel={handleCloseSidePanel} onSave={handleSaveQuery} {...activeSidePanel.props} />}
       </SidePanel>
       
-      <SidePanel isOpen={activeSidePanel?.type === 'addUser'} onClose={handleCloseSidePanel} title="Add User">
-          <InviteUserFlow onCancel={handleCloseSidePanel} onAddUser={handleAddUser} />
-      </SidePanel>
-
       <SidePanel isOpen={activeSidePanel?.type === 'editUser'} onClose={handleCloseSidePanel} title="Edit User Role">
         {activeSidePanel?.type === 'editUser' && <EditUserRoleFlow user={activeSidePanel.props.user} onCancel={handleCloseSidePanel} onSave={handleUpdateUserRole} />}
       </SidePanel>
@@ -733,6 +741,33 @@ const App: React.FC = () => {
       <SidePanel isOpen={activeSidePanel?.type === 'assignQuery'} onClose={handleCloseSidePanel} title="Assign Query for Optimization">
           {activeSidePanel?.type === 'assignQuery' && <AssignQueryFlow query={activeSidePanel.props.query} users={users} onCancel={handleCloseSidePanel} onAssign={handleAssignQuery} />}
       </SidePanel>
+
+      <SidePanel 
+          isOpen={activeSidePanel?.type === 'queryPreview'} 
+          onClose={handleCloseSidePanel} 
+          title={`Query Preview: ${activeSidePanel?.props?.query?.id.substring(7, 13).toUpperCase() ?? ''}`}
+        >
+            {activeSidePanel?.type === 'queryPreview' && (
+                <QueryPreviewContent 
+                    query={activeSidePanel.props.query} 
+                    onAnalyze={(q) => { handleAnalyzeQuery(q, 'Slow queries'); handleCloseSidePanel(); }}
+                    onOptimize={(q) => { handleOptimizeQuery(q, 'Slow queries'); handleCloseSidePanel(); }}
+                    onSimulate={(q) => { handleSimulateQuery(q, 'Slow queries'); handleCloseSidePanel(); }}
+                />
+            )}
+        </SidePanel>
+
+      {activeModal === 'addUser' && (
+        <Modal isOpen={true} onClose={() => setActiveModal(null)} title="Add users" size="md">
+            <InviteUserFlow 
+                onCancel={() => setActiveModal(null)} 
+                onAddUser={(data) => {
+                    handleAddUser(data);
+                    setActiveModal(null);
+                }} 
+            />
+        </Modal>
+      )}
 
       {userToSuspend && (
           <ConfirmationModal isOpen={!!userToSuspend} onClose={() => setUserToSuspend(null)} onConfirm={() => handleSuspendUser(userToSuspend.id)} title="Suspend User" message={`Are you sure you want to suspend ${userToSuspend.name}? They will lose access to the platform.`} confirmText="Suspend" confirmVariant="warning" />

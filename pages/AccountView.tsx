@@ -46,6 +46,7 @@ interface AccountViewProps {
     activePage: string;
     onPageChange: (page: string) => void;
     onShareQueryClick: (query: QueryListItem) => void;
+    onPreviewQuery: (query: QueryListItem) => void;
     selectedQuery: QueryListItem | null;
     setSelectedQuery: (query: QueryListItem | null) => void;
     analyzingQuery: QueryListItem | null;
@@ -276,7 +277,7 @@ const AccountAvatar: React.FC<{ name: string }> = ({ name }) => {
 };
 
 
-const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAccount, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, displayMode, users, navigationSource }) => {
+const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAccount, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, onPreviewQuery, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, displayMode, users, navigationSource }) => {
     const [selectedDatabaseId, setSelectedDatabaseId] = useState<string | null>(null);
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
     const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
@@ -307,7 +308,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
         search: '',
         dateFilter: '7d',
         warehouseFilter: [],
-        severityFilter: [],
+        severityFilter: ['Medium', 'High'],
     });
 
 
@@ -411,6 +412,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     onAnalyzeQuery={(q) => onAnalyzeQuery(q, 'Slow queries')}
                     onOptimizeQuery={(q) => onOptimizeQuery(q, 'Slow queries')}
                     onSimulateQuery={(q) => onSimulateQuery(q, 'Slow queries')}
+                    onPreviewQuery={onPreviewQuery}
                     filters={slowQueriesFilters}
                     setFilters={setSlowQueriesFilters}
                 />;
