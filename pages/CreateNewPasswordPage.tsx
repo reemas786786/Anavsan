@@ -1,17 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
+
+const IconEye: React.FC = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+);
+
+const IconEyeOff: React.FC = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+    </svg>
+);
 
 const IconArrowRight: React.FC = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-    </svg>
-);
-
-const IconGoogle: React.FC = () => (
-    <svg className="w-5 h-5" viewBox="0 0 48 48">
-        <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
-        <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path>
-        <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path>
-        <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C39.904,36.568,44,31.023,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
     </svg>
 );
 
@@ -58,16 +62,17 @@ const LoginGraphic: React.FC = () => (
     </div>
 );
 
-interface SignupPageProps {
-    onSignup: () => void;
-    onShowLogin: () => void;
+interface CreateNewPasswordPageProps {
+    onContinue: () => void;
 }
 
-const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onShowLogin }) => {
+const CreateNewPasswordPage: React.FC<CreateNewPasswordPageProps> = ({ onContinue }) => {
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        onSignup();
+        onContinue();
     };
 
     return (
@@ -75,65 +80,36 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onShowLogin }) => {
             {/* Left Panel - Form */}
             <div className="w-full lg:w-2/5 flex flex-col justify-center p-8 sm:p-16">
                 <div className="mx-auto w-full max-w-sm">
-                    <h1 className="text-3xl font-light">Sign up for <strong className="font-bold">Anavsan</strong></h1>
-                    <p className="mt-2 text-text-secondary">
-                        Already have an account?{' '}
-                        <button type="button" onClick={onShowLogin} className="font-semibold text-primary hover:underline">
-                            Sign in
-                        </button>
-                    </p>
+                    <h1 className="text-3xl font-bold">Create your new password</h1>
 
                     <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-                        <div className="flex gap-4">
-                            <div className="w-1/2">
-                                <label htmlFor="first-name" className="block text-sm font-medium text-text-secondary">First name</label>
-                                <div className="mt-1">
-                                    <input id="first-name" name="first-name" type="text" required defaultValue="Jane" className="w-full px-4 py-3 bg-gray-50 border-gray-200 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
-                                </div>
-                            </div>
-                             <div className="w-1/2">
-                                <label htmlFor="last-name" className="block text-sm font-medium text-text-secondary">Last name</label>
-                                <div className="mt-1">
-                                    <input id="last-name" name="last-name" type="text" required defaultValue="Doe" className="w-full px-4 py-3 bg-gray-50 border-gray-200 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
-                                </div>
+                        <div>
+                            <label htmlFor="password" className="block text-sm font-medium text-text-secondary">Password</label>
+                            <div className="mt-1 relative">
+                                <input id="password" name="password" type={showPassword ? 'text' : 'password'} required className="w-full px-4 py-3 bg-gray-50 border-gray-200 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
+                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 px-4 flex items-center text-text-muted hover:text-text-primary">
+                                    {showPassword ? <IconEyeOff /> : <IconEye />}
+                                </button>
                             </div>
                         </div>
 
                         <div>
-                            <label htmlFor="work-email" className="block text-sm font-medium text-text-secondary">Work email address</label>
-                            <div className="mt-1">
-                                <input id="work-email" name="work-email" type="email" required defaultValue="jane.doe@acmeinc.com" className="w-full px-4 py-3 bg-gray-50 border-gray-200 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label htmlFor="company-name" className="block text-sm font-medium text-text-secondary">Company name</label>
-                            <div className="mt-1">
-                                <input id="company-name" name="company-name" type="text" required defaultValue="Acme Inc." className="w-full px-4 py-3 bg-gray-50 border-gray-200 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
+                            <label htmlFor="confirm-password" className="block text-sm font-medium text-text-secondary">Confirm password</label>
+                            <div className="mt-1 relative">
+                                <input id="confirm-password" name="confirm-password" type={showConfirmPassword ? 'text' : 'password'} required className="w-full px-4 py-3 bg-gray-50 border-gray-200 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
+                                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 px-4 flex items-center text-text-muted hover:text-text-primary">
+                                    {showConfirmPassword ? <IconEyeOff /> : <IconEye />}
+                                </button>
                             </div>
                         </div>
 
                         <div>
                             <button type="submit" className="w-full flex justify-center items-center gap-2 px-4 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                                <span>Sign up</span>
+                                <span>Continue</span>
                                 <IconArrowRight />
                             </button>
                         </div>
                     </form>
-
-                    <div className="mt-6 flex items-center">
-                        <div className="flex-grow border-t border-gray-200"></div>
-                        <span className="flex-shrink mx-4 text-sm text-gray-400">Or</span>
-                        <div className="flex-grow border-t border-gray-200"></div>
-                    </div>
-
-                    <div className="mt-6">
-                        <button className="w-full flex items-center justify-center px-4 py-3 bg-gray-50 rounded-lg text-text-secondary hover:bg-gray-100 transition-colors border border-gray-200">
-                           <IconGoogle />
-                           <span className="ml-3 font-medium text-sm">Continue with Google</span>
-                        </button>
-                    </div>
-
                 </div>
                 <footer className="w-full max-w-sm mx-auto mt-auto pt-8 text-xs text-text-muted text-center">
                     &copy; Anavsan Corp. All rights reserved.{' '}
@@ -151,4 +127,4 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onShowLogin }) => {
     );
 };
 
-export default SignupPage;
+export default CreateNewPasswordPage;

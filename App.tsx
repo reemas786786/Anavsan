@@ -33,12 +33,16 @@ import QueryPreviewContent from './components/QueryPreviewModal';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import RequestSubmittedPage from './pages/RequestSubmittedPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import CheckEmailPage from './pages/CheckEmailPage';
+import CreateNewPasswordPage from './pages/CreateNewPasswordPage';
+import PasswordResetSuccessPage from './pages/PasswordResetSuccessPage';
 
 
 type SidePanelType = 'addAccount' | 'saveQuery' | 'editUser' | 'assignQuery' | 'queryPreview';
 type ModalType = 'addUser';
 type Theme = 'light' | 'dark';
-type AuthScreen = 'login' | 'signup' | 'submitted';
+type AuthScreen = 'login' | 'signup' | 'submitted' | 'forgotPassword' | 'checkEmail' | 'createNewPassword' | 'passwordResetSuccess';
 
 const SplashScreen: React.FC = () => (
     <div id="splash-loader" style={{ opacity: 1 }}>
@@ -130,12 +134,13 @@ const App: React.FC = () => {
     }, 2500);
   };
   
-  const handleSignupSubmit = () => {
-    setAuthScreen('submitted');
-  };
-
+  const handleSignupSubmit = () => setAuthScreen('submitted');
   const handleShowSignup = () => setAuthScreen('signup');
   const handleShowLogin = () => setAuthScreen('login');
+  const handleShowForgotPassword = () => setAuthScreen('forgotPassword');
+  const handlePasswordResetRequest = () => setAuthScreen('checkEmail');
+  const handleCodeSubmit = () => setAuthScreen('createNewPassword');
+  const handleNewPasswordSubmit = () => setAuthScreen('passwordResetSuccess');
 
   useEffect(() => {
     // This effect handles the very first page load splash screen in index.html
@@ -299,4 +304,403 @@ const App: React.FC = () => {
       setIsSettingsViewActive(false);
       setIsProfileSettingsPageActive(false);
       setSelectedQuery(null);
-      setAnalyzingQuery(
+      // FIX: Fix truncated line and complete function body for consistency
+      setAnalyzingQuery(null);
+      setSelectedPullRequest(null);
+      setNavigationSource(null);
+  };
+  
+  const handleOpenProfileSettings = () => {
+    setIsProfileSettingsPageActive(true);
+    setActivePage('Settings');
+    setActiveProfileSubPage('User Info');
+  };
+
+  const renderPage = () => {
+    if (isProfileSettingsPageActive) {
+        return <ProfileSettingsPage 
+            user={currentUser!} 
+            onSave={(updatedUser) => {
+                setCurrentUser(updatedUser);
+                setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
+                showToast('Profile updated!');
+            }}
+            onBack={() => setIsProfileSettingsPageActive(false)}
+            brandLogo={brandLogo}
+            onUpdateBrandLogo={(logo) => {
+                setBrandLogo(logo);
+                showToast('Brand logo updated!');
+            }}
+            activeSection={activeProfileSubPage}
+            onSectionChange={setActiveProfileSubPage}
+        />;
+    }
+
+    if (isSettingsViewActive) {
+        return <SettingsPage 
+            activeSubPage={activeSubPage || 'User Management'}
+            onSubPageChange={(subPage) => handlePageChange('Settings', subPage)}
+            onBack={() => {
+                setIsSettingsViewActive(false);
+                handlePageChange('Data Cloud Overview');
+            }}
+            onAddUserClick={() => setActiveModal('addUser')}
+            users={users}
+            onEditUserRoleClick={(user) => setActiveSidePanel({ type: 'editUser', props: { user } })}
+            onSuspendUserClick={setUserToSuspend}
+            onActivateUserClick={setUserToActivate}
+            onRemoveUserClick={setUserToRemove}
+        />;
+    }
+    
+    if (editingDashboard) {
+        return <DashboardEditor 
+            dashboard={editingDashboard === 'new' ? null : editingDashboard}
+            accounts={accounts}
+            onSave={(dashboard) => {
+                if (editingDashboard === 'new') {
+                    setDashboards([...dashboards, { ...dashboard, id: `dash-${Date.now()}` }]);
+                    showToast('Dashboard created');
+                } else {
+                    setDashboards(dashboards.map(d => d.id === dashboard.id ? dashboard : d));
+                    showToast('Dashboard saved');
+                }
+                setEditingDashboard(null);
+            }}
+            onCancel={() => setEditingDashboard(null)}
+        />;
+    }
+    
+    if (viewingDashboard) {
+        return <DashboardEditor
+            dashboard={viewingDashboard}
+            accounts={accounts}
+            onSave={() => {}}
+            onCancel={() => setViewingDashboard(null)}
+            isViewMode={true}
+            allDashboards={dashboards}
+            onSwitchDashboard={setViewingDashboard}
+            onEditDashboard={() => {
+                setEditingDashboard(viewingDashboard);
+                setViewingDashboard(null);
+            }}
+            onDeleteDashboard={() => setDashboardToDelete(viewingDashboard)}
+        />;
+    }
+
+    if (selectedAccount) {
+      return (
+        <AccountView
+          account={selectedAccount}
+          accounts={accounts}
+          onSwitchAccount={setSelectedAccount}
+          sqlFiles={sqlFiles}
+          onSaveQueryClick={(tag: string) => setActiveSidePanel({ type: 'saveQuery', props: { contextualTag: tag } })}
+          onSetBigScreenWidget={setBigScreenWidget}
+          activePage={activeAccountSubPage}
+          onPageChange={setActiveAccountSubPage}
+          onShareQueryClick={(query: QueryListItem) => setActiveSidePanel({ type: 'assignQuery', props: { query } })}
+          onPreviewQuery={(query: QueryListItem) => setActiveSidePanel({ type: 'queryPreview', props: { query } })}
+          selectedQuery={selectedQuery}
+          setSelectedQuery={setSelectedQuery}
+          analyzingQuery={analyzingQuery}
+          onAnalyzeQuery={(query, source) => {
+              setAnalyzingQuery(query);
+              setNavigationSource(source);
+              setActiveAccountSubPage('Query analyzer');
+          }}
+          onOptimizeQuery={(query, source) => {
+              setAnalyzingQuery(query);
+              setNavigationSource(source);
+              setActiveAccountSubPage('Query optimizer');
+          }}
+          onSimulateQuery={(query, source) => {
+              setAnalyzingQuery(query);
+              setNavigationSource(source);
+              setActiveAccountSubPage('Query simulator');
+          }}
+          pullRequests={pullRequestsData}
+          selectedPullRequest={selectedPullRequest}
+          setSelectedPullRequest={setSelectedPullRequest}
+          displayMode={displayMode}
+          users={users}
+          navigationSource={navigationSource}
+        />
+      );
+    }
+    if (selectedUser) {
+      return <UserView user={selectedUser} onBack={() => setSelectedUser(null)} />;
+    }
+    switch (activePage) {
+      case 'Data Cloud Overview':
+        return <Overview onSelectAccount={handleSelectAccount} onSelectUser={handleSelectUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} displayMode={displayMode} />;
+      case 'Dashboards':
+        return <Dashboards 
+                    dashboards={dashboards} 
+                    onDeleteDashboardClick={setDashboardToDelete} 
+                    onAddDashboardClick={() => setEditingDashboard('new')}
+                    onEditDashboardClick={setEditingDashboard}
+                    onViewDashboardClick={setViewingDashboard}
+                />;
+      case 'Snowflake Accounts':
+        return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setActiveSidePanel({ type: 'addAccount' })} onDeleteAccount={handleDeleteAccount} />;
+      case 'AI Agent':
+        return <AIAgent />;
+      case 'Reports':
+        return <Reports />;
+      case 'Assigned Queries':
+        return <AssignedQueries assignedQueries={assignedQueries} onUpdateStatus={(id, status) => {
+            setAssignedQueries(assignedQueries.map(q => q.id === id ? { ...q, status } : q));
+        }} />;
+      case 'Book a Demo':
+        return <BookDemo />;
+      case 'Docs':
+        return <Docs />;
+      case 'Settings':
+        return <Settings />;
+      case 'Support':
+        return <Support />;
+      default:
+        return <div>Page not found</div>;
+    }
+  };
+
+  const renderSidePanelContent = () => {
+    if (!activeSidePanel) return null;
+    switch (activeSidePanel.type) {
+        case 'addAccount':
+            return <AddAccountFlow onCancel={handleCloseSidePanel} onAddAccount={handleAddAccount} />;
+        case 'saveQuery':
+            return <SaveQueryFlow onCancel={handleCloseSidePanel} onSave={handleSaveQuery} files={sqlFiles} {...activeSidePanel.props} />;
+        case 'editUser':
+            return <EditUserRoleFlow {...activeSidePanel.props} onCancel={handleCloseSidePanel} onSave={(userId, newRole) => {
+                setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+                handleCloseSidePanel();
+            }} />;
+        case 'assignQuery':
+             return <AssignQueryFlow {...activeSidePanel.props} users={users} onCancel={handleCloseSidePanel} onAssign={({ assigneeId, priority, message }) => {
+                const assignee = users.find(u => u.id === assigneeId);
+                const newAssignment: AssignedQuery = {
+                    id: `aq-${Date.now()}`,
+                    queryId: activeSidePanel.props.query.id,
+                    queryText: activeSidePanel.props.query.queryText,
+                    assignedBy: currentUser!.name,
+                    assignedTo: assignee!.name,
+                    priority,
+                    status: 'Pending',
+                    message,
+                    assignedOn: new Date().toISOString(),
+                    cost: activeSidePanel.props.query.costUSD,
+                    credits: activeSidePanel.props.query.costCredits,
+                };
+                setAssignedQueries(prev => [newAssignment, ...prev]);
+                showToast(`Query assigned to ${assignee!.name}`);
+                handleCloseSidePanel();
+             }} />;
+        case 'queryPreview':
+            return <QueryPreviewContent {...activeSidePanel.props} onAnalyze={(q) => {
+                handleCloseSidePanel();
+                if(selectedAccount) {
+                    setAnalyzingQuery(q);
+                    setNavigationSource(activeAccountSubPage);
+                    setActiveAccountSubPage('Query analyzer');
+                }
+            }} onOptimize={(q) => {
+                handleCloseSidePanel();
+                if(selectedAccount) {
+                    setAnalyzingQuery(q);
+                    setNavigationSource(activeAccountSubPage);
+                    setActiveAccountSubPage('Query optimizer');
+                }
+            }} onSimulate={(q) => {
+                 handleCloseSidePanel();
+                if(selectedAccount) {
+                    setAnalyzingQuery(q);
+                    setNavigationSource(activeAccountSubPage);
+                    setActiveAccountSubPage('Query simulator');
+                }
+            }} />;
+        default:
+            return null;
+    }
+  };
+
+  const getSidePanelTitle = () => {
+      if (!activeSidePanel) return '';
+      switch (activeSidePanel.type) {
+          case 'addAccount': return 'Add Snowflake Account';
+          case 'saveQuery': return 'Save Query Version';
+          case 'editUser': return `Edit Role for ${activeSidePanel.props.user.name}`;
+          case 'assignQuery': return 'Assign Query for Optimization';
+          case 'queryPreview': return 'Query Preview';
+          default: return '';
+      }
+  };
+
+  const renderModalContent = () => {
+    if (!activeModal) return null;
+    switch(activeModal) {
+        case 'addUser':
+            return <InviteUserFlow onCancel={() => setActiveModal(null)} onAddUser={(data) => {
+                const newUser: User = {
+                    id: `user-${Date.now()}`,
+                    name: data.email.split('@')[0],
+                    email: data.email,
+                    role: 'Viewer',
+                    status: 'Invited',
+                    dateAdded: new Date().toISOString().split('T')[0],
+                    cost: 0,
+                    credits: 0,
+                };
+                setUsers(prev => [newUser, ...prev]);
+                setActiveModal(null);
+            }} />;
+        default:
+            return null;
+    }
+  };
+  
+  const getModalTitle = () => {
+    if (!activeModal) return '';
+    switch(activeModal) {
+        case 'addUser': return 'Invite User';
+        default: return '';
+    }
+  };
+  
+  if (!isLoggedIn) {
+      if (authScreen === 'login') return <LoginPage onLogin={handleLogin} onShowSignup={handleShowSignup} onShowForgotPassword={handleShowForgotPassword} />;
+      if (authScreen === 'signup') return <SignupPage onSignup={handleSignupSubmit} onShowLogin={handleShowLogin} />;
+      if (authScreen === 'submitted') return <RequestSubmittedPage onBackToHomepage={handleShowLogin} />;
+      if (authScreen === 'forgotPassword') return <ForgotPasswordPage onContinue={handlePasswordResetRequest} onBackToLogin={handleShowLogin} />;
+      if (authScreen === 'checkEmail') return <CheckEmailPage onContinue={handleCodeSubmit} />;
+      if (authScreen === 'createNewPassword') return <CreateNewPasswordPage onContinue={handleNewPasswordSubmit} />;
+      if (authScreen === 'passwordResetSuccess') return <PasswordResetSuccessPage onGoToSignIn={handleShowLogin} />;
+  }
+
+  return (
+    <div className={`app-container flex flex-col h-screen bg-background font-sans text-text-primary ${theme}`}>
+      {isLoading && <SplashScreen />}
+      <Header
+        onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        isSidebarOpen={isSidebarOpen}
+        onLogoClick={handleLogoClick}
+        brandLogo={brandLogo}
+        onOpenProfileSettings={handleOpenProfileSettings}
+        onLogout={() => setIsLoggedIn(false)}
+        hasNewAssignment={hasNewAssignment}
+        displayMode={displayMode}
+        onDisplayModeChange={setDisplayMode}
+        theme={theme}
+        onThemeChange={setTheme}
+      />
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar
+          activePage={activePage}
+          setActivePage={handlePageChange}
+          isOpen={isSidebarOpen && !selectedAccount}
+          onClose={() => setIsSidebarOpen(false)}
+          activeSubPage={activeSubPage}
+          showCompact={!selectedAccount}
+        />
+        <main className="flex-1 overflow-y-auto ml-4 mt-4">
+          {renderPage()}
+        </main>
+      </div>
+
+      <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
+
+      <SidePanel 
+          isOpen={!!activeSidePanel} 
+          onClose={handleCloseSidePanel}
+          title={getSidePanelTitle()}
+      >
+          {renderSidePanelContent()}
+      </SidePanel>
+      
+      <Modal 
+          isOpen={!!activeModal}
+          onClose={() => setActiveModal(null)}
+          title={getModalTitle()}
+      >
+          {renderModalContent()}
+      </Modal>
+
+      {userToSuspend && (
+          <ConfirmationModal
+              isOpen={!!userToSuspend}
+              onClose={() => setUserToSuspend(null)}
+              onConfirm={() => {
+                  setUsers(users.map(u => u.id === userToSuspend.id ? { ...u, status: 'Suspended' } : u));
+                  setUserToSuspend(null);
+              }}
+              title="Suspend User"
+              message={<>Are you sure you want to suspend <strong>{userToSuspend.name}</strong>? They will lose access to the platform.</>}
+              confirmText="Suspend"
+              confirmVariant="warning"
+          />
+      )}
+       {userToActivate && (
+          <ConfirmationModal
+              isOpen={!!userToActivate}
+              onClose={() => setUserToActivate(null)}
+              onConfirm={() => {
+                  setUsers(users.map(u => u.id === userToActivate.id ? { ...u, status: 'Active' } : u));
+                  setUserToActivate(null);
+              }}
+              title="Activate User"
+              message={<>Are you sure you want to activate <strong>{userToActivate.name}</strong>? They will regain access to the platform.</>}
+              confirmText="Activate"
+          />
+      )}
+      {userToRemove && (
+          <ConfirmationModal
+              isOpen={!!userToRemove}
+              onClose={() => setUserToRemove(null)}
+              onConfirm={() => {
+                  setUsers(users.filter(u => u.id !== userToRemove.id));
+                  setUserToRemove(null);
+              }}
+              title="Remove User"
+              message={<>Are you sure you want to permanently remove <strong>{userToRemove.name}</strong> from the organization?</>}
+              confirmText="Remove"
+              confirmVariant="danger"
+          />
+      )}
+      {dashboardToDelete && (
+          <ConfirmationModal
+              isOpen={!!dashboardToDelete}
+              onClose={() => setDashboardToDelete(null)}
+              onConfirm={() => {
+                  setDashboards(dashboards.filter(d => d.id !== dashboardToDelete.id));
+                  setDashboardToDelete(null);
+                  setViewingDashboard(null);
+              }}
+              title="Delete Dashboard"
+              message={<>Are you sure you want to delete the "<strong>{dashboardToDelete.title}</strong>" dashboard? This action cannot be undone.</>}
+              confirmText="Delete"
+              confirmVariant="danger"
+          />
+      )}
+      {bigScreenWidget && (
+          <BigScreenView
+              widget={bigScreenWidget}
+              accounts={accounts}
+              users={users}
+              onClose={() => setBigScreenWidget(null)}
+              onSelectAccount={(account) => {
+                  setBigScreenWidget(null);
+                  handleSelectAccount(account);
+              }}
+              onSelectUser={(user) => {
+                  setBigScreenWidget(null);
+                  handleSelectUser(user);
+              }}
+              displayMode={displayMode}
+          />
+      )}
+    </div>
+  );
+};
+// FIX: Add default export to fix module import error
+export default App;

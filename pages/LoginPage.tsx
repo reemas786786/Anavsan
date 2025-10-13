@@ -87,9 +87,10 @@ const LoginGraphic: React.FC = () => (
 interface LoginPageProps {
     onLogin: () => void;
     onShowSignup: () => void;
+    onShowForgotPassword: () => void;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowSignup }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowSignup, onShowForgotPassword }) => {
     const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -102,18 +103,18 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowSignup }) => {
             {/* Left Panel - Form */}
             <div className="w-full lg:w-2/5 flex flex-col justify-center p-8 sm:p-16">
                 <div className="mx-auto w-full max-w-sm">
-                    <h1 className="text-3xl font-light">Log in to <strong className="font-bold">Anavsan</strong></h1>
+                    <h1 className="text-3xl font-light">Sign in to <strong className="font-bold">Anavsan</strong></h1>
                     <p className="mt-2 text-text-secondary">
                         Don't have an account?{' '}
                         <button type="button" onClick={onShowSignup} className="font-semibold text-primary hover:underline">
-                            Create an account
+                            Sign up
                         </button>
                     </p>
 
                     <form onSubmit={handleSubmit} className="mt-8 space-y-6">
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-text-secondary">
-                                Email Address
+                                Work email address
                             </label>
                             <div className="mt-1">
                                 <input
@@ -123,6 +124,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowSignup }) => {
                                     autoComplete="email"
                                     required
                                     defaultValue="demo@anavsan.com"
+                                    placeholder="you@company.com"
                                     className="w-full px-4 py-3 bg-gray-50 border-gray-200 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                 />
                             </div>
@@ -140,9 +142,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowSignup }) => {
                                     autoComplete="current-password"
                                     required
                                     defaultValue="••••••••••••"
+                                    placeholder="Enter your password"
                                     className="w-full px-4 py-3 bg-gray-50 border-gray-200 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                 />
-                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 px-4 flex items-center text-text-muted hover:text-text-primary">
+                                <button type="button" onClick={() => setShowPassword(!setShowPassword)} className="absolute inset-y-0 right-0 px-4 flex items-center text-text-muted hover:text-text-primary">
                                     {showPassword ? <IconEyeOff /> : <IconEye />}
                                 </button>
                             </div>
@@ -156,15 +159,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowSignup }) => {
                                 </label>
                             </div>
                             <div className="font-semibold">
-                                <a href="#" className="text-primary hover:underline">
-                                    Forgot Password?
-                                </a>
+                                <button type="button" onClick={onShowForgotPassword} className="text-primary hover:underline">
+                                    Forgot password?
+                                </button>
                             </div>
                         </div>
 
                         <div>
                             <button type="submit" className="w-full flex justify-center items-center gap-2 px-4 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                                <span>Log in</span>
+                                <span>Sign in</span>
                                 <IconArrowRight />
                             </button>
                         </div>
@@ -179,19 +182,19 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowSignup }) => {
                     <div className="mt-6 grid grid-cols-2 gap-4">
                         <button className="flex items-center justify-center px-4 py-3 bg-gray-50 rounded-lg text-text-secondary hover:bg-gray-100 transition-colors border border-gray-200">
                            <IconGoogle />
-                           <span className="ml-3 font-medium text-sm">Gmail</span>
+                           <span className="ml-3 font-medium text-sm">Continue with Google</span>
                         </button>
                         <button className="flex items-center justify-center px-4 py-3 bg-gray-50 rounded-lg text-text-secondary hover:bg-gray-100 transition-colors border border-gray-200">
                             <IconGithub />
-                            <span className="ml-3 font-medium text-sm">Github</span>
+                            <span className="ml-3 font-medium text-sm">Continue with GitHub</span>
                         </button>
                     </div>
 
                 </div>
                 <footer className="w-full max-w-sm mx-auto mt-auto pt-8 text-xs text-text-muted text-center">
-                    &copy; copyright Anavsan Corp. All rights reserved.{' '}
+                    &copy; Anavsan Corp. All rights reserved.{' '}
                     <a href="#" className="text-primary hover:underline">
-                        Privacy Policy
+                        Privacy policy
                     </a>
                 </footer>
             </div>

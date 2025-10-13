@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { User, UserStatus } from '../../types';
 import { IconAdd, IconDotsVertical, IconArrowUp, IconArrowDown, IconSearch } from '../../constants';
@@ -38,10 +39,10 @@ interface UserManagementProps {
     onEditUserRole: (user: User) => void;
     onSuspendUser: (user: User) => void;
     onActivateUserClick: (user: User) => void;
-    onRemoveUser: (user: User) => void;
+    onRemoveUserClick: (user: User) => void;
 }
 
-const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEditUserRole, onSuspendUser, onActivateUserClick, onRemoveUser }) => {
+const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEditUserRole, onSuspendUser, onActivateUserClick, onRemoveUserClick }) => {
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const [sortConfig, setSortConfig] = useState<{ key: keyof User; direction: 'ascending' | 'descending' } | null>({ key: 'name', direction: 'ascending' });
@@ -222,7 +223,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEdi
                                                         ) : (
                                                             <button onClick={() => { onSuspendUser(user); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Suspend User</button>
                                                         )}
-                                                        <button onClick={() => { onRemoveUser(user); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-status-error hover:bg-status-error/10" role="menuitem">Remove User</button>
+                                                        <button onClick={() => { onRemoveUserClick(user); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-status-error hover:bg-status-error/10" role="menuitem">Remove User</button>
                                                     </div>
                                                 </div>
                                             )}
