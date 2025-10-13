@@ -175,18 +175,18 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowSignup, onShowForg
 
                     <div className="mt-6 flex items-center">
                         <div className="flex-grow border-t border-gray-200"></div>
-                        <span className="flex-shrink mx-4 text-sm text-gray-400">Or</span>
+                        <span className="flex-shrink mx-4 text-sm text-gray-400">Or continue with</span>
                         <div className="flex-grow border-t border-gray-200"></div>
                     </div>
 
                     <div className="mt-6 grid grid-cols-2 gap-4">
                         <button className="flex items-center justify-center px-4 py-3 bg-gray-50 rounded-lg text-text-secondary hover:bg-gray-100 transition-colors border border-gray-200">
                            <IconGoogle />
-                           <span className="ml-3 font-medium text-sm">Continue with Google</span>
+                           <span className="ml-3 font-medium text-sm">Google</span>
                         </button>
                         <button className="flex items-center justify-center px-4 py-3 bg-gray-50 rounded-lg text-text-secondary hover:bg-gray-100 transition-colors border border-gray-200">
                             <IconGithub />
-                            <span className="ml-3 font-medium text-sm">Continue with GitHub</span>
+                            <span className="ml-3 font-medium text-sm">GitHub</span>
                         </button>
                     </div>
 
