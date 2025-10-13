@@ -14,6 +14,7 @@ interface OverviewProps {
     users: User[];
     onSetBigScreenWidget: (widget: BigScreenWidget) => void;
     displayMode: 'cost' | 'credits';
+    currentUserRole: 'Admin' | 'User' | null;
 }
 
 const Card: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className, title }) => (
@@ -81,7 +82,7 @@ const CustomTooltip = ({ active, payload, label, displayMode }: any) => {
 };
 
 
-const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, accounts, users, onSetBigScreenWidget, displayMode }) => {
+const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, accounts, users, onSetBigScreenWidget, displayMode, currentUserRole }) => {
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     
@@ -408,78 +409,80 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                     </Card>
 
                     {/* Top spend by user */}
-                    <Card>
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center">
-                                <h4 className="text-base font-semibold text-text-strong">Top spend by user</h4>
-                                <InfoTooltip text="Displays the top 10 users ranked by their total cost or credit consumption for the current period." />
-                            </div>
-                            <div className="relative" ref={openMenu === 'top-spend-user' ? menuRef : null}>
-                                <button
-                                    onClick={() => handleMenuClick('top-spend-user')}
-                                    className="p-1 rounded-full text-text-secondary hover:bg-surface-hover hover:text-primary focus:outline-none"
-                                    aria-label="Top spend by user options"
-                                    aria-haspopup="true"
-                                    aria-expanded={openMenu === 'top-spend-user'}
-                                >
-                                    <IconDotsVertical className="h-5 w-5" />
-                                </button>
-                                {openMenu === 'top-spend-user' && (
-                                    <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg bg-surface shadow-lg z-10">
-                                        <div className="py-1" role="menu" aria-orientation="vertical">
-                                            <button onClick={() => { onSetBigScreenWidget({ type: 'user', title: 'Top spend by user' }); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">View in Big Screen</button>
-                                            <button onClick={() => { handleOpenTopUserTable(); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Table View</button>
-                                            <button onClick={() => handleDownloadCSV('top-spend-user')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
+                    {currentUserRole === 'Admin' && (
+                        <Card>
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="flex items-center">
+                                    <h4 className="text-base font-semibold text-text-strong">Top spend by user</h4>
+                                    <InfoTooltip text="Displays the top 10 users ranked by their total cost or credit consumption for the current period." />
+                                </div>
+                                <div className="relative" ref={openMenu === 'top-spend-user' ? menuRef : null}>
+                                    <button
+                                        onClick={() => handleMenuClick('top-spend-user')}
+                                        className="p-1 rounded-full text-text-secondary hover:bg-surface-hover hover:text-primary focus:outline-none"
+                                        aria-label="Top spend by user options"
+                                        aria-haspopup="true"
+                                        aria-expanded={openMenu === 'top-spend-user'}
+                                    >
+                                        <IconDotsVertical className="h-5 w-5" />
+                                    </button>
+                                    {openMenu === 'top-spend-user' && (
+                                        <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg bg-surface shadow-lg z-10">
+                                            <div className="py-1" role="menu" aria-orientation="vertical">
+                                                <button onClick={() => { onSetBigScreenWidget({ type: 'user', title: 'Top spend by user' }); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">View in Big Screen</button>
+                                                <button onClick={() => { handleOpenTopUserTable(); setOpenMenu(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Table View</button>
+                                                <button onClick={() => handleDownloadCSV('top-spend-user')} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                        <div style={{ height: 360 }} aria-live="polite">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart
-                                    layout="vertical"
-                                    data={topUsers}
-                                    margin={{ top: 5, right: 30, left: 20, bottom: 20 }}
-                                    barCategoryGap="20%"
-                                >
-                                    <XAxis
-                                        type="number"
-                                        stroke="#5A5A72"
-                                        fontSize={12}
-                                        tickLine={false}
-                                        axisLine={{ stroke: '#E5E5E0' }}
-                                        label={{ value: displayMode === 'cost' ? 'Cost ($)' : 'Credits', position: 'insideBottom', dy: 15, style: { fill: '#5A5A72', fontSize: 12, fontWeight: 500 } }}
-                                    />
-                                    <YAxis
-                                        type="category"
-                                        dataKey="name"
-                                        stroke="#5A5A72"
-                                        tickLine={false}
-                                        axisLine={false}
-                                        interval={0}
-                                        width={100}
-                                        tick={{ fill: '#5A5A72', fontSize: 12 }}
-                                    />
-                                    <Tooltip
-                                        cursor={{ fill: 'rgba(105, 50, 213, 0.1)', cursor: 'pointer' }}
-                                        content={<CustomTooltip displayMode={displayMode} />}
-                                    />
-                                    <Bar
-                                        dataKey={displayMode === 'cost' ? 'cost' : 'credits'}
-                                        fill="#6932D5"
-                                        barSize={userBarHeight}
-                                        shape={
-                                            <AccessibleBar
-                                                onBarClick={handleUserBarClick}
-                                                ariaLabelGenerator={(p: any) => `Navigate to User Overview for ${p.name}`}
-                                            />
-                                        }
-                                    />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </Card>
+                            <div style={{ height: 360 }} aria-live="polite">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart
+                                        layout="vertical"
+                                        data={topUsers}
+                                        margin={{ top: 5, right: 30, left: 20, bottom: 20 }}
+                                        barCategoryGap="20%"
+                                    >
+                                        <XAxis
+                                            type="number"
+                                            stroke="#5A5A72"
+                                            fontSize={12}
+                                            tickLine={false}
+                                            axisLine={{ stroke: '#E5E5E0' }}
+                                            label={{ value: displayMode === 'cost' ? 'Cost ($)' : 'Credits', position: 'insideBottom', dy: 15, style: { fill: '#5A5A72', fontSize: 12, fontWeight: 500 } }}
+                                        />
+                                        <YAxis
+                                            type="category"
+                                            dataKey="name"
+                                            stroke="#5A5A72"
+                                            tickLine={false}
+                                            axisLine={false}
+                                            interval={0}
+                                            width={100}
+                                            tick={{ fill: '#5A5A72', fontSize: 12 }}
+                                        />
+                                        <Tooltip
+                                            cursor={{ fill: 'rgba(105, 50, 213, 0.1)', cursor: 'pointer' }}
+                                            content={<CustomTooltip displayMode={displayMode} />}
+                                        />
+                                        <Bar
+                                            dataKey={displayMode === 'cost' ? 'cost' : 'credits'}
+                                            fill="#6932D5"
+                                            barSize={userBarHeight}
+                                            shape={
+                                                <AccessibleBar
+                                                    onBarClick={handleUserBarClick}
+                                                    ariaLabelGenerator={(p: any) => `Navigate to User Overview for ${p.name}`}
+                                                />
+                                            }
+                                        />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </Card>
+                    )}
                 </div>
                 <div className="space-y-4">
                     {/* Resource summary */}

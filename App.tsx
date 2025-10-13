@@ -43,6 +43,7 @@ type SidePanelType = 'addAccount' | 'saveQuery' | 'editUser' | 'assignQuery' | '
 type ModalType = 'addUser';
 type Theme = 'light' | 'dark';
 type AuthScreen = 'login' | 'signup' | 'submitted' | 'forgotPassword' | 'checkEmail' | 'createNewPassword' | 'passwordResetSuccess';
+type UserAppRole = 'Admin' | 'User';
 
 const SplashScreen: React.FC = () => (
     <div id="splash-loader" style={{ opacity: 1 }}>
@@ -69,6 +70,7 @@ const SplashScreen: React.FC = () => (
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<UserAppRole | null>(null);
   const [authScreen, setAuthScreen] = useState<AuthScreen>('login');
   const [activePage, setActivePage] = useState<Page>('Data Cloud Overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -126,8 +128,14 @@ const App: React.FC = () => {
   const [theme, setTheme] = useState<Theme>('light');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = (email: string) => {
     setIsLoading(true);
+    if (email.toLowerCase() === 'admin@anavsan.com') {
+        setCurrentUserRole('Admin');
+    } else {
+        setCurrentUserRole('User');
+    }
+
     setTimeout(() => {
         setIsLoggedIn(true);
         setIsLoading(false);
@@ -433,7 +441,7 @@ const App: React.FC = () => {
     }
     switch (activePage) {
       case 'Data Cloud Overview':
-        return <Overview onSelectAccount={handleSelectAccount} onSelectUser={handleSelectUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} displayMode={displayMode} />;
+        return <Overview onSelectAccount={handleSelectAccount} onSelectUser={handleSelectUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} displayMode={displayMode} currentUserRole={currentUserRole} />;
       case 'Dashboards':
         return <Dashboards 
                     dashboards={dashboards} 
@@ -587,7 +595,7 @@ const App: React.FC = () => {
         onLogoClick={handleLogoClick}
         brandLogo={brandLogo}
         onOpenProfileSettings={handleOpenProfileSettings}
-        onLogout={() => setIsLoggedIn(false)}
+        onLogout={() => { setIsLoggedIn(false); setCurrentUserRole(null); }}
         hasNewAssignment={hasNewAssignment}
         displayMode={displayMode}
         onDisplayModeChange={setDisplayMode}
@@ -598,12 +606,12 @@ const App: React.FC = () => {
         <Sidebar
           activePage={activePage}
           setActivePage={handlePageChange}
-          isOpen={isSidebarOpen && !selectedAccount}
+          isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           activeSubPage={activeSubPage}
           showCompact={!selectedAccount}
         />
-        <main className="flex-1 overflow-y-auto ml-4 mt-4">
+        <main className={`flex-1 overflow-y-auto ${!selectedAccount ? 'ml-4 mt-4' : ''}`}>
           {renderPage()}
         </main>
       </div>

@@ -85,17 +85,18 @@ const LoginGraphic: React.FC = () => (
 
 
 interface LoginPageProps {
-    onLogin: () => void;
+    onLogin: (email: string) => void;
     onShowSignup: () => void;
     onShowForgotPassword: () => void;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowSignup, onShowForgotPassword }) => {
     const [showPassword, setShowPassword] = useState(false);
+    const [email, setEmail] = useState('admin@anavsan.com');
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        onLogin();
+        onLogin(email);
     };
 
     return (
@@ -123,7 +124,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowSignup, onShowForg
                                     type="email"
                                     autoComplete="email"
                                     required
-                                    defaultValue="demo@anavsan.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     placeholder="you@company.com"
                                     className="w-full px-4 py-3 bg-gray-50 border-gray-200 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                 />
@@ -145,7 +147,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowSignup, onShowForg
                                     placeholder="Enter your password"
                                     className="w-full px-4 py-3 bg-gray-50 border-gray-200 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                 />
-                                <button type="button" onClick={() => setShowPassword(!setShowPassword)} className="absolute inset-y-0 right-0 px-4 flex items-center text-text-muted hover:text-text-primary">
+                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 px-4 flex items-center text-text-muted hover:text-text-primary">
                                     {showPassword ? <IconEyeOff /> : <IconEye />}
                                 </button>
                             </div>
