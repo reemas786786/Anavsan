@@ -30,13 +30,42 @@ import Breadcrumb from './components/Breadcrumb';
 import AssignQueryFlow from './components/AssignQueryFlow';
 import AssignedQueries from './pages/AssignedQueries';
 import QueryPreviewContent from './components/QueryPreviewModal';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
+import RequestSubmittedPage from './pages/RequestSubmittedPage';
 
 
 type SidePanelType = 'addAccount' | 'saveQuery' | 'editUser' | 'assignQuery' | 'queryPreview';
 type ModalType = 'addUser';
 type Theme = 'light' | 'dark';
+type AuthScreen = 'login' | 'signup' | 'submitted';
+
+const SplashScreen: React.FC = () => (
+    <div id="splash-loader" style={{ opacity: 1 }}>
+        <div className="loader">
+            <div className="logo-container">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="52" viewBox="0 0 48 52" fill="none">
+                    <path d="M26.0245 1.10411C26.5035 0.944589 27.0263 0.947640 27.4289 1.26015C27.8353 1.57579 27.9607 2.08272 27.9091 2.58175C27.8545 3.11164 27.7675 3.64069 27.6909 4.14221C27.6133 4.65109 27.5445 5.14003 27.5176 5.62516C27.3883 8.02999 27.2264 10.4046 27.2481 12.7777L27.2642 13.7268C27.3734 18.1509 27.9741 22.5304 28.8846 26.8812L29.0846 27.8133L29.1091 27.9046C29.117 27.9271 29.1239 27.9412 29.1284 27.9492C29.1329 27.9508 29.1399 27.952 29.1488 27.9545C29.1812 27.9632 29.2339 27.973 29.3187 27.9788C31.4692 28.126 33.6249 28.4423 35.6955 29.2251L35.8816 29.3026C36.0621 29.3849 36.2283 29.4799 36.3789 29.5712C36.5986 29.7041 36.752 29.8069 36.9415 29.9151L37.3619 30.155L37.0464 30.8939L36.8645 31.3163L36.4143 31.2091C34.2199 30.6888 31.9678 30.4478 29.7124 30.4872C29.9032 31.2229 30.0827 31.9235 30.2867 32.6262C31.4116 36.4888 32.6906 40.2413 34.7811 43.6545L35.1436 44.2309C36.0023 45.5552 36.9639 46.7297 38.2796 47.5599L38.5897 47.7445C40.1382 48.6137 41.6866 48.6982 43.2402 47.8018C44.9151 46.8355 45.6648 45.3592 45.5815 43.4241L45.5804 43.4135V43.4029C45.5802 43.3222 45.5841 43.2412 45.5921 43.1609L45.6371 42.7182L46.0831 42.6737L46.2745 42.6556L46.8392 42.5993L46.8756 43.1609C46.8944 43.4511 46.9331 43.7052 46.9665 44.042C46.9897 44.276 47.0079 44.5296 46.9965 44.7903L46.9741 45.0536C46.3837 49.7291 41.6611 52.2231 37.1523 50.4015C35.0198 49.5389 33.3957 48.0921 32.0633 46.3699L31.8002 46.0216C29.9253 43.4767 28.618 40.6676 27.5444 37.7853L27.0973 36.5454C26.7652 35.5902 26.4614 34.6274 26.169 33.6655L25.309 30.7877C25.2985 30.7525 25.2886 30.7234 25.2801 30.6985C21.2845 31.0504 17.4836 31.9481 13.9994 33.8247L13.3064 34.2133C10.7497 35.7051 8.95567 37.8478 7.83348 40.4943L7.6185 41.0303C7.09339 42.4103 6.60802 43.8048 6.13716 45.2075L4.74352 49.4345C4.5561 50.0028 4.25777 50.4981 3.76487 50.7741C3.32521 51.0202 2.82414 51.0403 2.30386 50.9185L2.08032 50.8581C1.74906 50.7565 1.35788 50.5985 1.14552 50.2424C0.921445 49.8662 0.994972 49.4467 1.10809 49.0969L2.15412 45.8465C2.50903 44.7593 2.87718 43.6729 3.27715 42.5993L4.01302 40.6493C7.48513 31.5656 11.5018 22.7148 16.4167 14.2723L17.4841 12.4689C19.3773 9.32226 21.5145 6.30633 23.5506 3.28343L23.7057 3.06475C24.0816 2.56193 24.538 2.12133 24.9497 1.73147L24.956 1.72722L25.0726 1.62426C25.3531 1.39264 25.6763 1.21696 26.0245 1.10411ZM23.0063 10.1675C18.5457 17.0145 14.8187 24.1166 11.563 31.4691C13.3624 30.4149 15.3197 29.6376 17.3675 29.1699L18.3344 28.9598C20.4134 28.5266 22.5251 28.2002 24.6202 27.8323C23.4817 22.1099 22.7559 16.2408 23.0063 10.1675Z" fill="url(#paint0_linear_splash)" stroke="url(#paint1_linear_splash)" strokeWidth="0.75"/>
+                    <defs>
+                      <linearGradient id="paint0_linear_splash" x1="23.9999" y1="1.54252" x2="23.9999" y2="50.4578" gradientUnits="userSpaceOnUse">
+                        <stop stopColor="#6932D5"/>
+                        <stop offset="1" stopColor="#7163C6"/>
+                      </linearGradient>
+                      <linearGradient id="paint1_linear_splash" x1="24" y1="1" x2="24" y2="51" gradientUnits="userSpaceOnUse">
+                        <stop stopColor="#6932D5"/>
+                        <stop offset="1" stopColor="#7163C6"/>
+                      </linearGradient>
+                    </defs>
+                  </svg>
+            </div>
+        </div>
+    </div>
+);
+
 
 const App: React.FC = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authScreen, setAuthScreen] = useState<AuthScreen>('login');
   const [activePage, setActivePage] = useState<Page>('Data Cloud Overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
@@ -91,20 +120,34 @@ const App: React.FC = () => {
   const [activeModal, setActiveModal] = useState<ModalType | null>(null);
   const [displayMode, setDisplayMode] = useState<'cost' | 'credits'>('cost');
   const [theme, setTheme] = useState<Theme>('light');
+  const [isLoading, setIsLoading] = useState(false);
 
+  const handleLogin = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+        setIsLoggedIn(true);
+        setIsLoading(false);
+    }, 2500);
+  };
+  
+  const handleSignupSubmit = () => {
+    setAuthScreen('submitted');
+  };
+
+  const handleShowSignup = () => setAuthScreen('signup');
+  const handleShowLogin = () => setAuthScreen('login');
 
   useEffect(() => {
+    // This effect handles the very first page load splash screen in index.html
     const splashLoader = document.getElementById('splash-loader');
     if (splashLoader) {
       const timer = setTimeout(() => {
         splashLoader.style.opacity = '0';
-        setTimeout(() => {
-          splashLoader.remove();
-        }, 500); // match transition duration
-      }, 2000); // show loader for 2 seconds
+        setTimeout(() => splashLoader.remove(), 500);
+      }, 1000); // Keep initial loader for 1s then fade out
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, []); // Empty dependency array to run only once on mount
 
   useEffect(() => {
     if (accounts.length === 0) {
@@ -256,536 +299,4 @@ const App: React.FC = () => {
       setIsSettingsViewActive(false);
       setIsProfileSettingsPageActive(false);
       setSelectedQuery(null);
-      setAnalyzingQuery(null);
-      setSelectedPullRequest(null);
-      setNavigationSource(null);
-  };
-
-  const handleBackToAccounts = useCallback(() => {
-    setSelectedAccount(null);
-    setActivePage('Snowflake Accounts');
-    setSelectedQuery(null);
-    setAnalyzingQuery(null);
-    setSelectedPullRequest(null);
-    setNavigationSource(null);
-  }, []);
-
-  const handleBackFromUserView = useCallback(() => {
-    setSelectedUser(null);
-  }, []);
-  
-  const handleAddUser = (data: { email: string; }) => {
-    const nameFromEmail = data.email.split('@')[0].replace(/[^a-zA-Z]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-    const newCost = Math.floor(Math.random() * 3000);
-    const newUser: User = {
-        id: `user-${Date.now()}`,
-        name: nameFromEmail,
-        email: data.email,
-        role: 'Analyst',
-        status: 'Invited',
-        dateAdded: new Date().toISOString().split('T')[0],
-        cost: newCost,
-        credits: parseFloat((newCost * 0.4).toFixed(2)),
-        message: 'Invitation sent',
-    };
-    
-    setUsers(prevUsers => [newUser, ...prevUsers]);
-    setActiveModal(null);
-    showToast(`Invite sent to ${data.email}`);
-  };
-
-  const handleUpdateUserRole = (userId: string, newRole: UserRole) => {
-    setUsers(prevUsers => 
-        prevUsers.map(user => 
-            user.id === userId ? { ...user, role: newRole } : user
-        )
-    );
-    handleCloseSidePanel();
-    showToast('User role updated successfully!');
-  };
-
-  const handleSuspendUser = (userId: string) => {
-      setUsers(prevUsers => 
-          prevUsers.map(user => 
-              user.id === userId ? { ...user, status: 'Suspended' as UserStatus } : user
-          )
-      );
-      setUserToSuspend(null);
-      showToast('User has been suspended.');
-  };
-
-  const handleConfirmActivateUser = (userId: string) => {
-      setUsers(prevUsers => 
-          prevUsers.map(user => 
-              user.id === userId ? { ...user, status: 'Active' as UserStatus } : user
-          )
-      );
-      setUserToActivate(null);
-      showToast('User has been activated.');
-  };
-
-  const handleRemoveUser = (userId: string) => {
-      setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
-      setUserToRemove(null);
-      showToast('User has been removed.');
-  };
-  
-  const handleDeleteDashboard = (dashboardId: string) => {
-      setDashboards(prevDashboards => prevDashboards.filter(d => d.id !== dashboardId));
-      setDashboardToDelete(null);
-      if (viewingDashboard?.id === dashboardId) {
-          setViewingDashboard(null);
-      }
-      showToast('Dashboard deleted successfully.');
-  };
-
-  const handleSaveDashboard = (dashboardToSave: DashboardItem) => {
-    const isNew = dashboardToSave.id.startsWith('temp-');
-    let savedDashboard = dashboardToSave;
-
-    if (isNew) {
-        const newDashboard: DashboardItem = {
-            ...dashboardToSave,
-            id: `dash-${Date.now()}`,
-            createdOn: new Date().toLocaleString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-                hour: 'numeric',
-                minute: 'numeric',
-                hour12: true,
-            }),
-        };
-        savedDashboard = newDashboard;
-        setDashboards(prev => [newDashboard, ...prev]);
-        showToast('Dashboard created successfully!');
-    } else {
-        setDashboards(prev => prev.map(d => d.id === dashboardToSave.id ? dashboardToSave : d));
-        showToast('Dashboard updated successfully!');
-    }
-
-    setEditingDashboard(null);
-
-    if (isNew) {
-        // For a new dashboard, return to the list view
-        setViewingDashboard(null);
-    } else {
-        // For an updated dashboard, show the view mode
-        setViewingDashboard(savedDashboard);
-    }
-  };
-
-  const handleUpdateUserProfile = (updatedUser: User) => {
-    setCurrentUser(updatedUser);
-    setUsers(prevUsers => 
-        prevUsers.map(user => 
-            user.id === updatedUser.id ? updatedUser : user
-        )
-    );
-    showToast('Profile updated successfully!');
-  };
-  
-  const handleUpdateBrandLogo = (newLogo: string) => {
-    setBrandLogo(newLogo);
-    showToast("Brand logo updated successfully!");
-  };
-
-  const handleLogout = () => {
-    showToast('You have been logged out.');
-  };
-  
-  const handleOpenProfileSettings = () => {
-    setIsSidebarOpen(false);
-    setSelectedAccount(null);
-    setSelectedUser(null);
-    setIsSettingsViewActive(false);
-    setIsProfileSettingsPageActive(true);
-    setActiveProfileSubPage('User Info');
-  };
-
-  const handleOpenAssignQuery = (query: QueryListItem) => {
-    setActiveSidePanel({ type: 'assignQuery', props: { query } });
-  };
-  
-  const handlePreviewQuery = (query: QueryListItem) => {
-    setActiveSidePanel({ type: 'queryPreview', props: { query } });
-  };
-
-  const handleAssignQuery = (details: { assigneeId: string; priority: AssignmentPriority; message: string; }) => {
-    if (!activeSidePanel || activeSidePanel.type !== 'assignQuery' || !currentUser) return;
-    const { query } = activeSidePanel.props;
-
-    const assignee = users.find(u => u.id === details.assigneeId);
-    if (!assignee) return;
-
-    const newAssignment: AssignedQuery = {
-        id: `aq-${Date.now()}`,
-        queryId: query.id,
-        queryText: query.queryText,
-        assignedBy: currentUser.name,
-        assignedTo: assignee.name,
-        priority: details.priority,
-        status: 'Pending',
-        message: details.message,
-        assignedOn: new Date().toISOString(),
-        cost: query.costUSD,
-        credits: query.costCredits,
-    };
-
-    setAssignedQueries(prev => [newAssignment, ...prev]);
-    handleCloseSidePanel();
-    setHasNewAssignment(true);
-    showToast(`Query assigned to ${assignee.name}`);
-  };
-
-  const handleUpdateAssignmentStatus = (assignmentId: string, status: AssignmentStatus) => {
-    setAssignedQueries(prev => prev.map(aq =>
-        aq.id === assignmentId ? { ...aq, status } : aq
-    ));
-    showToast(`Assignment status updated to "${status}"`);
-  };
-
-  const handleAnalyzeQuery = (query: QueryListItem | null, source: string) => {
-    setAnalyzingQuery(query);
-    setNavigationSource(source || null);
-    if (query) {
-        setActiveAccountSubPage('Query analyzer');
-        setSelectedQuery(null);
-    }
-  };
-  
-  const handleOptimizeQuery = (query: QueryListItem | null, source: string) => {
-    setAnalyzingQuery(query); // Re-use the same state for simplicity
-    setNavigationSource(source || null);
-    if (query) {
-        setActiveAccountSubPage('Query optimizer');
-        setSelectedQuery(null);
-    }
-  };
-
-  const handleSimulateQuery = (query: QueryListItem | null, source: string) => {
-    setAnalyzingQuery(query); // Re-use the same state for simplicity
-    setNavigationSource(source || null);
-    if (query) {
-        setActiveAccountSubPage('Query simulator');
-        setSelectedQuery(null);
-    }
-  };
-
-  const handleOpenSaveQuery = (tag: string) => {
-    setActiveSidePanel({ type: 'saveQuery', props: { contextualTag: tag } });
-  };
-
-  const handleAccountSubPageChange = (subPage: string) => {
-    setActiveAccountSubPage(subPage);
-    setSelectedQuery(null);
-    setAnalyzingQuery(null);
-    setSelectedPullRequest(null);
-    setNavigationSource(null);
-  };
-
-  const breadcrumbItems = useMemo(() => {
-      if (isProfileSettingsPageActive) {
-          return [
-              { label: 'Dashboard', onClick: handleLogoClick },
-              { label: 'Profile Settings', onClick: () => setActiveProfileSubPage('User Info') },
-              { label: activeProfileSubPage }
-          ];
-      }
-
-      if (isSettingsViewActive) {
-          return [
-              { label: 'Dashboard', onClick: handleLogoClick },
-              { label: 'Settings', onClick: () => handlePageChange('Settings', 'User Management') },
-              { label: activeSubPage }
-          ];
-      }
-      
-      if (selectedAccount) {
-            const baseItems = [
-              { label: 'Snowflake Accounts', onClick: handleBackToAccounts },
-              { label: selectedAccount.name, onClick: () => handleAccountSubPageChange('Account overview') },
-            ];
-
-            if (analyzingQuery) {
-                const sourceLabel = navigationSource || 'All queries';
-                const sourcePage = navigationSource || 'All queries';
-                let toolLabel = '';
-                if (activeAccountSubPage === 'Query analyzer') toolLabel = 'Query Analyzer';
-                if (activeAccountSubPage === 'Query optimizer') toolLabel = 'Query Optimizer';
-                if (activeAccountSubPage === 'Query simulator') toolLabel = 'Query Simulator';
-                
-                if (toolLabel) {
-                    return [
-                        ...baseItems,
-                        { label: sourceLabel, onClick: () => { handleAnalyzeQuery(null, ''); handleAccountSubPageChange(sourcePage); } },
-                        { label: toolLabel }
-                    ];
-                }
-            }
-            if (selectedPullRequest) {
-                return [
-                    ...baseItems,
-                    { label: 'Pull Requests', onClick: () => setSelectedPullRequest(null) },
-                    { label: `#${selectedPullRequest.id}: ${selectedPullRequest.title}` }
-                ];
-            }
-
-            if (selectedQuery) {
-                return [
-                    ...baseItems,
-                    { label: activeAccountSubPage, onClick: () => setSelectedQuery(null) },
-                    { label: selectedQuery.id }
-                ];
-            }
-            return [...baseItems, { label: activeAccountSubPage }];
-      }
-
-      if(selectedUser) {
-          return [
-              { label: 'Data Cloud Overview', onClick: handleBackFromUserView },
-              { label: selectedUser.name }
-          ]
-      }
-
-      return [];
-  }, [activePage, selectedAccount, activeAccountSubPage, selectedUser, isSettingsViewActive, activeSubPage, isProfileSettingsPageActive, activeProfileSubPage, handleLogoClick, handleBackToAccounts, handleBackFromUserView, selectedQuery, selectedPullRequest, analyzingQuery, navigationSource]);
-
-  const showBreadcrumb = breadcrumbItems.length > 0;
-
-  const renderContent = () => {
-    switch (activePage) {
-      case 'Data Cloud Overview':
-        return <Overview onSelectAccount={handleSelectAccount} onSelectUser={handleSelectUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} displayMode={displayMode} />;
-      case 'Dashboards':
-        if (editingDashboard) {
-          return <DashboardEditor
-            dashboard={editingDashboard === 'new' ? null : editingDashboard}
-            onSave={handleSaveDashboard}
-            onCancel={() => setEditingDashboard(null)}
-            accounts={accounts}
-          />;
-        }
-        if (viewingDashboard) {
-          return <DashboardEditor
-            dashboard={viewingDashboard}
-            onSave={handleSaveDashboard}
-            onCancel={() => setViewingDashboard(null)}
-            accounts={accounts}
-            isViewMode={true}
-            allDashboards={dashboards}
-            onSwitchDashboard={setViewingDashboard}
-            onEditDashboard={() => {
-                setEditingDashboard(viewingDashboard);
-                setViewingDashboard(null);
-            }}
-            onDeleteDashboard={() => setDashboardToDelete(viewingDashboard)}
-          />;
-        }
-        return <Dashboards
-            dashboards={dashboards}
-            onDeleteDashboardClick={(dashboard) => setDashboardToDelete(dashboard)}
-            onAddDashboardClick={() => setEditingDashboard('new')}
-            onEditDashboardClick={(dashboard) => setEditingDashboard(dashboard)}
-            onViewDashboardClick={(dashboard) => setViewingDashboard(dashboard)}
-        />;
-      case 'Snowflake Accounts':
-        return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setActiveSidePanel({ type: 'addAccount' })} onDeleteAccount={handleDeleteAccount} />;
-      case 'Assigned Queries':
-        return <AssignedQueries assignedQueries={assignedQueries} onUpdateStatus={handleUpdateAssignmentStatus} />;
-      case 'AI Agent':
-        return <AIAgent />;
-      case 'Reports':
-        return <Reports />;
-      case 'Book a Demo':
-        return <BookDemo />; 
-      case 'Docs':
-        return <Docs />;
-      case 'Settings':
-        return <Settings />;
-      case 'Support':
-        return <Support />;
-      default:
-        return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setActiveSidePanel({ type: 'addAccount' })} onDeleteAccount={handleDeleteAccount} />;
-    }
-  };
-  
-  const isAccountView = !!selectedAccount || !!selectedUser;
-
-  return (
-    <div className="h-screen bg-background font-sans flex flex-col">
-      {bigScreenWidget ? (
-          <BigScreenView
-              widget={bigScreenWidget}
-              accounts={accounts}
-              users={users}
-              onClose={() => setBigScreenWidget(null)}
-              onSelectAccount={(account) => {
-                  setBigScreenWidget(null);
-                  handleSelectAccount(account);
-              }}
-              onSelectUser={(user) => {
-                  setBigScreenWidget(null);
-                  handleSelectUser(user);
-              }}
-              displayMode={displayMode}
-          />
-      ) : (
-        <>
-          <Header 
-            onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            onLogoClick={handleLogoClick}
-            isSidebarOpen={isSidebarOpen}
-            brandLogo={brandLogo}
-            onOpenProfileSettings={handleOpenProfileSettings}
-            onLogout={handleLogout}
-            hasNewAssignment={hasNewAssignment}
-            displayMode={displayMode}
-            onDisplayModeChange={setDisplayMode}
-            theme={theme}
-            onThemeChange={setTheme}
-          />
-          
-          {showBreadcrumb && (
-              <div className="bg-surface w-full py-3 px-6 flex-shrink-0">
-                  <Breadcrumb items={breadcrumbItems} />
-              </div>
-          )}
-
-          <div className="flex flex-1 overflow-hidden">
-            <Sidebar
-                isOpen={isSidebarOpen}
-                onClose={() => setIsSidebarOpen(false)}
-                activePage={activePage}
-                setActivePage={handlePageChange}
-                activeSubPage={activeSubPage}
-                showCompact={!isAccountView && !isSettingsViewActive && !isProfileSettingsPageActive && !editingDashboard}
-            />
-            <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background">
-              {selectedAccount ? (
-                  <AccountView
-                      account={selectedAccount}
-                      accounts={accounts}
-                      onSwitchAccount={handleSelectAccount}
-                      sqlFiles={sqlFiles}
-                      onSaveQueryClick={handleOpenSaveQuery}
-                      onSetBigScreenWidget={setBigScreenWidget}
-                      activePage={activeAccountSubPage}
-                      onPageChange={handleAccountSubPageChange}
-                      onShareQueryClick={handleOpenAssignQuery}
-                      onPreviewQuery={handlePreviewQuery}
-                      selectedQuery={selectedQuery}
-                      setSelectedQuery={setSelectedQuery}
-                      analyzingQuery={analyzingQuery}
-                      onAnalyzeQuery={handleAnalyzeQuery}
-                      onOptimizeQuery={handleOptimizeQuery}
-                      onSimulateQuery={handleSimulateQuery}
-                      pullRequests={pullRequestsData}
-                      selectedPullRequest={selectedPullRequest}
-                      setSelectedPullRequest={setSelectedPullRequest}
-                      displayMode={displayMode}
-                      users={users}
-                      navigationSource={navigationSource}
-                  />
-              ) : selectedUser ? (
-                  <UserView user={selectedUser} onBack={() => setSelectedUser(null)} />
-              ) : isSettingsViewActive ? (
-                <SettingsPage
-                    users={users}
-                    activeSubPage={activeSubPage || 'User Management'}
-                    onSubPageChange={(subPage) => handlePageChange('Settings', subPage)}
-                    onBack={() => {
-                        setIsSettingsViewActive(false);
-                        setActivePage('Data Cloud Overview');
-                    }}
-                    onAddUserClick={() => setActiveModal('addUser')}
-                    onEditUserRoleClick={(user) => setActiveSidePanel({ type: 'editUser', props: { user } })}
-                    onSuspendUserClick={(user) => setUserToSuspend(user)}
-                    onActivateUserClick={(user) => setUserToActivate(user)}
-                    onRemoveUserClick={(user) => setUserToRemove(user)}
-                />
-              ) : isProfileSettingsPageActive && currentUser ? (
-                  <ProfileSettingsPage
-                      user={currentUser}
-                      onSave={handleUpdateUserProfile}
-                      onBack={() => setIsProfileSettingsPageActive(false)}
-                      brandLogo={brandLogo}
-                      onUpdateBrandLogo={handleUpdateBrandLogo}
-                      activeSection={activeProfileSubPage}
-                      onSectionChange={setActiveProfileSubPage}
-                  />
-              ) : (
-                  <div className={activePage === 'Dashboards' && (editingDashboard || viewingDashboard) ? '' : 'p-4'}>
-                    {renderContent()}
-                  </div>
-              )}
-            </main>
-          </div>
-        </>
-      )}
-
-      <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
-
-      <SidePanel isOpen={activeSidePanel?.type === 'addAccount'} onClose={handleCloseSidePanel} title="Connect Snowflake Account">
-        <AddAccountFlow onCancel={handleCloseSidePanel} onAddAccount={handleAddAccount} />
-      </SidePanel>
-
-      <SidePanel isOpen={activeSidePanel?.type === 'saveQuery'} onClose={handleCloseSidePanel} title="Save Query Version">
-        {activeSidePanel?.type === 'saveQuery' && <SaveQueryFlow files={sqlFiles} onCancel={handleCloseSidePanel} onSave={handleSaveQuery} {...activeSidePanel.props} />}
-      </SidePanel>
-      
-      <SidePanel isOpen={activeSidePanel?.type === 'editUser'} onClose={handleCloseSidePanel} title="Edit User Role">
-        {activeSidePanel?.type === 'editUser' && <EditUserRoleFlow user={activeSidePanel.props.user} onCancel={handleCloseSidePanel} onSave={handleUpdateUserRole} />}
-      </SidePanel>
-      
-      <SidePanel isOpen={activeSidePanel?.type === 'assignQuery'} onClose={handleCloseSidePanel} title="Assign Query for Optimization">
-          {activeSidePanel?.type === 'assignQuery' && <AssignQueryFlow query={activeSidePanel.props.query} users={users} onCancel={handleCloseSidePanel} onAssign={handleAssignQuery} />}
-      </SidePanel>
-
-      <SidePanel 
-          isOpen={activeSidePanel?.type === 'queryPreview'} 
-          onClose={handleCloseSidePanel} 
-          title={`Query Preview: ${activeSidePanel?.props?.query?.id.substring(7, 13).toUpperCase() ?? ''}`}
-        >
-            {activeSidePanel?.type === 'queryPreview' && (
-                <QueryPreviewContent 
-                    query={activeSidePanel.props.query} 
-                    onAnalyze={(q) => { handleAnalyzeQuery(q, 'Slow queries'); handleCloseSidePanel(); }}
-                    onOptimize={(q) => { handleOptimizeQuery(q, 'Slow queries'); handleCloseSidePanel(); }}
-                    onSimulate={(q) => { handleSimulateQuery(q, 'Slow queries'); handleCloseSidePanel(); }}
-                />
-            )}
-        </SidePanel>
-
-      {activeModal === 'addUser' && (
-        <Modal isOpen={true} onClose={() => setActiveModal(null)} title="Add users" size="md">
-            <InviteUserFlow 
-                onCancel={() => setActiveModal(null)} 
-                onAddUser={(data) => {
-                    handleAddUser(data);
-                    setActiveModal(null);
-                }} 
-            />
-        </Modal>
-      )}
-
-      {userToSuspend && (
-          <ConfirmationModal isOpen={!!userToSuspend} onClose={() => setUserToSuspend(null)} onConfirm={() => handleSuspendUser(userToSuspend.id)} title="Suspend User" message={`Are you sure you want to suspend ${userToSuspend.name}? They will lose access to the platform.`} confirmText="Suspend" confirmVariant="warning" />
-      )}
-
-      {userToRemove && (
-          <ConfirmationModal isOpen={!!userToRemove} onClose={() => setUserToRemove(null)} onConfirm={() => handleRemoveUser(userToRemove.id)} title="Remove User" message={`Are you sure you want to remove ${userToRemove.name}? This action cannot be undone.`} confirmText="Remove" confirmVariant="danger" />
-      )}
-
-      {userToActivate && (
-          <ConfirmationModal isOpen={!!userToActivate} onClose={() => setUserToActivate(null)} onConfirm={() => handleConfirmActivateUser(userToActivate.id)} title="Activate User" message={`Are you sure you want to activate ${userToActivate.name}? They will regain access to the platform.`} confirmText="Activate" confirmVariant="primary" />
-      )}
-
-      {dashboardToDelete && (
-          <ConfirmationModal isOpen={!!dashboardToDelete} onClose={() => setDashboardToDelete(null)} onConfirm={() => handleDeleteDashboard(dashboardToDelete.id)} title="Delete Dashboard" message={`Are you sure you want to delete the "${dashboardToDelete.title}" dashboard? This action cannot be undone.`} confirmText="Delete" confirmVariant="danger" />
-      )}
-    </div>
-  );
-};
-
-export default App;
+      setAnalyzingQuery(

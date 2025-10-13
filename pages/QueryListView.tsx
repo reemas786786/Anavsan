@@ -136,9 +136,6 @@ const QueryListView: React.FC<QueryListViewProps> = ({
 
     const activeFilterCount = useMemo(() => {
         let count = 0;
-        if (filters.dateFilter !== '7d') count++;
-        if (filters.userFilter.length > 0) count++;
-        if (filters.statusFilter.length > 0) count++;
         if (filters.warehouseFilter.length > 0) count++;
         if (filters.queryTypeFilter.length > 0) count++;
         if (filters.durationFilter.min !== null || filters.durationFilter.max !== null) count++;
@@ -230,25 +227,26 @@ const QueryListView: React.FC<QueryListViewProps> = ({
                         <MultiSelectDropdown label="User" options={allUsers} selectedOptions={filters.userFilter} onChange={(value) => handleFilterChange('userFilter', value)} selectionMode="multiple" />
                         <div className="h-4 w-px bg-border-light"></div>
                         <MultiSelectDropdown label="Status" options={['Success', 'Failed']} selectedOptions={filters.statusFilter} onChange={(value) => handleFilterChange('statusFilter', value)} selectionMode="single" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="relative flex-grow">
-                            <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
-                            <input type="search" value={filters.search} onChange={e => handleFilterChange('search', e.target.value)} placeholder="Search queries..." className="w-full md:w-64 pl-10 pr-4 py-2 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary" />
-                        </div>
+                        <div className="h-4 w-px bg-border-light"></div>
                         <div className="relative" ref={filterRef}>
-                            <button onClick={() => setIsFilterOpen(!isFilterOpen)} className="flex items-center justify-center p-2 rounded-md text-text-secondary hover:bg-button-secondary-bg focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary transition-colors relative" aria-haspopup="true" aria-expanded={isFilterOpen}>
-                                <IconFilter className="h-5 w-5" />
+                            <button
+                                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                                className="flex items-center gap-2 text-sm focus:outline-none relative"
+                                aria-haspopup="true"
+                                aria-expanded={isFilterOpen}
+                            >
+                                <IconFilter className="h-5 w-5 text-text-secondary" />
+                                <span className="font-semibold text-text-primary">Filters</span>
                                 {activeFilterCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 bg-primary text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center text-[10px]">{activeFilterCount}</span>
+                                    <span className="bg-primary text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center text-[10px]">{activeFilterCount}</span>
                                 )}
                             </button>
                             {isFilterOpen && (
-                                <div className="absolute top-full right-0 mt-2 w-80 bg-surface rounded-lg shadow-lg z-20 border border-border-color p-4">
+                                <div className="absolute top-full left-0 mt-2 w-80 bg-surface rounded-lg shadow-lg z-20 border border-border-color p-4">
                                     <h3 className="text-sm font-semibold text-text-strong mb-4">Additional Filters</h3>
                                     <div className="space-y-4">
-                                        <MultiSelectDropdown label="Warehouse" options={warehousesData.map(w => w.name)} selectedOptions={tempWarehouseFilter} onChange={setTempWarehouseFilter} selectionMode="multiple" />
-                                        <MultiSelectDropdown label="Query type" options={queryTypes} selectedOptions={tempQueryTypeFilter} onChange={setTempQueryTypeFilter} selectionMode="multiple" />
+                                        <MultiSelectDropdown layout="stacked" label="Warehouse" options={warehousesData.map(w => w.name)} selectedOptions={tempWarehouseFilter} onChange={setTempWarehouseFilter} selectionMode="multiple" />
+                                        <MultiSelectDropdown layout="stacked" label="Query type" options={queryTypes} selectedOptions={tempQueryTypeFilter} onChange={setTempQueryTypeFilter} selectionMode="multiple" />
                                         <div>
                                             <label className="block text-sm font-medium text-text-secondary mb-1">Duration (seconds)</label>
                                             <div className="flex items-center gap-2">
@@ -267,6 +265,12 @@ const QueryListView: React.FC<QueryListViewProps> = ({
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="relative flex-grow">
+                            <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                            <input type="search" value={filters.search} onChange={e => handleFilterChange('search', e.target.value)} placeholder="Search queries..." className="w-full md:w-64 pl-10 pr-4 py-2 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary" />
                         </div>
                         <ColumnSelector columns={allColumns} visibleColumns={filters.visibleColumns} onVisibleColumnsChange={(value) => handleFilterChange('visibleColumns', value)} defaultColumns={['queryId', 'actions']} />
                     </div>
