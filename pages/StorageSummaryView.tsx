@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useRef, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, Cell, PieChart, Pie } from 'recharts';
 import { storageSummaryData, storageGrowthData, databasesData, storageByTypeData } from '../data/dummyData';
@@ -12,7 +9,7 @@ import TableView from '../components/TableView';
 
 
 const WidgetCard: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className = '', title }) => (
-    <div className={`bg-surface rounded-3xl shadow-sm border border-border-color p-4 break-inside-avoid mb-4 flex flex-col ${className}`}>
+    <div className={`bg-surface rounded-3xl shadow-sm p-4 break-inside-avoid mb-4 flex flex-col ${className}`}>
         {title && <h3 className="text-base font-semibold text-text-strong mb-4">{title}</h3>}
         {children}
     </div>

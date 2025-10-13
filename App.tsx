@@ -139,6 +139,18 @@ const App: React.FC = () => {
     setTimeout(() => {
         setIsLoggedIn(true);
         setIsLoading(false);
+        setActivePage('Data Cloud Overview');
+        setSelectedAccount(null);
+        setSelectedUser(null);
+        setIsProfileSettingsPageActive(false);
+        setViewingDashboard(null);
+        setEditingDashboard(null);
+        setSelectedQuery(null);
+        setAnalyzingQuery(null);
+        setSelectedPullRequest(null);
+        setNavigationSource(null);
+        setIsSettingsViewActive(false);
+        setActiveSubPage(undefined);
     }, 2500);
   };
   
@@ -611,7 +623,7 @@ const App: React.FC = () => {
           activeSubPage={activeSubPage}
           showCompact={!selectedAccount}
         />
-        <main className={`flex-1 overflow-y-auto ${!selectedAccount ? 'ml-4 mt-4' : ''}`}>
+        <main className={`flex-1 overflow-y-auto ${!selectedAccount && !editingDashboard && !viewingDashboard ? 'ml-4 mt-4' : ''}`}>
           {renderPage()}
         </main>
       </div>

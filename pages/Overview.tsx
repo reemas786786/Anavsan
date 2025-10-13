@@ -385,7 +385,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                                                     </PieChart>
                                                 </ResponsiveContainer>
                                                 <div className="absolute inset-0 flex items-center justify-center">
-                                                    <span className="text-xl font-bold text-text-primary">{item.percentage}%</span>
+                                                    <span className="text-lg font-bold text-text-primary">{item.percentage}%</span>
                                                 </div>
                                             </div>
                                         </div>
