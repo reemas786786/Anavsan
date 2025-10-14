@@ -468,7 +468,6 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-2xl font-bold text-text-primary">{account.name}</h1>
-                    <p className="text-text-secondary mt-1">Account Overview</p>
                 </div>
                 <div className="flex items-center gap-4">
                      {!isEditMode && (

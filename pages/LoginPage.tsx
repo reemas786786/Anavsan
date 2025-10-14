@@ -46,24 +46,18 @@ const LoginGraphic: React.FC = () => (
             <rect width="800" height="800" fill="#433372" />
             <circle cx="550" cy="120" r="10" fill="#EF4444" opacity="0.4" />
             <circle cx="150" cy="650" r="8" fill="#14B8A6" opacity="0.5" />
-
-            {/* Circuit lines */}
             <path d="M-50 400 L150 400 L200 350 L700 350" stroke="#6932D5" strokeWidth="2" fill="none" opacity="0.3" />
             <path d="M850 500 L650 500 L600 550 L100 550" stroke="#6932D5" strokeWidth="2" fill="none" opacity="0.3" />
             <path d="M400 850 L400 600 L450 550 L450 250" stroke="#6932D5" strokeWidth="2" fill="none" opacity="0.3" />
             <path d="M250 -50 L250 200 L300 250 L600 250" stroke="#6932D5" strokeWidth="2" fill="none" opacity="0.3" />
             <path d="M-50 700 L200 700 L250 650 L250 500 L350 400" stroke="#6932D5" strokeWidth="2" fill="none" opacity="0.3" />
             <path d="M850 100 L600 100 L550 150 L550 350 L500 400" stroke="#6932D5" strokeWidth="2" fill="none" opacity="0.3" />
-
-            {/* Nodes */}
             <circle cx="150" cy="400" r="4" fill="#A78BFA" />
             <circle cx="700" cy="350" r="4" fill="#A78BFA" />
             <circle cx="100" cy="550" r="4" fill="#A78BFA" />
             <circle cx="400" cy="600" r="4" fill="#A78BFA" />
             <circle cx="450" cy="250" r="4" fill="#A78BFA" />
             <circle cx="250" cy="500" r="4" fill="#A78BFA" />
-
-            {/* Illustration Group */}
             <g transform="translate(350, 450) scale(1.5)">
                 <path d="M 0 100 L 20 90 L 180 90 L 200 100 L 180 110 L 20 110 Z" fill="#C7D2FE" />
                 <path d="M 20 90 L 20 110 L 180 110 L 180 90 Z" fill="#A5B4FC" />
@@ -83,7 +77,6 @@ const LoginGraphic: React.FC = () => (
     </div>
 );
 
-
 interface LoginPageProps {
     onLogin: (email: string) => void;
     onShowSignup: () => void;
@@ -91,8 +84,9 @@ interface LoginPageProps {
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowSignup, onShowForgotPassword }) => {
-    const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState('admin@anavsan.com');
+    const [password, setPassword] = useState('password123');
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -114,59 +108,25 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowSignup, onShowForg
 
                     <form onSubmit={handleSubmit} className="mt-8 space-y-6">
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-text-secondary">
-                                Work email address
-                            </label>
+                            <label htmlFor="email" className="block text-sm font-medium text-text-secondary">Work email address</label>
                             <div className="mt-1">
-                                <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    autoComplete="email"
-                                    required
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="you@company.com"
-                                    className="w-full px-4 py-3 bg-gray-50 border-gray-200 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                                />
+                                <input id="email" name="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border-gray-200 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
                             </div>
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-text-secondary">
-                                Password
-                            </label>
+                            <div className="flex justify-between items-center">
+                                <label htmlFor="password"className="block text-sm font-medium text-text-secondary">Password</label>
+                                <button type="button" onClick={onShowForgotPassword} className="text-sm font-semibold text-primary hover:underline">Forgot password?</button>
+                            </div>
                             <div className="mt-1 relative">
-                                <input
-                                    id="password"
-                                    name="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    autoComplete="current-password"
-                                    required
-                                    defaultValue="••••••••••••"
-                                    placeholder="Enter your password"
-                                    className="w-full px-4 py-3 bg-gray-50 border-gray-200 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                                />
+                                <input id="password" name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border-gray-200 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
                                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 px-4 flex items-center text-text-muted hover:text-text-primary">
                                     {showPassword ? <IconEyeOff /> : <IconEye />}
                                 </button>
                             </div>
                         </div>
-
-                        <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center">
-                                <input id="remember-me" name="remember-me" type="checkbox" defaultChecked className="h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary" />
-                                <label htmlFor="remember-me" className="ml-2 block text-text-secondary">
-                                    Remember me
-                                </label>
-                            </div>
-                            <div className="font-semibold">
-                                <button type="button" onClick={onShowForgotPassword} className="text-primary hover:underline">
-                                    Forgot password?
-                                </button>
-                            </div>
-                        </div>
-
+                        
                         <div>
                             <button type="submit" className="w-full flex justify-center items-center gap-2 px-4 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
                                 <span>Sign in</span>
@@ -181,19 +141,23 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowSignup, onShowForg
                         <div className="flex-grow border-t border-gray-200"></div>
                     </div>
 
-                    <div className="mt-6 grid grid-cols-2 gap-4">
-                        <button className="flex items-center justify-center px-4 py-3 bg-gray-50 rounded-lg text-text-secondary hover:bg-gray-100 transition-colors border border-gray-200">
-                           <IconGoogle />
-                           <span className="ml-3 font-medium text-sm">Google</span>
-                        </button>
-                        <button className="flex items-center justify-center px-4 py-3 bg-gray-50 rounded-lg text-text-secondary hover:bg-gray-100 transition-colors border border-gray-200">
-                            <IconGithub />
-                            <span className="ml-3 font-medium text-sm">GitHub</span>
-                        </button>
+                    <div className="mt-6 grid grid-cols-2 gap-3">
+                        <div>
+                           <button className="w-full flex items-center justify-center px-4 py-3 bg-gray-50 rounded-lg text-text-secondary hover:bg-gray-100 transition-colors border border-gray-200">
+                               <IconGoogle />
+                               <span className="ml-3 font-medium text-sm">Google</span>
+                           </button>
+                        </div>
+                        <div>
+                           <button className="w-full flex items-center justify-center px-4 py-3 bg-gray-50 rounded-lg text-text-secondary hover:bg-gray-100 transition-colors border border-gray-200">
+                               <IconGithub />
+                               <span className="ml-3 font-medium text-sm">GitHub</span>
+                           </button>
+                        </div>
                     </div>
 
                 </div>
-                <footer className="w-full max-w-sm mx-auto mt-auto pt-8 text-xs text-text-muted text-center">
+                 <footer className="w-full max-w-sm mx-auto mt-auto pt-8 text-xs text-text-muted text-center">
                     &copy; Anavsan Corp. All rights reserved.{' '}
                     <a href="#" className="text-primary hover:underline">
                         Privacy policy

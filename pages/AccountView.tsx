@@ -308,7 +308,6 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
         search: '',
         dateFilter: '7d',
         warehouseFilter: [],
-        severityFilter: ['Medium', 'High'],
     });
 
 

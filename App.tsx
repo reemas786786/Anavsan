@@ -324,7 +324,6 @@ const App: React.FC = () => {
       setIsSettingsViewActive(false);
       setIsProfileSettingsPageActive(false);
       setSelectedQuery(null);
-      // FIX: Fix truncated line and complete function body for consistency
       setAnalyzingQuery(null);
       setSelectedPullRequest(null);
       setNavigationSource(null);
@@ -722,5 +721,4 @@ const App: React.FC = () => {
     </div>
   );
 };
-// FIX: Add default export to fix module import error
 export default App;

@@ -177,7 +177,6 @@ export interface SlowQueryFilters {
     search: string;
     dateFilter: string | { start: string; end: string };
     warehouseFilter: string[];
-    severityFilter: string[];
 }
 
 

@@ -1,26 +1,9 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { queryListData as initialData, warehousesData } from '../data/dummyData';
 import { QueryListItem, QuerySeverity, SlowQueryFilters } from '../types';
-import { IconSearch, IconDotsVertical, IconBeaker, IconWand, IconExclamationTriangle } from '../constants';
+import { IconSearch, IconDotsVertical, IconBeaker, IconWand, IconExclamationTriangle, IconClipboardCopy, IconCheck } from '../constants';
 import MultiSelectDropdown from '../components/MultiSelectDropdown';
 import DateRangeDropdown from '../components/DateRangeDropdown';
-
-const severityLevels: QuerySeverity[] = ['Low', 'Medium', 'High'];
-
-const SeverityBadge: React.FC<{ severity: QuerySeverity }> = ({ severity }) => {
-    const colorClasses: Record<QuerySeverity, string> = {
-        Low: 'bg-[#E7F4E8] text-[#056D05]',
-        Medium: 'bg-[#FEF3C7] text-[#92400E]',
-        High: 'bg-[#FEE2E2] text-[#991B1B]',
-    };
-
-    return (
-        <span className={`inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full ${colorClasses[severity]}`}>
-            {severity}
-        </span>
-    );
-};
-
 
 interface SlowQueriesViewProps {
     onAnalyzeQuery: (query: QueryListItem, source: string) => void;
@@ -42,6 +25,13 @@ const SlowQueriesView: React.FC<SlowQueriesViewProps> = ({
     
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+    const [copiedId, setCopiedId] = useState<string | null>(null);
+
+    const handleCopy = (id: string) => {
+        navigator.clipboard.writeText(id);
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+    };
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -68,7 +58,6 @@ const SlowQueriesView: React.FC<SlowQueriesViewProps> = ({
         return initialData.filter(q => {
             if (filters.search && !(q.id.toLowerCase().includes(filters.search.toLowerCase()))) return false;
             if (filters.warehouseFilter.length > 0 && !filters.warehouseFilter.includes(q.warehouse)) return false;
-            if (filters.severityFilter.length > 0 && !filters.severityFilter.includes(q.severity)) return false;
 
             if (typeof filters.dateFilter === 'string') {
                 if (filters.dateFilter !== 'All') {
@@ -91,16 +80,6 @@ const SlowQueriesView: React.FC<SlowQueriesViewProps> = ({
         });
     }, [filters]);
 
-    const queryStats = useMemo(() => {
-        const total = initialData.length;
-        const failed = initialData.filter(q => q.status === 'Failed').length;
-        return {
-            total,
-            success: total - failed,
-            failed,
-        }
-    }, [initialData]);
-
     const sortedData = useMemo(() => [...filteredData].sort((a, b) => getDurationInSeconds(b.duration) - getDurationInSeconds(a.duration)), [filteredData]);
 
     const handleFilterChange = <K extends keyof SlowQueryFilters>(key: K, value: SlowQueryFilters[K]) => {
@@ -112,9 +91,7 @@ const SlowQueriesView: React.FC<SlowQueriesViewProps> = ({
              <div className="flex-shrink-0 pt-2 px-4">
                 <h1 className="text-2xl font-bold text-text-primary">Slow queries</h1>
                  <div className="mt-4 flex flex-wrap items-center gap-2">
-                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm'}>Total Queries: <span className="font-bold text-text-strong">{queryStats.total.toLocaleString()}</span></div>
-                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm'}>Success: <span className="font-bold text-status-success-dark">{queryStats.success.toLocaleString()}</span></div>
-                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm'}>Failed: <span className="font-bold text-status-error-dark">{queryStats.failed.toLocaleString()}</span></div>
+                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm'}>Total Slow Queries: <span className="font-bold text-text-strong">{sortedData.length.toLocaleString()}</span></div>
                 </div>
             </div>
 
@@ -123,13 +100,12 @@ const SlowQueriesView: React.FC<SlowQueriesViewProps> = ({
                 <div className="p-2 mb-4 flex-shrink-0 bg-surface rounded-full shadow-sm flex items-center gap-x-4">
                     <DateRangeDropdown selectedValue={filters.dateFilter} onChange={(value) => handleFilterChange('dateFilter', value)} />
                     <div className="h-4 w-px bg-border-color"></div>
-                    <MultiSelectDropdown label="Warehouse" options={warehousesData.map(w => w.name)} selectedOptions={filters.warehouseFilter} onChange={(value) => handleFilterChange('warehouseFilter', value)} />
-                    <div className="h-4 w-px bg-border-color"></div>
                     <MultiSelectDropdown 
-                        label="Severity" 
-                        options={severityLevels} 
-                        selectedOptions={filters.severityFilter} 
-                        onChange={(value) => handleFilterChange('severityFilter', value)} 
+                        label="Warehouse" 
+                        options={warehousesData.map(w => w.name)} 
+                        selectedOptions={filters.warehouseFilter} 
+                        onChange={(value) => handleFilterChange('warehouseFilter', value)}
+                        selectionMode="single"
                     />
                     <div className="relative flex-grow">
                         <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
@@ -144,11 +120,16 @@ const SlowQueriesView: React.FC<SlowQueriesViewProps> = ({
                             <div key={q.id} className="bg-surface p-3 rounded-xl grid grid-cols-[1fr,1fr,1fr,1fr,1fr,1fr,auto] items-center gap-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => onPreviewQuery(q)}>
                                 <div>
                                     <div className="text-xs text-text-secondary">Query ID</div>
-                                    <div className="text-sm font-semibold text-text-primary">{q.id.substring(7, 13).toUpperCase()}</div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="text-sm font-semibold text-text-primary">{q.id.substring(7, 13).toUpperCase()}</div>
+                                        <button onClick={(e) => { e.stopPropagation(); handleCopy(q.id); }} className="text-text-muted hover:text-text-primary">
+                                            {copiedId === q.id ? <IconCheck className="h-4 w-4 text-status-success" /> : <IconClipboardCopy className="h-4 w-4" />}
+                                        </button>
+                                    </div>
                                 </div>
                                 <div>
-                                    <div className="text-xs text-text-secondary">Severity</div>
-                                    <div className="text-sm font-semibold text-text-primary mt-1"><SeverityBadge severity={q.severity} /></div>
+                                    <div className="text-xs text-text-secondary">Warehouse Name</div>
+                                    <div className="text-sm font-semibold text-text-primary mt-1">{q.warehouse}</div>
                                 </div>
                                 <div>
                                     <div className="text-xs text-text-secondary">Duration</div>
