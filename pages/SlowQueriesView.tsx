@@ -97,7 +97,7 @@ const SlowQueriesView: React.FC<SlowQueriesViewProps> = ({
 
             <div className="flex flex-col flex-grow min-h-0 mx-4">
                 {/* Filter Bar */}
-                <div className="p-2 mb-4 flex-shrink-0 bg-surface rounded-full shadow-sm flex items-center gap-x-4">
+                <div className="p-2 mb-4 flex-shrink-0 bg-surface rounded-3xl shadow-sm flex items-center gap-x-4">
                     <DateRangeDropdown selectedValue={filters.dateFilter} onChange={(value) => handleFilterChange('dateFilter', value)} />
                     <div className="h-4 w-px bg-border-color"></div>
                     <MultiSelectDropdown 
@@ -109,7 +109,7 @@ const SlowQueriesView: React.FC<SlowQueriesViewProps> = ({
                     />
                     <div className="relative flex-grow">
                         <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
-                        <input type="search" value={filters.search} onChange={e => handleFilterChange('search', e.target.value)} placeholder="Search input text..." className="w-full pl-10 pr-4 py-2 bg-transparent border-transparent rounded-full text-sm focus:ring-0" />
+                        <input type="search" value={filters.search} onChange={e => handleFilterChange('search', e.target.value)} placeholder="Search input text..." className="w-full pl-10 pr-4 py-2 bg-background border-transparent rounded-3xl text-sm focus:ring-1 focus:ring-primary" />
                     </div>
                 </div>
 

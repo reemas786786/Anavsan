@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, SQLFile, BigScreenWidget, QueryListItem, PullRequest, User, QueryListFilters, SlowQueryFilters } from '../types';
 import AccountOverviewDashboard from './AccountOverviewDashboard';
@@ -56,7 +57,6 @@ interface AccountViewProps {
     pullRequests: PullRequest[];
     selectedPullRequest: PullRequest | null;
     setSelectedPullRequest: (pr: PullRequest | null) => void;
-    displayMode: 'cost' | 'credits';
     users: User[];
     navigationSource: string | null;
 }
@@ -277,7 +277,7 @@ const AccountAvatar: React.FC<{ name: string }> = ({ name }) => {
 };
 
 
-const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAccount, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, onPreviewQuery, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, displayMode, users, navigationSource }) => {
+const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAccount, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, onPreviewQuery, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, users, navigationSource }) => {
     const [selectedDatabaseId, setSelectedDatabaseId] = useState<string | null>(null);
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
     const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
@@ -368,7 +368,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
 
         switch (activePage) {
             case 'Account overview':
-                return <AccountOverviewDashboard account={account} displayMode={displayMode} />;
+                return <AccountOverviewDashboard account={account} />;
             case 'My Branches':
                 return <MyBranchesView />;
             case 'Query Versions':

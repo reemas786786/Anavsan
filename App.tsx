@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -124,7 +125,6 @@ const App: React.FC = () => {
 
   const [activeSidePanel, setActiveSidePanel] = useState<{ type: SidePanelType; props?: any } | null>(null);
   const [activeModal, setActiveModal] = useState<ModalType | null>(null);
-  const [displayMode, setDisplayMode] = useState<'cost' | 'credits'>('cost');
   const [theme, setTheme] = useState<Theme>('light');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -352,6 +352,7 @@ const App: React.FC = () => {
             }}
             activeSection={activeProfileSubPage}
             onSectionChange={setActiveProfileSubPage}
+            currentUserRole={currentUserRole}
         />;
     }
 
@@ -441,7 +442,6 @@ const App: React.FC = () => {
           pullRequests={pullRequestsData}
           selectedPullRequest={selectedPullRequest}
           setSelectedPullRequest={setSelectedPullRequest}
-          displayMode={displayMode}
           users={users}
           navigationSource={navigationSource}
         />
@@ -452,7 +452,7 @@ const App: React.FC = () => {
     }
     switch (activePage) {
       case 'Data Cloud Overview':
-        return <Overview onSelectAccount={handleSelectAccount} onSelectUser={handleSelectUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} displayMode={displayMode} currentUserRole={currentUserRole} />;
+        return <Overview onSelectAccount={handleSelectAccount} onSelectUser={handleSelectUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} currentUserRole={currentUserRole} />;
       case 'Dashboards':
         return <Dashboards 
                     dashboards={dashboards} 
@@ -608,8 +608,6 @@ const App: React.FC = () => {
         onOpenProfileSettings={handleOpenProfileSettings}
         onLogout={() => { setIsLoggedIn(false); setCurrentUserRole(null); }}
         hasNewAssignment={hasNewAssignment}
-        displayMode={displayMode}
-        onDisplayModeChange={setDisplayMode}
         theme={theme}
         onThemeChange={setTheme}
       />
@@ -715,7 +713,6 @@ const App: React.FC = () => {
                   setBigScreenWidget(null);
                   handleSelectUser(user);
               }}
-              displayMode={displayMode}
           />
       )}
     </div>

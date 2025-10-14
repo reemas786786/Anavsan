@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { IconMenu, IconAIAgent, IconUser, IconSearch, IconBell, IconClose, IconHelpCircle, IconSun, IconMoon } from '../constants';
 
@@ -10,8 +9,6 @@ interface HeaderProps {
     onOpenProfileSettings: () => void;
     onLogout: () => void;
     hasNewAssignment?: boolean;
-    displayMode: 'cost' | 'credits';
-    onDisplayModeChange: (mode: 'cost' | 'credits') => void;
     theme: 'light' | 'dark';
     onThemeChange: (theme: 'light' | 'dark') => void;
 }
@@ -36,7 +33,7 @@ const BrandLogo: React.FC<{ logoUrl: string }> = ({ logoUrl }) => (
 );
 
 
-const Header: React.FC<HeaderProps> = ({ onMenuClick, onLogoClick, isSidebarOpen, brandLogo, onOpenProfileSettings, onLogout, hasNewAssignment, displayMode, onDisplayModeChange, theme, onThemeChange }) => {
+const Header: React.FC<HeaderProps> = ({ onMenuClick, onLogoClick, isSidebarOpen, brandLogo, onOpenProfileSettings, onLogout, hasNewAssignment, theme, onThemeChange }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -68,26 +65,6 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onLogoClick, isSidebarOpen
       </div>
       
       <div className="flex items-center space-x-1">
-        <div className="bg-white/20 rounded-full p-1 flex items-center mr-2" aria-label="Switch between Cost and Credits view">
-            <button
-                onClick={() => onDisplayModeChange('cost')}
-                aria-pressed={displayMode === 'cost'}
-                className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-                    displayMode === 'cost' ? 'bg-surface shadow text-text-primary' : 'text-white/80'
-                }`}
-            >
-                Cost
-            </button>
-            <button
-                onClick={() => onDisplayModeChange('credits')}
-                aria-pressed={displayMode === 'credits'}
-                className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-                    displayMode === 'credits' ? 'bg-surface shadow text-text-primary' : 'text-white/80'
-                }`}
-            >
-                Credits
-            </button>
-        </div>
         <div className="relative flex-1 max-w-lg">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <IconSearch className="h-6 w-6 text-text-muted" />

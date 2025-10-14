@@ -11,6 +11,8 @@ interface ProfileSettingsPageProps {
   onUpdateBrandLogo: (logoUrl: string) => void;
   activeSection: string;
   onSectionChange: (section: string) => void;
+  // FIX: Added currentUserRole to props interface to resolve TypeScript error.
+  currentUserRole: 'Admin' | 'User' | null;
 }
 
 const ProfileCard: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
@@ -258,14 +260,16 @@ const MobileNav: React.FC<{
 };
 
 
-const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, onSave, onBack, brandLogo, onUpdateBrandLogo, activeSection, onSectionChange }) => {
+const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, onSave, onBack, brandLogo, onUpdateBrandLogo, activeSection, onSectionChange, currentUserRole }) => {
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 
     const settingsNavItems = [
         { name: 'User Info', icon: IconUser },
         { name: 'Change Password', icon: IconLockClosed },
-        { name: 'Brand Settings', icon: IconPhoto },
     ];
+    if (currentUserRole === 'Admin') {
+        settingsNavItems.push({ name: 'Brand Settings', icon: IconPhoto });
+    }
     
     const renderContent = () => {
         switch (activeSection) {
@@ -274,7 +278,7 @@ const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, onSave,
             case 'Change Password':
                 return <ChangePasswordSection />;
             case 'Brand Settings':
-                return <BrandSettingsSection currentLogo={brandLogo} onSaveLogo={onUpdateBrandLogo} />;
+                return currentUserRole === 'Admin' ? <BrandSettingsSection currentLogo={brandLogo} onSaveLogo={onUpdateBrandLogo} /> : null;
             default:
                 return <UserInfoSection user={user} onSave={onSave} />;
         }

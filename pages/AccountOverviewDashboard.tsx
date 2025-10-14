@@ -1,8 +1,8 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, TopQuery, Warehouse } from '../types';
-import { accountSpend, topQueriesData, accountCostBreakdown, warehousesData, queryListData } from '../data/dummyData';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis } from 'recharts';
-import BudgetStatusWidget from '../components/BudgetStatusWidget';
+import { accountSpend, topQueriesData, accountCostBreakdown, warehousesData, queryListData, spendTrendsData } from '../data/dummyData';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, AreaChart, Area } from 'recharts';
 import { IconDotsVertical, IconEdit, IconDragHandle, IconClose } from '../constants';
 import SidePanel from '../components/SidePanel';
 import TableView from '../components/TableView';
@@ -46,22 +46,42 @@ const AccessibleBar = (props: any) => {
     );
 };
 
-const CustomTooltip = ({ active, payload, label, displayMode }: any) => {
+const CustomTooltip: React.FC<{ active?: boolean; payload?: any[]; label?: string; }> = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         const value = payload[0].value;
         return (
             <div className="bg-surface p-2 rounded-lg shadow-lg">
                 <p className="font-mono text-xs mb-1 max-w-xs break-words">{label}</p>
                 <div className="text-sm text-primary flex items-baseline">
-                    <span className="font-semibold text-text-secondary mr-2">{displayMode === 'cost' ? 'Cost:' : 'Credits:'}</span>
-                    {displayMode === 'cost' ? (
-                        <span className="font-semibold text-text-primary">{`$${value.toLocaleString()}`}</span>
-                    ) : (
-                        <>
-                            <span className="font-semibold text-text-primary">{value.toLocaleString()}</span>
-                            <span className="text-xs font-medium text-text-secondary ml-1">credits</span>
-                        </>
-                    )}
+                    <span className="font-semibold text-text-secondary mr-2">Credits:</span>
+                    <span className="font-semibold text-text-primary">{value.toLocaleString()}</span>
+                    <span className="text-xs font-medium text-text-secondary ml-1">credits</span>
+                </div>
+            </div>
+        );
+    }
+    return null;
+};
+
+const CustomSpendTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+        const data = payload[0].payload;
+        return (
+            <div className="bg-surface p-3 rounded-lg border border-border-color shadow-lg">
+                <p className="text-sm font-semibold text-text-strong mb-2">{label}</p>
+                <div className="space-y-1 text-sm">
+                    <div className="flex justify-between items-center gap-4">
+                        <span className="text-text-secondary">Total:</span>
+                        <span className="font-semibold text-text-primary">{data.credits.toLocaleString()} credits</span>
+                    </div>
+                    <div className="flex justify-between items-center gap-4">
+                        <span className="text-text-secondary">Warehouse:</span>
+                        <span className="font-semibold text-text-primary">{data.warehouseCredits.toLocaleString()} credits</span>
+                    </div>
+                     <div className="flex justify-between items-center gap-4">
+                        <span className="text-text-secondary">Storage:</span>
+                        <span className="font-semibold text-text-primary">{data.storageCredits.toLocaleString()} credits</span>
+                    </div>
                 </div>
             </div>
         );
@@ -71,16 +91,55 @@ const CustomTooltip = ({ active, payload, label, displayMode }: any) => {
 
 interface AccountOverviewDashboardProps {
     account: Account;
-    displayMode: 'cost' | 'credits';
 }
 
 type WidgetConfig = {
-  id: 'spend' | 'budget' | 'breakdown' | 'queries' | 'warehouses' | 'totalQueries';
+  id: 'spend' | 'breakdown' | 'queries' | 'warehouses' | 'spendTrends';
 };
 
-const kpiWidgetIds: WidgetConfig['id'][] = ['spend', 'budget', 'totalQueries'];
+const kpiWidgetIds: WidgetConfig['id'][] = ['spend'];
 
-const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ account, displayMode }) => {
+interface WidgetProps {
+  handleMenuClick: (id: string) => void;
+  openMenu: string | null;
+  menuRef: React.RefObject<HTMLDivElement>;
+}
+
+interface WidgetActionMenuProps {
+    widgetId: string;
+    onExpand: () => void;
+    onTableView: (() => void) | null;
+    onDownload: () => void;
+    openMenu: string | null;
+    handleMenuClick: (id: string) => void;
+    menuRef: React.RefObject<HTMLDivElement>;
+}
+
+const WidgetActionMenu: React.FC<WidgetActionMenuProps> = ({ widgetId, onExpand, onTableView, onDownload, openMenu, handleMenuClick, menuRef }) => (
+    <div className="relative" ref={openMenu === widgetId ? menuRef : null}>
+        <button
+            onClick={() => handleMenuClick(widgetId)}
+            className="p-1 rounded-full text-text-secondary hover:bg-surface-hover hover:text-primary focus:outline-none"
+            aria-label={`${widgetId} options`}
+            aria-haspopup="true"
+            aria-expanded={openMenu === widgetId}
+        >
+            <IconDotsVertical className="h-5 w-5" />
+        </button>
+        {openMenu === widgetId && (
+            <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-10">
+                <div className="py-1" role="menu" aria-orientation="vertical">
+                    <button onClick={onExpand} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Expand View</button>
+                    {onTableView && <button onClick={onTableView} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Table View</button>}
+                    <button onClick={onDownload} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Download CSV</button>
+                </div>
+            </div>
+        )}
+    </div>
+);
+
+
+const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ account }) => {
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const [tableViewData, setTableViewData] = useState<{
@@ -91,7 +150,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
     const [isEditMode, setIsEditMode] = useState(false);
     
     const initialLayout: WidgetConfig[] = [
-      { id: 'spend' }, { id: 'budget' }, { id: 'totalQueries' }, { id: 'breakdown' }, { id: 'queries' }, { id: 'warehouses' },
+      { id: 'spend' }, { id: 'spendTrends' }, { id: 'breakdown' }, { id: 'queries' }, { id: 'warehouses' },
     ];
     
     const [widgets, setWidgets] = useState<WidgetConfig[]>(initialLayout);
@@ -133,6 +192,11 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                 headers = ["Warehouse Name", "Cost", "Credits", "Timestamp"];
                 dataRows = warehousesData.map(item => [item.name, item.cost, item.credits, timestamp]);
                 break;
+            case 'spend-trends':
+                fileName = 'spend_trends';
+                headers = ["Date", "Total Credits", "Warehouse Credits", "Storage Credits", "Timestamp"];
+                dataRows = spendTrendsData.map(item => [item.date, item.credits, item.warehouseCredits, item.storageCredits, timestamp]);
+                break;
         }
         
         if (headers.length > 0) {
@@ -149,13 +213,12 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
     };
 
     const handleOpenSpendBreakdownTable = () => {
-        const totalCost = accountCostBreakdown.reduce((sum, item) => sum + item.cost, 0);
         const totalCredits = accountCostBreakdown.reduce((sum, item) => sum + item.credits, 0);
         const data = accountCostBreakdown.map(item => ({
             name: item.name,
             cost: item.cost,
             credits: item.credits,
-            percentage: displayMode === 'cost' ? (item.cost/totalCost * 100) : (item.credits/totalCredits * 100),
+            percentage: (item.credits/totalCredits * 100),
         }));
         setTableViewData({ title: "Spend breakdown", data });
     };
@@ -201,39 +264,27 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
     };
 
     const SpendForecastCard: React.FC = () => {
-        const monthlySpend = displayMode === 'cost' ? accountSpend.cost.monthly : accountSpend.credits.monthly;
-        const forecastedSpend = displayMode === 'cost' ? accountSpend.cost.forecasted : accountSpend.credits.forecasted;
+        const monthlySpend = accountSpend.credits.monthly;
+        const forecastedSpend = accountSpend.credits.forecasted;
         return (
              <Card>
                 <div className="flex items-center mb-4">
                     <h4 className="text-base font-semibold text-text-strong">Month-to-date Spend</h4>
-                    <InfoTooltip text="The total cost or credits consumed by this account this month, and the projected spend by the end of the month based on current usage patterns." />
+                    <InfoTooltip text="The total credits consumed by this account this month, and the projected spend by the end of the month based on current usage patterns." />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="bg-surface-nested p-4 rounded-3xl">
                         <p className="text-text-secondary text-sm">Current spend</p>
                         <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
-                            {displayMode === 'cost' ? (
-                                `$${monthlySpend.toLocaleString()}`
-                            ) : (
-                                <>
-                                    <span>{monthlySpend.toLocaleString()}</span>
-                                    <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
-                                </>
-                            )}
+                            <span>{monthlySpend.toLocaleString()}</span>
+                            <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
                         </div>
                     </div>
                     <div className="bg-surface-nested p-4 rounded-3xl">
                         <p className="text-text-secondary text-sm">Forecasted spend</p>
                         <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
-                           {displayMode === 'cost' ? (
-                                `$${forecastedSpend.toLocaleString()}`
-                            ) : (
-                                <>
-                                    <span>{forecastedSpend.toLocaleString()}</span>
-                                    <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
-                                </>
-                            )}
+                           <span>{forecastedSpend.toLocaleString()}</span>
+                           <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
                         </div>
                     </div>
                 </div>
@@ -241,25 +292,44 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
         );
     };
 
-    const TotalQueriesCard: React.FC = () => {
-        return (
-            <Card>
-                <div className="flex items-center mb-4">
-                    <h4 className="text-base font-semibold text-text-strong">Total Queries</h4>
-                    <InfoTooltip text="Total number of queries executed in this account for the selected period." />
+    const SpendTrendsWidget: React.FC<WidgetProps> = ({ handleMenuClick, openMenu, menuRef }) => (
+        <Card>
+            <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center">
+                    <h3 className="text-base font-semibold text-text-strong">Spend Trends</h3>
+                    <InfoTooltip text="Daily credit usage over the last 30 days, with a breakdown of compute vs. storage." />
                 </div>
-                <div className="bg-surface-nested p-4 rounded-3xl">
-                    <p className="text-text-secondary text-sm">Queries executed</p>
-                    <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
-                        <span>{queryListData.length.toLocaleString()}</span>
-                    </div>
-                </div>
-            </Card>
-        );
-    };
+                <WidgetActionMenu
+                    widgetId="spend-trends"
+                    openMenu={openMenu}
+                    handleMenuClick={handleMenuClick}
+                    menuRef={menuRef}
+                    onExpand={() => {}}
+                    onTableView={null}
+                    onDownload={() => handleDownloadCSV('spend-trends')}
+                />
+            </div>
+            <div style={{ height: 300 }} className="flex-grow -ml-4">
+                <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={spendTrendsData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                        <defs>
+                            <linearGradient id="colorSpendTrend" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#6932D5" stopOpacity={0.7}/>
+                                <stop offset="95%" stopColor="#6932D5" stopOpacity={0}/>
+                            </linearGradient>
+                        </defs>
+                        <XAxis dataKey="date" stroke="var(--color-text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                        <YAxis stroke="var(--color-text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                        <Tooltip content={<CustomSpendTooltip />} cursor={{ stroke: 'var(--color-primary)', strokeWidth: 1, strokeDasharray: '3 3' }} />
+                        <Area type="monotone" dataKey="credits" stroke="var(--color-primary)" strokeWidth={2} fillOpacity={1} fill="url(#colorSpendTrend)" />
+                    </AreaChart>
+                </ResponsiveContainer>
+            </div>
+        </Card>
+    );
 
     const SpendBreakdownCard: React.FC = () => {
-         const monthlySpend = displayMode === 'cost' ? accountSpend.cost.monthly : accountSpend.credits.monthly;
+         const monthlySpend = accountSpend.credits.monthly;
         return (
             <Card>
                 <div className="flex justify-between items-start mb-4">
@@ -284,21 +354,15 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                 <div className="space-y-4">
                     {accountCostBreakdown.map(item => {
                         const chartData = [{ value: item.percentage }, { value: 100 - item.percentage }];
-                        const value = displayMode === 'cost' ? item.cost : item.credits;
+                        const value = item.credits;
 
                         return (
                             <div key={item.name} className="flex items-center justify-between gap-4">
                                 <div className="bg-surface-nested p-4 rounded-3xl flex-grow">
                                     <p className="text-text-secondary text-sm">{item.name}</p>
                                     <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
-                                        {displayMode === 'cost' ? (
-                                            `$${value.toLocaleString()}`
-                                        ) : (
-                                            <>
-                                                <span>{value.toLocaleString()}</span>
-                                                <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
-                                            </>
-                                        )}
+                                        <span>{value.toLocaleString()}</span>
+                                        <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
                                     </div>
                                 </div>
                                 <div className="flex-shrink-0 px-4">
@@ -333,14 +397,8 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                  <div className="text-center mt-4 pt-4 flex items-baseline justify-center">
                     <span className="text-sm text-text-secondary mr-1">Current spend:</span>
                     <span className="text-sm font-semibold text-text-primary">
-                         {displayMode === 'cost' ? (
-                            `$${monthlySpend.toLocaleString()}.00`
-                         ) : (
-                            <>
-                                <span>{monthlySpend.toLocaleString()}</span>
-                                <span className="text-xs font-medium text-text-secondary ml-1">credits</span>
-                            </>
-                         )}
+                        <span>{monthlySpend.toLocaleString()}</span>
+                        <span className="text-xs font-medium text-text-secondary ml-1">credits</span>
                     </span>
                 </div>
             </Card>
@@ -348,20 +406,20 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
     };
     
     const TopQueriesCard: React.FC = () => {
-        const topQueries = [...topQueriesData].sort((a,b) => b[displayMode] - a[displayMode]).slice(0, 10);
+        const topQueries = [...topQueriesData].sort((a,b) => b.credits - a.credits).slice(0, 10);
         return (
             <Card>
                 <div className="flex items-center mb-4">
                     <h4 className="text-base font-semibold text-text-strong">Top queries in this account</h4>
-                    <InfoTooltip text="Lists the most expensive queries in this account based on cost or credits consumed." />
+                    <InfoTooltip text="Lists the most expensive queries in this account based on credits consumed." />
                 </div>
                     <div style={{ height: 360 }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart layout="vertical" data={topQueries} margin={{ top: 5, right: 30, left: 20, bottom: 20 }}>
-                            <XAxis type="number" stroke="#5A5A72" fontSize={12} tickLine={false} axisLine={{ stroke: '#E5E5E0' }} label={{ value: displayMode === 'cost' ? 'Cost ($)' : 'Credits', position: 'insideBottom', dy: 15, style: { fill: '#5A5A72' } }} />
+                            <XAxis type="number" stroke="#5A5A72" fontSize={12} tickLine={false} axisLine={{ stroke: '#E5E5E0' }} label={{ value: 'Credits', position: 'insideBottom', dy: 15, style: { fill: '#5A5A72' } }} />
                             <YAxis type="category" dataKey="queryText" stroke="#5A5A72" tickLine={false} axisLine={false} interval={0} width={150} tick={{ fill: '#5A5A72', fontSize: 12, width: 140 }} tickFormatter={(value) => value.length > 20 ? `${value.substring(0, 20)}...` : value} />
-                            <Tooltip cursor={{ fill: 'rgba(105, 50, 213, 0.1)' }} content={<CustomTooltip displayMode={displayMode} />} />
-                            <Bar dataKey={displayMode === 'cost' ? 'cost' : 'credits'} fill="#6932D5" barSize={12} shape={<AccessibleBar onBarClick={() => {}} ariaLabelGenerator={(p: any) => `Query: ${p.queryText}`} />} />
+                            <Tooltip cursor={{ fill: 'rgba(105, 50, 213, 0.1)' }} content={<CustomTooltip />} />
+                            <Bar dataKey="credits" fill="#6932D5" barSize={12} shape={<AccessibleBar onBarClick={() => {}} ariaLabelGenerator={(p: any) => `Query: ${p.queryText}`} />} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -370,13 +428,13 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
     };
 
     const TopWarehousesCard: React.FC = () => {
-        const topWarehouses = [...warehousesData].sort((a, b) => b[displayMode] - a[displayMode]).slice(0, 10);
+        const topWarehouses = [...warehousesData].sort((a, b) => b.credits - a.credits).slice(0, 10);
         return (
             <Card>
                 <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center">
                         <h4 className="text-base font-semibold text-text-strong">Top warehouses in this account</h4>
-                        <InfoTooltip text="Lists the most resource-intensive warehouses in this account, ranked by cost or credits." />
+                        <InfoTooltip text="Lists the most resource-intensive warehouses in this account, ranked by credits." />
                     </div>
                     <div className="relative" ref={openMenu === 'top-warehouses' ? menuRef : null}>
                         <button
@@ -400,10 +458,10 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                 <div style={{ height: 360 }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart layout="vertical" data={topWarehouses} margin={{ top: 5, right: 30, left: 20, bottom: 20 }}>
-                            <XAxis type="number" stroke="#5A5A72" fontSize={12} tickLine={false} axisLine={{ stroke: '#E5E5E0' }} label={{ value: displayMode === 'cost' ? 'Cost ($)' : 'Credits', position: 'insideBottom', dy: 15, style: { fill: '#5A5A72' } }} />
+                            <XAxis type="number" stroke="#5A5A72" fontSize={12} tickLine={false} axisLine={{ stroke: '#E5E5E0' }} label={{ value: 'Credits', position: 'insideBottom', dy: 15, style: { fill: '#5A5A72' } }} />
                             <YAxis type="category" dataKey="name" stroke="#5A5A72" tickLine={false} axisLine={false} interval={0} width={150} tick={{ fill: '#5A5A72', fontSize: 12, width: 140 }} tickFormatter={(value) => value.length > 20 ? `${value.substring(0, 20)}...` : value} />
-                            <Tooltip cursor={{ fill: 'rgba(105, 50, 213, 0.1)' }} content={<CustomTooltip displayMode={displayMode} />} />
-                            <Bar dataKey={displayMode === 'cost' ? 'cost' : 'credits'} fill="#6932D5" barSize={12} shape={<AccessibleBar onBarClick={() => {}} ariaLabelGenerator={(p: any) => `Warehouse: ${p.name}`} />} />
+                            <Tooltip cursor={{ fill: 'rgba(105, 50, 213, 0.1)' }} content={<CustomTooltip />} />
+                            <Bar dataKey="credits" fill="#6932D5" barSize={12} shape={<AccessibleBar onBarClick={() => {}} ariaLabelGenerator={(p: any) => `Warehouse: ${p.name}`} />} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -413,8 +471,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
     
     const widgetComponentMap: Record<WidgetConfig['id'], React.FC<any>> = {
       spend: SpendForecastCard,
-      budget: BudgetStatusWidget,
-      totalQueries: TotalQueriesCard,
+      spendTrends: SpendTrendsWidget,
       breakdown: SpendBreakdownCard,
       queries: TopQueriesCard,
       warehouses: TopWarehousesCard,
@@ -426,7 +483,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
 
         if (!Component) return null;
         
-        const content = <Component displayMode={displayMode} account={account} />;
+        const content = <Component account={account} handleMenuClick={handleMenuClick} openMenu={openMenu} menuRef={menuRef} />;
 
         if (isEditMode) {
             return (

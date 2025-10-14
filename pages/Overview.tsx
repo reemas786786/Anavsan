@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { costBreakdownData, overviewMetrics, resourceSummaryData as initialResourceSummaryData } from '../data/dummyData';
@@ -13,7 +14,6 @@ interface OverviewProps {
     accounts: Account[];
     users: User[];
     onSetBigScreenWidget: (widget: BigScreenWidget) => void;
-    displayMode: 'cost' | 'credits';
     currentUserRole: 'Admin' | 'User' | null;
 }
 
@@ -58,22 +58,18 @@ const AccessibleBar = (props: any) => {
     );
 };
 
-const CustomTooltip = ({ active, payload, label, displayMode }: any) => {
+const CustomTooltip: React.FC<{ active?: boolean, payload?: any[], label?: string }> = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         const value = payload[0].value;
         return (
             <div className="bg-surface p-2 rounded-lg shadow-lg">
                 <p className="text-sm font-semibold text-text-strong mb-1">{label}</p>
                 <div className="text-sm text-primary flex items-baseline">
-                    <span className="font-semibold text-text-secondary mr-2">{displayMode === 'cost' ? 'Spend:' : 'Credits:'}</span>
-                    {displayMode === 'cost' ? (
-                        <span className="font-semibold text-text-primary">{`$${value.toLocaleString()}`}</span>
-                    ) : (
-                        <>
-                            <span className="font-semibold text-text-primary">{value.toLocaleString()}</span>
-                            <span className="text-xs font-medium text-text-secondary ml-1">credits</span>
-                        </>
-                    )}
+                    <span className="font-semibold text-text-secondary mr-2">Credits:</span>
+                    <>
+                        <span className="font-semibold text-text-primary">{value.toLocaleString()}</span>
+                        <span className="text-xs font-medium text-text-secondary ml-1">credits</span>
+                    </>
                 </div>
             </div>
         );
@@ -82,7 +78,7 @@ const CustomTooltip = ({ active, payload, label, displayMode }: any) => {
 };
 
 
-const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, accounts, users, onSetBigScreenWidget, displayMode, currentUserRole }) => {
+const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, accounts, users, onSetBigScreenWidget, currentUserRole }) => {
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     
@@ -172,14 +168,13 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
 
     
     const handleOpenSpendBreakdownTable = () => {
-        const totalCost = costBreakdownData.reduce((sum, item) => sum + item.cost, 0);
         const totalCredits = costBreakdownData.reduce((sum, item) => sum + item.credits, 0);
 
         const data = costBreakdownData.map(item => ({
             name: item.name,
             cost: item.cost,
             credits: item.credits,
-            percentage: (displayMode === 'cost' ? item.cost / totalCost : item.credits / totalCredits) * 100,
+            percentage: (item.credits / totalCredits) * 100,
         }));
 
         setTableViewData({
@@ -189,14 +184,13 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
     };
 
     const handleOpenTopAccountTable = () => {
-        const totalCost = accounts.reduce((sum, item) => sum + item.cost, 0);
         const totalCredits = accounts.reduce((sum, item) => sum + item.credits, 0);
 
         const data = accounts.map(item => ({
             name: item.name,
             cost: item.cost,
             credits: item.credits,
-            percentage: totalCost > 0 || totalCredits > 0 ? (displayMode === 'cost' ? (item.cost / totalCost) * 100 : (item.credits / totalCredits) * 100) : 0,
+            percentage: totalCredits > 0 ? (item.credits / totalCredits) * 100 : 0,
         }));
 
         setTableViewData({
@@ -206,14 +200,13 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
     };
 
     const handleOpenTopUserTable = () => {
-        const totalCost = users.reduce((sum, item) => sum + item.cost, 0);
         const totalCredits = users.reduce((sum, item) => sum + item.credits, 0);
 
         const data = users.map(item => ({
             name: item.name,
             cost: item.cost,
             credits: item.credits,
-            percentage: totalCost > 0 || totalCredits > 0 ? (displayMode === 'cost' ? (item.cost / totalCost) * 100 : (item.credits / totalCredits) * 100) : 0,
+            percentage: totalCredits > 0 ? (item.credits / totalCredits) * 100 : 0,
         }));
 
         setTableViewData({
@@ -229,15 +222,9 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
         }
     };
 
-    const sortedTopSpendData = [...accounts].sort((a, b) => {
-        const key = displayMode === 'cost' ? 'cost' : 'credits';
-        return b[key] - a[key];
-    }).slice(0, 10);
+    const sortedTopSpendData = [...accounts].sort((a, b) => b.credits - a.credits).slice(0, 10);
 
-    const topUsers = [...users].sort((a, b) => {
-        const key = displayMode === 'cost' ? 'cost' : 'credits';
-        return b[key] - a[key];
-    }).slice(0, 10);
+    const topUsers = [...users].sort((a, b) => b.credits - a.credits).slice(0, 10);
 
     const handleUserBarClick = (data: any) => {
         const user = users.find(u => u.id === data.id);
@@ -246,8 +233,8 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
         }
     };
     
-    const currentSpend = displayMode === 'cost' ? overviewMetrics.cost.current : overviewMetrics.credits.current;
-    const forecastedSpend = displayMode === 'cost' ? overviewMetrics.cost.forecasted : overviewMetrics.credits.forecasted;
+    const currentSpend = overviewMetrics.credits.current;
+    const forecastedSpend = overviewMetrics.credits.forecasted;
     const barHeight = 12;
     const userBarHeight = 12;
 
@@ -265,7 +252,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                         <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center">
                                 <h4 className="text-base font-semibold text-text-strong">Month-to-date Spend</h4>
-                                <InfoTooltip text="The total cost or credits consumed this month, and the projected spend by the end of the month based on current usage patterns." />
+                                <InfoTooltip text="The total credits consumed this month, and the projected spend by the end of the month based on current usage patterns." />
                             </div>
                             <div className="relative" ref={openMenu === 'cost-forecast' ? menuRef : null}>
                                 <button
@@ -290,27 +277,15 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                             <div className="bg-surface-nested p-4 rounded-3xl">
                                 <p className="text-text-secondary text-sm">Current spend</p>
                                 <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
-                                    {displayMode === 'cost' ? (
-                                        `$${currentSpend.toLocaleString()}.00`
-                                    ) : (
-                                        <>
-                                            <span>{currentSpend.toLocaleString()}</span>
-                                            <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
-                                        </>
-                                    )}
+                                    <span>{currentSpend.toLocaleString()}</span>
+                                    <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
                                 </div>
                             </div>
                             <div className="bg-surface-nested p-4 rounded-3xl">
                                 <p className="text-text-secondary text-sm">Forecasted spend</p>
                                 <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
-                                    {displayMode === 'cost' ? (
-                                        `$${forecastedSpend.toLocaleString()}.00`
-                                    ) : (
-                                        <>
-                                            <span>{forecastedSpend.toLocaleString()}</span>
-                                            <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
-                                        </>
-                                    )}
+                                    <span>{forecastedSpend.toLocaleString()}</span>
+                                    <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
                                 </div>
                             </div>
                         </div>
@@ -347,21 +322,15 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                         <div className="space-y-4">
                             {costBreakdownData.map(item => {
                                 const chartData = [{ value: item.percentage }, { value: 100 - item.percentage }];
-                                const value = displayMode === 'cost' ? item.cost : item.credits;
+                                const value = item.credits;
 
                                 return (
                                     <div key={item.name} className="flex items-center justify-between gap-4">
                                         <div className="bg-surface-nested p-4 rounded-3xl flex-grow">
                                             <p className="text-text-secondary text-sm">{item.name}</p>
                                             <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
-                                                {displayMode === 'cost' ? (
-                                                    `$${value.toLocaleString()}`
-                                                ) : (
-                                                    <>
-                                                        <span>{value.toLocaleString()}</span>
-                                                        <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
-                                                    </>
-                                                )}
+                                                <span>{value.toLocaleString()}</span>
+                                                <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
                                             </div>
                                         </div>
                                         <div className="flex-shrink-0 px-4">
@@ -396,14 +365,8 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                         <div className="text-center mt-4 pt-4 flex items-baseline justify-center">
                             <span className="text-sm text-text-secondary mr-1">Current Spend:</span>
                             <span className="text-sm font-semibold text-text-primary">
-                                {displayMode === 'cost' ? (
-                                    `$${currentSpend.toLocaleString()}.00`
-                                ) : (
-                                    <>
-                                        <span>{currentSpend.toLocaleString()}</span>
-                                        <span className="text-xs font-medium text-text-secondary ml-1">credits</span>
-                                    </>
-                                )}
+                                <span>{currentSpend.toLocaleString()}</span>
+                                <span className="text-xs font-medium text-text-secondary ml-1">credits</span>
                             </span>
                         </div>
                     </Card>
@@ -414,7 +377,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                             <div className="flex justify-between items-start mb-4">
                                 <div className="flex items-center">
                                     <h4 className="text-base font-semibold text-text-strong">Top spend by user</h4>
-                                    <InfoTooltip text="Displays the top 10 users ranked by their total cost or credit consumption for the current period." />
+                                    <InfoTooltip text="Displays the top 10 users ranked by their total credit consumption for the current period." />
                                 </div>
                                 <div className="relative" ref={openMenu === 'top-spend-user' ? menuRef : null}>
                                     <button
@@ -451,7 +414,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                                             fontSize={12}
                                             tickLine={false}
                                             axisLine={{ stroke: '#E5E5E0' }}
-                                            label={{ value: displayMode === 'cost' ? 'Cost ($)' : 'Credits', position: 'insideBottom', dy: 15, style: { fill: '#5A5A72', fontSize: 12, fontWeight: 500 } }}
+                                            label={{ value: 'Credits', position: 'insideBottom', dy: 15, style: { fill: '#5A5A72', fontSize: 12, fontWeight: 500 } }}
                                         />
                                         <YAxis
                                             type="category"
@@ -465,10 +428,10 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                                         />
                                         <Tooltip
                                             cursor={{ fill: 'rgba(105, 50, 213, 0.1)', cursor: 'pointer' }}
-                                            content={<CustomTooltip displayMode={displayMode} />}
+                                            content={<CustomTooltip />}
                                         />
                                         <Bar
-                                            dataKey={displayMode === 'cost' ? 'cost' : 'credits'}
+                                            dataKey="credits"
                                             fill="#6932D5"
                                             barSize={userBarHeight}
                                             shape={
@@ -526,7 +489,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                         <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center">
                                 <h4 className="text-base font-semibold text-text-strong">Top spend by account</h4>
-                                <InfoTooltip text="Displays the top 10 accounts ranked by their total cost or credit consumption for the current period." />
+                                <InfoTooltip text="Displays the top 10 accounts ranked by their total credit consumption for the current period." />
                             </div>
                             <div className="relative" ref={openMenu === 'top-spend-account' ? menuRef : null}>
                                 <button
@@ -563,7 +526,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                                         fontSize={12}
                                         tickLine={false}
                                         axisLine={{ stroke: '#E5E5E0' }}
-                                        label={{ value: displayMode === 'cost' ? 'Cost ($)' : 'Credits', position: 'insideBottom', dy: 15, style: { fill: '#5A5A72', fontSize: 12, fontWeight: 500 } }}
+                                        label={{ value: 'Credits', position: 'insideBottom', dy: 15, style: { fill: '#5A5A72', fontSize: 12, fontWeight: 500 } }}
                                     />
                                     <YAxis
                                         type="category"
@@ -577,10 +540,10 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                                     />
                                     <Tooltip
                                         cursor={{ fill: 'rgba(105, 50, 213, 0.1)' }}
-                                        content={<CustomTooltip displayMode={displayMode} />}
+                                        content={<CustomTooltip />}
                                     />
                                     <Bar
-                                        dataKey={displayMode === 'cost' ? 'cost' : 'credits'}
+                                        dataKey="credits"
                                         fill="#6932D5"
                                         barSize={barHeight}
                                         shape={

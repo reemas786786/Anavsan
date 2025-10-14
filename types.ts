@@ -359,3 +359,10 @@ export interface PullRequest {
     oldCode: string;
     newCode: string;
 }
+
+export interface SpendTrendPoint {
+  date: string;
+  credits: number;
+  warehouseCredits: number;
+  storageCredits: number;
+}

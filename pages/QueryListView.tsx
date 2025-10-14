@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { queryListData as initialData, warehousesData, usersData as allUsersData } from '../data/dummyData';
 import { QueryListItem, QueryType, QueryListFilters } from '../types';
-import { IconSearch, IconDotsVertical, IconView, IconBeaker, IconWand, IconShare, IconFilter } from '../constants';
+import { IconSearch, IconDotsVertical, IconView, IconBeaker, IconWand, IconShare, IconFilter, IconClipboardCopy, IconCheck } from '../constants';
 import MultiSelectDropdown from '../components/MultiSelectDropdown';
 import DateRangeDropdown from '../components/DateRangeDropdown';
 import Pagination from '../components/Pagination';
@@ -67,7 +67,8 @@ const QueryListView: React.FC<QueryListViewProps> = ({
     
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
-    
+    const [copiedId, setCopiedId] = useState<string | null>(null);
+
     const menuRef = useRef<HTMLDivElement>(null);
     const filterRef = useRef<HTMLDivElement>(null);
     
@@ -89,6 +90,12 @@ const QueryListView: React.FC<QueryListViewProps> = ({
             setTempDurationFilter(filters.durationFilter);
         }
     }, [isFilterOpen, filters.warehouseFilter, filters.queryTypeFilter, filters.durationFilter]);
+    
+    const handleCopy = (id: string) => {
+        navigator.clipboard.writeText(id);
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+    };
 
     const getDurationInSeconds = (duration: string) => {
         const parts = duration.split(':').map(Number);
@@ -173,9 +180,12 @@ const QueryListView: React.FC<QueryListViewProps> = ({
         switch (colKey) {
             case 'queryId':
                 return (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                         <span className={`w-1 h-5 rounded-full ${q.status === 'Success' ? 'bg-status-success' : 'bg-status-error'}`}></span>
                         <span className="font-mono text-sm text-text-primary">{q.id.substring(7, 13).toUpperCase()}</span>
+                        <button onClick={(e) => { e.stopPropagation(); handleCopy(q.id); }} className="text-text-muted hover:text-text-primary">
+                            {copiedId === q.id ? <IconCheck className="h-4 w-4 text-status-success" /> : <IconClipboardCopy className="h-4 w-4" />}
+                        </button>
                     </div>
                 );
             case 'user': return q.user;
