@@ -1,4 +1,4 @@
-import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget, SimilarQuery, QueryListItem, QueryStatus, QueryType, QuerySeverity, StorageBreakdownItem, TopStorageConsumer, StorageGrowthPoint, UnusedTable, StorageActivityLogItem, StorageByTeamItem, DuplicateDataPattern, StorageOptimizationOpportunity, DataAgeDistributionItem, StorageTierItem, TieringOpportunityItem, CostForecastPoint, TierForecastPoint, AnomalyAlertItem, SavingsProjection, Database, DatabaseTable, StorageByTypeItem, AssignedQuery, PullRequest, SpendTrendPoint } from '../types';
+import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget, SimilarQuery, QueryListItem, QueryStatus, QueryType, QuerySeverity, StorageBreakdownItem, TopStorageConsumer, StorageGrowthPoint, UnusedTable, StorageActivityLogItem, StorageByTeamItem, DuplicateDataPattern, StorageOptimizationOpportunity, DataAgeDistributionItem, StorageTierItem, TieringOpportunityItem, CostForecastPoint, TierForecastPoint, AnomalyAlertItem, SavingsProjection, Database, DatabaseTable, StorageByTypeItem, AssignedQuery, PullRequest, Notification, ActivityLog } from '../types';
 
 export const availableWidgetsData: Omit<Widget, 'id' | 'dataSource' | 'imageUrl'>[] = [
     { 
@@ -166,6 +166,16 @@ export const accountSpend = {
     credits: { monthly: 500, forecasted: 960 },
 };
 
+export const spendTrendsData: { date: string, warehouse: number, storage: number, total: number }[] = [
+  { date: 'Jan', warehouse: 410, storage: 90, total: 500 },
+  { date: 'Feb', warehouse: 380, storage: 100, total: 480 },
+  { date: 'Mar', warehouse: 450, storage: 110, total: 560 },
+  { date: 'Apr', warehouse: 480, storage: 115, total: 595 },
+  { date: 'May', warehouse: 520, storage: 120, total: 640 },
+  { date: 'Jun', warehouse: 550, storage: 125, total: 675 },
+  { date: 'Jul', warehouse: 510, storage: 130, total: 640 },
+];
+
 export const topQueriesData: TopQuery[] = [
   { id: 'q1', queryText: 'SELECT * FROM sales_fact WHERE date > ...', credits: 120, cost: 300, user: 'Alice', duration: '00:02:15' },
   { id: 'q2', queryText: 'INSERT INTO marketing_agg SELECT ...', credits: 95, cost: 237.5, user: 'Bob', duration: '00:01:30' },
@@ -187,8 +197,8 @@ export const warehousesData: Warehouse[] = [
 ];
 
 export const usersData: User[] = [
-    { id: 'user-1', name: 'Alice Johnson', email: 'alice.j@example.com', role: 'Admin', status: 'Active', dateAdded: '2023-01-15', cost: 1200, credits: 480, roleTitle: 'Lead Data Analyst', avatarUrl: '...' },
-    { id: 'user-2', name: 'Bob Williams', email: 'bob.w@example.com', role: 'Analyst', status: 'Active', dateAdded: '2023-02-20', cost: 850, credits: 340 },
+    { id: 'user-1', name: 'Alice Johnson', email: 'admin@anavsan.com', role: 'Admin', status: 'Active', dateAdded: '2023-01-15', cost: 1200, credits: 480, roleTitle: 'Lead Data Analyst', avatarUrl: '...' },
+    { id: 'user-2', name: 'Bob Williams', email: 'user@anavsan.com', role: 'Analyst', status: 'Active', dateAdded: '2023-02-20', cost: 850, credits: 340 },
     { id: 'user-3', name: 'Charlie Brown', email: 'charlie.b@example.com', role: 'Viewer', status: 'Active', dateAdded: '2023-03-10', cost: 150, credits: 60 },
     { id: 'user-4', name: 'David Miller', email: 'david.m@example.com', role: 'Analyst', status: 'Suspended', dateAdded: '2023-04-05', cost: 400, credits: 160 },
     { id: 'user-5', name: 'Eve Davis', email: 'eve.d@example.com', role: 'Admin', status: 'Invited', dateAdded: '2023-05-22', cost: 0, credits: 0, message: 'Invitation pending' },
@@ -426,15 +436,24 @@ export const assignedQueriesData: AssignedQuery[] = [
     },
 ];
 
-export const spendTrendsData: SpendTrendPoint[] = Array.from({ length: 30 }, (_, i) => {
-  const date = new Date();
-  date.setDate(date.getDate() - (29 - i));
-  const warehouseCredits = 10 + Math.random() * 20 + i * 0.5;
-  const storageCredits = 5 + Math.random() * 5;
-  return {
-    date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    credits: parseFloat((warehouseCredits + storageCredits).toFixed(2)),
-    warehouseCredits: parseFloat(warehouseCredits.toFixed(2)),
-    storageCredits: parseFloat(storageCredits.toFixed(2)),
-  };
-});
+export const notificationsData: Notification[] = [
+    { id: 'notif-1', type: 'performance', title: "Query performance degraded for 'User Activity' database", timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), isRead: false, source: 'Snowflake Prod', severity: 'Warning' },
+    { id: 'notif-2', type: 'latency', title: "High latency detected in 'Product Catalog' database", timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), isRead: true, source: 'BI Snowflake', severity: 'Warning' },
+    { id: 'notif-3', type: 'storage', title: "Database 'Inventory Management' nearing storage capacity", timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), isRead: true, source: 'Data Science WH', severity: 'Info' },
+    { id: 'notif-4', type: 'query', title: "Slow query detected in 'Customer Orders' database", timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), isRead: false, source: 'Marketing Dev', severity: 'Info' },
+    { id: 'notif-5', type: 'load', title: "Database 'Payment Transactions' experiencing high load", timestamp: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(), isRead: true, source: 'Snowflake Prod', severity: 'Critical' },
+    { id: 'notif-6', type: 'performance', title: 'Warehouse "COMPUTE_WH" shows signs of queueing.', timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), isRead: false, source: 'Snowflake Prod', severity: 'Warning' },
+    { id: 'notif-7', type: 'storage', title: 'Storage cost increased by 15% this week.', timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(), isRead: true, source: 'Overall', severity: 'Info' },
+    { id: 'notif-8', type: 'load', title: 'Critical load on "BI_WH", performance may be impacted.', timestamp: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(), isRead: false, source: 'BI Snowflake', severity: 'Critical' },
+];
+
+export const activityLogsData: ActivityLog[] = [
+    { id: 'log-1', user: 'Alice Johnson', action: 'added a new connection', details: 'Snowflake - Sales DB', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), module: 'Connections', status: 'Success' },
+    { id: 'log-2', user: 'System', action: 'completed a query optimization', details: 'Query ID: q-list-1-16...', timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), module: 'Optimizer', status: 'Success' },
+    { id: 'log-3', user: 'Bob Williams', action: 'updated the cost threshold', details: 'From $500 to $800', timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), module: 'Billing', status: 'Success' },
+    { id: 'log-4', user: 'Priya Patel', action: 'ran a simulation', details: 'Query: daily_metrics_aggregation.sql', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), module: 'Simulator', status: 'In Progress' },
+    { id: 'log-5', user: 'Alice Johnson', action: 'invited a new user', details: 'eve.d@example.com', timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), module: 'User Management', status: 'Success' },
+    { id: 'log-6', user: 'System', action: 'failed to sync account', details: 'Archived Data', timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(), module: 'Connections', status: 'Failed' },
+    { id: 'log-7', user: 'Charlie Brown', action: 'created a new dashboard', details: 'Sales Overview', timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), module: 'Dashboards', status: 'Success' },
+    { id: 'log-8', user: 'Arjun Singh', action: 'merged a pull request', details: '#42', timestamp: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(), module: 'Workspace', status: 'Success' },
+];

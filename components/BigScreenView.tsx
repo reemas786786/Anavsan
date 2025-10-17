@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, AreaChart, Area } from 'recharts';
 import { BigScreenWidget, Account, User } from '../types';
@@ -48,7 +47,7 @@ const AccessibleBar = (props: any) => {
     );
 };
 
-const CustomTooltip: React.FC<{ active?: boolean, payload?: any[], label?: string }> = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         const value = payload[0].value;
         const name = payload[0].name;
@@ -174,12 +173,10 @@ const BigScreenView: React.FC<BigScreenViewProps> = ({ widget, accounts, users, 
                              <div className="text-center mt-6 pt-6 border-t border-border-light flex items-baseline justify-center">
                                 <span className="text-base text-text-secondary mr-1">Current Spend:</span>
                                 <span className="text-base font-semibold text-text-primary">
-                                    
-                                        <>
-                                            <span>{currentSpend.toLocaleString()}</span>
-                                            <span className="text-sm font-medium text-text-secondary ml-1">credits</span>
-                                        </>
-                                    
+                                    <>
+                                        <span>{currentSpend.toLocaleString()}</span>
+                                        <span className="text-sm font-medium text-text-secondary ml-1">credits</span>
+                                    </>
                                 </span>
                             </div>
                         </div>
@@ -213,6 +210,7 @@ const BigScreenView: React.FC<BigScreenViewProps> = ({ widget, accounts, users, 
                             <div className="relative w-64 h-64">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
+                                        {/* FIX: Mapped data to resolve TypeScript error regarding index signatures in recharts. */}
                                         <Pie data={storageByTypeChartData.map(item => ({...item}))} dataKey="storageGB" nameKey="type" cx="50%" cy="50%" innerRadius="65%" outerRadius="85%" fill="#8884d8" paddingAngle={5} stroke="none">
                                             {storageByTypeChartData.map((entry) => <Cell key={`cell-${entry.type}`} fill={entry.color} />)}
                                         </Pie>

@@ -7,10 +7,12 @@ export type Page =
   | 'AI Agent' 
   | 'Reports' 
   | 'Assigned Queries'
+  | 'Notifications'
   | 'Book a Demo'
   | 'Docs'
   | 'Settings' 
-  | 'Support';
+  | 'Support'
+  | 'Profile Settings';
 
 export interface NavSubItem {
     name: string;
@@ -20,6 +22,11 @@ export interface NavItem {
     name: Page;
     icon: React.ComponentType<{ className?: string }>;
     subItems?: NavSubItem[];
+}
+
+export interface BreadcrumbItem {
+    label: string;
+    onClick?: () => void;
 }
 
 export type ConnectionStatus = 'Connected' | 'Disconnected' | 'Syncing' | 'Error';
@@ -177,6 +184,7 @@ export interface SlowQueryFilters {
     search: string;
     dateFilter: string | { start: string; end: string };
     warehouseFilter: string[];
+    severityFilter: string[];
 }
 
 
@@ -360,9 +368,27 @@ export interface PullRequest {
     newCode: string;
 }
 
-export interface SpendTrendPoint {
-  date: string;
-  credits: number;
-  warehouseCredits: number;
-  storageCredits: number;
+export type NotificationType = 'performance' | 'latency' | 'storage' | 'query' | 'load';
+export type NotificationSeverity = 'Info' | 'Warning' | 'Critical';
+
+export interface Notification {
+    id: string;
+    type: NotificationType;
+    title: string;
+    timestamp: string;
+    isRead: boolean;
+    source: string;
+    severity: NotificationSeverity;
+}
+
+export type ActivityLogStatus = 'Success' | 'Failed' | 'In Progress';
+
+export interface ActivityLog {
+  id: string;
+  user: string; // User name
+  action: string;
+  timestamp: string; // ISO string
+  details?: string;
+  module?: string;
+  status?: ActivityLogStatus;
 }

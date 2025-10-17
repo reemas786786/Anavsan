@@ -141,6 +141,7 @@ export const SimilarQueryPatternsView: React.FC = () => {
         <div className="flex flex-col h-full bg-background p-4 space-y-4">
             <div className="flex-shrink-0">
                  <h1 className="text-2xl font-bold text-text-primary">Similar query patterns</h1>
+                 <p className="mt-1 text-text-secondary">Group and analyze queries with similar structures to identify optimization opportunities.</p>
                  <div className="mt-4 flex flex-wrap items-center gap-2">
                      <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
                         Total Patterns: <span className="font-bold text-text-strong">{groupedData.length}</span>

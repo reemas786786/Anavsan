@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { QueryListItem } from '../types';
-import { IconChevronLeft, IconSave, IconClipboardCopy, IconRefresh, IconKey, IconSearch, IconDatabase, IconCheck, IconFilter, IconLayers, IconBeaker, IconTrendingUp, IconWand } from '../constants';
+// FIX: Replaced non-existent IconFilter with IconAdjustments.
+import { IconChevronLeft, IconSave, IconClipboardCopy, IconRefresh, IconKey, IconSearch, IconDatabase, IconCheck, IconAdjustments, IconLayers, IconBeaker, IconTrendingUp, IconWand } from '../constants';
 
 interface AnalysisResult {
     id: string;
@@ -77,7 +78,8 @@ const mockAnalysisResults: AnalysisResult[] = [
         id: 'rec1',
         title: 'Filter Pushdown Opportunity',
         description: "The filter `region = 'North America'` is applied in the final SELECT. Pushing this filter into the `regional_analysis` CTE would significantly reduce data processed by subsequent joins.",
-        icon: IconFilter,
+        // FIX: Replaced non-existent IconFilter with IconAdjustments.
+        icon: IconAdjustments,
         category: 'core',
     },
     {
@@ -193,6 +195,7 @@ const QueryAnalyzerView: React.FC<{
                     </button>
                 )}
                 <h1 className="text-2xl font-bold text-text-primary">Query Analyzer</h1>
+                <p className="mt-1 text-text-secondary">Get detailed performance insights and recommendations for a specific query.</p>
             </header>
 
             <main className="flex-grow flex flex-col md:flex-row gap-4 overflow-hidden">

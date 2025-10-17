@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { IconMenu, IconAIAgent, IconUser, IconSearch, IconBell, IconClose, IconHelpCircle, IconSun, IconMoon } from '../constants';
+import NotificationDropdown from './NotificationDropdown';
+import { Notification, Page } from '../types';
 
 interface HeaderProps {
     onMenuClick: () => void;
@@ -11,6 +13,9 @@ interface HeaderProps {
     hasNewAssignment?: boolean;
     theme: 'light' | 'dark';
     onThemeChange: (theme: 'light' | 'dark') => void;
+    notifications: Notification[];
+    onMarkAllNotificationsAsRead: () => void;
+    onNavigate: (page: Page) => void;
 }
 
 const AnavsanLogo: React.FC<{}> = () => (
@@ -33,19 +38,39 @@ const BrandLogo: React.FC<{ logoUrl: string }> = ({ logoUrl }) => (
 );
 
 
-const Header: React.FC<HeaderProps> = ({ onMenuClick, onLogoClick, isSidebarOpen, brandLogo, onOpenProfileSettings, onLogout, hasNewAssignment, theme, onThemeChange }) => {
+const Header: React.FC<HeaderProps> = ({ 
+    onMenuClick, 
+    onLogoClick, 
+    isSidebarOpen, 
+    brandLogo, 
+    onOpenProfileSettings, 
+    onLogout, 
+    hasNewAssignment, 
+    theme, 
+    onThemeChange,
+    notifications,
+    onMarkAllNotificationsAsRead,
+    onNavigate,
+}) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-        if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
             setIsUserMenuOpen(false);
+        }
+        if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+            setIsNotificationsOpen(false);
         }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const hasUnread = hasNewAssignment || notifications.some(n => !n.isRead);
 
   return (
     <header className="bg-sidebar-topbar px-4 py-2 flex items-center justify-between flex-shrink-0 h-12 z-40 relative">
@@ -85,12 +110,24 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onLogoClick, isSidebarOpen
         <button className="p-2 rounded-full text-primary bg-primary/20 hover:bg-primary/30 transition-colors">
             <IconAIAgent className="h-6 w-6" />
         </button>
-        <button className="relative p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
-          <IconBell className="h-6 w-6" />
-          {hasNewAssignment && (
-            <span className="absolute top-2 right-2 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-sidebar-topbar" />
-          )}
-        </button>
+        <div className="relative" ref={notificationsRef}>
+            <button onClick={() => setIsNotificationsOpen(!isNotificationsOpen)} className="relative p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
+              <IconBell className="h-6 w-6" />
+              {hasUnread && (
+                <span className="absolute top-2 right-2 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-sidebar-topbar" />
+              )}
+            </button>
+            <NotificationDropdown
+                isOpen={isNotificationsOpen}
+                onClose={() => setIsNotificationsOpen(false)}
+                notifications={notifications}
+                onMarkAllAsRead={onMarkAllNotificationsAsRead}
+                onViewAll={() => {
+                    onNavigate('Notifications');
+                    setIsNotificationsOpen(false);
+                }}
+            />
+        </div>
         <button 
             className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors"
             aria-label="Help"
@@ -99,7 +136,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onLogoClick, isSidebarOpen
           <IconHelpCircle className="h-6 w-6" />
         </button>
 
-        <div className="relative flex items-center pl-2" ref={menuRef}>
+        <div className="relative flex items-center pl-2" ref={userMenuRef}>
             <button onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors" aria-haspopup="true" aria-expanded={isUserMenuOpen} aria-label="User menu">
                 <IconUser className="h-6 w-6" />
             </button>

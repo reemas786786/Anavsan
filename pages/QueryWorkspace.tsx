@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { SQLFile, SQLVersion } from '../types';
 // FIX: Import `IconSearch` to resolve reference error.
@@ -255,7 +252,10 @@ const QueryVersionsView: React.FC<QueryVersionsProps> = ({ sqlFiles: initialSqlF
                 />
             ) : (
                 <>
-                    <h1 className="text-2xl font-bold text-text-primary">Query Versions</h1>
+                    <div>
+                        <h1 className="text-2xl font-bold text-text-primary">Query Versions</h1>
+                        <p className="mt-1 text-text-secondary">Track and compare different saved versions of your SQL queries.</p>
+                    </div>
                     <FileListView 
                         files={sqlFiles} 
                         onSelectFile={setSelectedFile}

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { costBreakdownData, overviewMetrics, resourceSummaryData as initialResourceSummaryData } from '../data/dummyData';
@@ -14,7 +13,7 @@ interface OverviewProps {
     accounts: Account[];
     users: User[];
     onSetBigScreenWidget: (widget: BigScreenWidget) => void;
-    currentUserRole: 'Admin' | 'User' | null;
+    currentUser: User | null;
 }
 
 const Card: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className, title }) => (
@@ -58,7 +57,7 @@ const AccessibleBar = (props: any) => {
     );
 };
 
-const CustomTooltip: React.FC<{ active?: boolean, payload?: any[], label?: string }> = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         const value = payload[0].value;
         return (
@@ -78,7 +77,7 @@ const CustomTooltip: React.FC<{ active?: boolean, payload?: any[], label?: strin
 };
 
 
-const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, accounts, users, onSetBigScreenWidget, currentUserRole }) => {
+const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, accounts, users, onSetBigScreenWidget, currentUser }) => {
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     
@@ -252,7 +251,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                         <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center">
                                 <h4 className="text-base font-semibold text-text-strong">Month-to-date Spend</h4>
-                                <InfoTooltip text="The total credits consumed this month, and the projected spend by the end of the month based on current usage patterns." />
+                                <InfoTooltip text="The total cost or credits consumed this month, and the projected spend by the end of the month based on current usage patterns." />
                             </div>
                             <div className="relative" ref={openMenu === 'cost-forecast' ? menuRef : null}>
                                 <button
@@ -277,15 +276,19 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                             <div className="bg-surface-nested p-4 rounded-3xl">
                                 <p className="text-text-secondary text-sm">Current spend</p>
                                 <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
-                                    <span>{currentSpend.toLocaleString()}</span>
-                                    <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
+                                    <>
+                                        <span>{currentSpend.toLocaleString()}</span>
+                                        <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
+                                    </>
                                 </div>
                             </div>
                             <div className="bg-surface-nested p-4 rounded-3xl">
                                 <p className="text-text-secondary text-sm">Forecasted spend</p>
                                 <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
-                                    <span>{forecastedSpend.toLocaleString()}</span>
-                                    <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
+                                    <>
+                                        <span>{forecastedSpend.toLocaleString()}</span>
+                                        <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
+                                    </>
                                 </div>
                             </div>
                         </div>
@@ -329,8 +332,10 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                                         <div className="bg-surface-nested p-4 rounded-3xl flex-grow">
                                             <p className="text-text-secondary text-sm">{item.name}</p>
                                             <div className="text-[22px] leading-7 font-bold text-text-primary mt-1 flex items-baseline">
-                                                <span>{value.toLocaleString()}</span>
-                                                <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
+                                                <>
+                                                    <span>{value.toLocaleString()}</span>
+                                                    <span className="text-sm font-medium text-text-secondary ml-1.5">credits</span>
+                                                </>
                                             </div>
                                         </div>
                                         <div className="flex-shrink-0 px-4">
@@ -354,7 +359,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                                                     </PieChart>
                                                 </ResponsiveContainer>
                                                 <div className="absolute inset-0 flex items-center justify-center">
-                                                    <span className="text-lg font-bold text-text-primary">{item.percentage}%</span>
+                                                    <span className="text-xl font-bold text-text-primary">{item.percentage}%</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -365,19 +370,21 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                         <div className="text-center mt-4 pt-4 flex items-baseline justify-center">
                             <span className="text-sm text-text-secondary mr-1">Current Spend:</span>
                             <span className="text-sm font-semibold text-text-primary">
-                                <span>{currentSpend.toLocaleString()}</span>
-                                <span className="text-xs font-medium text-text-secondary ml-1">credits</span>
+                                <>
+                                    <span>{currentSpend.toLocaleString()}</span>
+                                    <span className="text-xs font-medium text-text-secondary ml-1">credits</span>
+                                </>
                             </span>
                         </div>
                     </Card>
 
                     {/* Top spend by user */}
-                    {currentUserRole === 'Admin' && (
+                    {currentUser?.role === 'Admin' && (
                         <Card>
                             <div className="flex justify-between items-start mb-4">
                                 <div className="flex items-center">
                                     <h4 className="text-base font-semibold text-text-strong">Top spend by user</h4>
-                                    <InfoTooltip text="Displays the top 10 users ranked by their total credit consumption for the current period." />
+                                    <InfoTooltip text="Displays the top 10 users ranked by their total cost or credit consumption for the current period." />
                                 </div>
                                 <div className="relative" ref={openMenu === 'top-spend-user' ? menuRef : null}>
                                     <button
@@ -489,7 +496,7 @@ const Overview: React.FC<OverviewProps> = ({ onSelectAccount, onSelectUser, acco
                         <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center">
                                 <h4 className="text-base font-semibold text-text-strong">Top spend by account</h4>
-                                <InfoTooltip text="Displays the top 10 accounts ranked by their total credit consumption for the current period." />
+                                <InfoTooltip text="Displays the top 10 accounts ranked by their total cost or credit consumption for the current period." />
                             </div>
                             <div className="relative" ref={openMenu === 'top-spend-account' ? menuRef : null}>
                                 <button

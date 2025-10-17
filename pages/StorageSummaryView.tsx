@@ -9,7 +9,7 @@ import TableView from '../components/TableView';
 
 
 const WidgetCard: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className = '', title }) => (
-    <div className={`bg-surface rounded-3xl shadow-sm p-4 break-inside-avoid mb-4 flex flex-col ${className}`}>
+    <div className={`bg-surface rounded-3xl shadow-sm border border-border-color p-4 break-inside-avoid mb-4 flex flex-col ${className}`}>
         {title && <h3 className="text-base font-semibold text-text-strong mb-4">{title}</h3>}
         {children}
     </div>
@@ -145,8 +145,9 @@ const StorageSummaryView: React.FC<{ onSelectDatabase: (databaseId: string) => v
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-between items-center">
+            <div>
                 <h1 className="text-2xl font-bold text-text-primary">Storage Summary</h1>
+                <p className="mt-1 text-text-secondary">An overview of storage usage, costs, and trends for this account.</p>
             </div>
             <div className="columns-1 lg:columns-2 gap-4">
                 {/* Widget 1: Total Storage & Spend */}

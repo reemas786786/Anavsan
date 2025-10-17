@@ -150,6 +150,7 @@ const QueryOptimizerView: React.FC<{
                     </button>
                 )}
                 <h1 className="text-2xl font-bold text-text-primary">Query Optimizer</h1>
+                <p className="mt-1 text-text-secondary">Use AI to automatically rewrite your query for better performance and cost-efficiency.</p>
             </header>
 
             <main className="flex-grow flex flex-col lg:flex-row gap-4 overflow-hidden">

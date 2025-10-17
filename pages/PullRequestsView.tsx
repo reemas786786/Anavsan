@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PullRequest, PullRequestStatus } from '../types';
 import { IconPullRequest, IconCheckCircle } from '../constants';
@@ -44,7 +43,10 @@ const PullRequestsView: React.FC<PullRequestsViewProps> = ({ pullRequests, onSel
 
     return (
         <div className="p-4 space-y-4">
-            <h1 className="text-2xl font-bold text-text-primary">Pull Requests</h1>
+            <div>
+                <h1 className="text-2xl font-bold text-text-primary">Pull Requests</h1>
+                <p className="mt-1 text-text-secondary">Review and manage proposed query changes before merging them.</p>
+            </div>
             <div className="bg-surface rounded-xl border border-border-color">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">

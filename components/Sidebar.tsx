@@ -1,4 +1,5 @@
 
+
 import React, { useEffect, useRef, useState } from 'react';
 import { NAV_ITEMS_TOP, NAV_ITEMS_BOTTOM } from '../constants';
 import { Page, NavItem as NavItemType, NavSubItem } from '../types';
@@ -248,9 +249,11 @@ const CompactNavItem: React.FC<{
             >
                 <item.icon className="h-5 w-5" />
                 {!hasSubItems && (
-                    <span className="absolute left-full ml-3 w-auto p-2 min-w-max rounded-md shadow-md text-white bg-gray-900 text-xs font-bold transition-all duration-100 scale-0 origin-left group-hover:scale-100 z-50">
-                        {item.name}
-                    </span>
+                    <div className="absolute left-full ml-2 w-auto min-w-max bg-surface rounded-lg shadow-lg p-2 z-50 transition-all duration-100 scale-0 origin-left group-hover:scale-100">
+                        <div className="px-2 py-1 text-sm font-semibold text-text-strong whitespace-nowrap">
+                            {item.name}
+                        </div>
+                    </div>
                 )}
             </button>
 

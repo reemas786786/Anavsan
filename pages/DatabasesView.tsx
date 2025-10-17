@@ -90,7 +90,10 @@ const DatabaseListView: React.FC<{ onSelectDatabase: (databaseId: string) => voi
     
     return (
          <div className="space-y-4">
-            <h1 className="text-2xl font-bold text-text-primary">Databases</h1>
+            <div>
+                <h1 className="text-2xl font-bold text-text-primary">Databases</h1>
+                <p className="mt-1 text-text-secondary">Explore storage and cost metrics for all databases in this account.</p>
+            </div>
             <WidgetCard>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-text-secondary">

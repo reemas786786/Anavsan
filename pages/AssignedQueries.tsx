@@ -86,7 +86,10 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUp
 
     return (
         <div className="space-y-4">
-            <h1 className="text-2xl font-bold text-text-primary">Assigned Queries for Optimization</h1>
+            <div>
+                <h1 className="text-2xl font-bold text-text-primary">Assigned Queries for Optimization</h1>
+                <p className="mt-1 text-text-secondary">Track queries that have been assigned to you or by you for optimization.</p>
+            </div>
 
             <div className="bg-surface p-4 rounded-3xl">
                 <div className="overflow-x-auto">

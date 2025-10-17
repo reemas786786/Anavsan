@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { User, UserStatus } from '../../types';
 import { IconAdd, IconDotsVertical, IconArrowUp, IconArrowDown, IconSearch } from '../../constants';
@@ -123,6 +122,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEdi
         <div className="flex flex-col h-full bg-background space-y-4">
             <div className="flex-shrink-0">
                 <h1 className="text-2xl font-bold text-text-primary">User Management</h1>
+                <p className="mt-1 text-text-secondary">Manage users, roles, and permissions for your organization.</p>
                  <div className="mt-4 flex flex-wrap items-center gap-2">
                     <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
                         Total Users: <span className="font-bold text-text-strong">{userStats.total}</span>

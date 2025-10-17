@@ -41,7 +41,7 @@ export const IconDocs: React.FC<{ className?: string }> = ({ className }) => (
 );
 export const IconSettings: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.108 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.11v1.093c0 .55-.398 1.02-.94 1.11l-.893.149c-.424.07-.764.383-.93.78-.164.398-.142.854.108 1.204l.527.738c.32.447.27.96-.12 1.45l-.773.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.78.93l-.15.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.02-.398-1.11-.94l-.149-.894c-.07-.424-.384-.764-.78-.93-.398-.164-.855-.142-1.205.108l-.737.527a1.125 1.125 0 01-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.272.806.108-1.204-.165-.397-.505.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.11v-1.094c0 .55.398-1.02.94-1.11l.894-.149c.424-.07.764-.383.93-.78.164-.398.142.854-.108 1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.93l.15-.893z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.108 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.11v1.093c0 .55-.398 1.02-.94 1.11l-.893.149c-.424.07-.764.383-.93.78-.164.398-.142.854.108 1.204l.527.738c.32.447.27.96-.12 1.45l-.773.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71-.505-.78.93l-.15.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.02-.398-1.11-.94l-.149-.894c-.07-.424-.384-.764-.78-.93-.398-.164-.855-.142-1.205.108l-.737.527a1.125 1.125 0 01-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.272.806.108-1.204-.165-.397-.505.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.11v-1.094c0 .55.398-1.02.94-1.11l.894-.149c.424-.07.764-.383.93-.78.164-.398.142.854-.108 1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.93l.15-.893z" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
 );
@@ -299,48 +299,46 @@ export const IconLayers: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75l-8.25 4.5 8.25 4.5 8.25-4.5L12 6.75z" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12l8.25 4.5 8.25-4.5" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 17.25l8.25 4.5 8.25-4.5" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 16.5l8.25 4.5 8.25-4.5" />
     </svg>
 );
 export const IconTrendingUp: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-3.182 3.182m3.182-3.182v4.5" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.517l2.74-1.22m0 0l-3.182 3.182m3.182-3.182v4.995" />
     </svg>
 );
-
-export const IconFilter: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-    </svg>
-);
-
 export const IconAdjustments: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 12h9.75M10.5 18h9.75M3.75 6a2.25 2.25 0 012.25-2.25h1.5a2.25 2.25 0 012.25 2.25v1.5A2.25 2.25 0 017.5 9h-1.5A2.25 2.25 0 013.75 7.5v-1.5z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12a2.25 2.25 0 012.25-2.25h1.5a2.25 2.25 0 012.25 2.25v1.5A2.25 2.25 0 017.5 15h-1.5A2.25 2.25 0 013.75 13.5v-1.5z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 18a2.25 2.25 0 012.25-2.25h1.5a2.25 2.25 0 012.25 2.25v1.5A2.25 2.25 0 017.5 21h-1.5A2.25 2.25 0 013.75 19.5v-1.5z" />
     </svg>
 );
-
 export const IconSummary: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v18h18" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 18.375L15 13.125l-2.625 2.625L8.25 12l-4.5 4.5" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v18h16.5V3H3.75zM12 8.25h6M12 12h6M12 15.75h6M8.25 8.25H6v.008h2.25V8.25zM8.25 12H6v.008h2.25V12zM8.25 15.75H6v.008h2.25v-.008z" />
+    </svg>
+);
+export const IconFileText: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3h7.5m-7.5-3v-3m0 3h-3m-3.375-3.375c0-1.381.54-2.67 1.493-3.626C4.002 12.042 4.5 10.925 4.5 9.75v-4.5c0-1.242.401-2.42 1.125-3.375" />
+    </svg>
+);
+export const IconBolt: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
     </svg>
 );
 
+
+// --- Navigation Data ---
 export const NAV_ITEMS_TOP: NavItem[] = [
     { name: 'Data Cloud Overview', icon: IconOverview },
     { name: 'Dashboards', icon: IconDashboard },
     { name: 'Snowflake Accounts', icon: IconConnections },
-    { name: 'Assigned Queries', icon: IconClipboardList },
     { name: 'AI Agent', icon: IconAIAgent },
-    { 
-        name: 'Reports', 
-        icon: IconReports,
-        subItems: [
-            { name: 'Warehouse Utilization' },
-            { name: 'Query Hotspots' },
-        ]
-    },
+    { name: 'Assigned Queries', icon: IconClipboardList },
+    { name: 'Reports', icon: IconReports },
 ];
 
 export const NAV_ITEMS_BOTTOM: NavItem[] = [
@@ -352,7 +350,48 @@ export const NAV_ITEMS_BOTTOM: NavItem[] = [
         subItems: [
             { name: 'User Management' },
             { name: 'Budgets and Alerts' },
-        ]
+            { name: 'Integrations' },
+        ],
     },
     { name: 'Support', icon: IconSupport },
+];
+
+export const accountNavItems = [
+    { name: 'Account overview', icon: IconActivity, children: [] },
+    { 
+        name: 'Query performance', 
+        icon: IconTrendingUp, 
+        children: [
+            { name: 'All queries', icon: IconList },
+            { name: 'Slow queries', icon: IconClock },
+            { name: 'Similar query patterns', icon: IconSearch }
+        ] 
+    },
+    { 
+        name: 'Optimization',
+        icon: IconAdjustments,
+        children: [
+            { name: 'Query analyzer', icon: IconSearch },
+            { name: 'Query optimizer', icon: IconAIAgent },
+            { name: 'Query simulator', icon: IconBeaker }
+        ] 
+    },
+    { 
+        name: 'Storage and Cost', 
+        icon: IconDatabase, 
+        children: [
+            { name: 'Storage summary', icon: IconSummary },
+            { name: 'Databases', icon: IconList },
+        ] 
+    },
+    { 
+        name: 'Query Workspace', 
+        icon: IconCode, 
+        children: [
+            { name: 'My Branches', icon: IconGitBranch },
+            { name: 'Pull Requests', icon: IconPullRequest },
+            { name: 'Query Versions', icon: IconClock }
+        ] 
+    },
+    { name: 'AI and insights', icon: IconBrain, children: [] },
 ];

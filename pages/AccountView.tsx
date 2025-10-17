@@ -1,29 +1,17 @@
-
-import React, { useState, useRef, useEffect } from 'react';
-import { Account, SQLFile, BigScreenWidget, QueryListItem, PullRequest, User, QueryListFilters, SlowQueryFilters } from '../types';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { Account, SQLFile, BigScreenWidget, QueryListItem, PullRequest, User, QueryListFilters, SlowQueryFilters, BreadcrumbItem } from '../types';
 import AccountOverviewDashboard from './AccountOverviewDashboard';
 import { SimilarQueryPatternsView } from './QueryPerformanceView';
+import { accountNavItems } from '../constants';
+import Breadcrumb from '../components/Breadcrumb';
 import { 
     IconChevronDown, 
     IconChevronLeft, 
     IconChevronRight,
-    IconActivity,
-    IconTrendingUp,
-    IconAdjustments,
-    IconBrain,
-    IconList,
-    IconClock,
-    IconSearch,
-    IconAIAgent,
-    IconBeaker,
-    IconDatabase,
-    IconCode,
-    IconSummary,
     IconCheck,
-    IconPullRequest,
-    IconGitBranch,
 } from '../constants';
-import QueryListView from './QueryListView';
+// FIX: Changed to a named import as QueryListView does not have a default export.
+import { QueryListView } from './QueryListView';
 import StorageSummaryView from './StorageSummaryView';
 import DatabasesView from './DatabasesView';
 import QueryDetailView from './QueryDetailView';
@@ -41,6 +29,7 @@ interface AccountViewProps {
     account: Account;
     accounts: Account[];
     onSwitchAccount: (account: Account) => void;
+    onBackToAccounts: () => void;
     sqlFiles: SQLFile[];
     onSaveQueryClick: (tag: string) => void;
     onSetBigScreenWidget: (widget: BigScreenWidget) => void;
@@ -61,45 +50,9 @@ interface AccountViewProps {
     navigationSource: string | null;
 }
 
-const accountNavItems = [
-    { name: 'Account overview', icon: IconActivity, children: [] },
-    { 
-        name: 'Query performance', 
-        icon: IconTrendingUp, 
-        children: [
-            { name: 'All queries', icon: IconList },
-            { name: 'Slow queries', icon: IconClock },
-            { name: 'Similar query patterns', icon: IconSearch }
-        ] 
-    },
-    { 
-        name: 'Optimization',
-        icon: IconAdjustments,
-        children: [
-            { name: 'Query analyzer', icon: IconSearch },
-            { name: 'Query optimizer', icon: IconAIAgent },
-            { name: 'Query simulator', icon: IconBeaker }
-        ] 
-    },
-    { 
-        name: 'Storage and Cost', 
-        icon: IconDatabase, 
-        children: [
-            { name: 'Storage summary', icon: IconSummary },
-            { name: 'Databases', icon: IconList },
-        ] 
-    },
-    { 
-        name: 'Query Workspace', 
-        icon: IconCode, 
-        children: [
-            { name: 'My Branches', icon: IconGitBranch },
-            { name: 'Pull Requests', icon: IconPullRequest },
-            { name: 'Query Versions', icon: IconClock }
-        ] 
-    },
-    { name: 'AI and insights', icon: IconBrain, children: [] },
-];
+const ChevronUpIcon = ({ className }: { className?: string }) => <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 10L8 6L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+const ChevronDownIcon = ({ className }: { className?: string }) => <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+
 
 const MobileNav: React.FC<{
     activePage: string;
@@ -157,116 +110,6 @@ const MobileNav: React.FC<{
     );
 };
 
-const CollapsedNavItem: React.FC<{
-    item: { name: string; icon: React.FC<{ className?: string }>; children: { name: string; icon: React.FC<{ className?: string }> }[] };
-    isActiveParent: boolean;
-    activePage: string;
-    onClick: (page: string) => void;
-}> = ({ item, isActiveParent, activePage, onClick }) => {
-    const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
-    const [flyoutPosition, setFlyoutPosition] = useState<'top' | 'bottom'>('top');
-    const itemRef = useRef<HTMLLIElement>(null);
-    const hasSubItems = item.children && item.children.length > 0;
-    let timer: number;
-
-    const handleItemClick = (page: string) => {
-        onClick(page);
-        setIsSubMenuOpen(false);
-    };
-
-    const showSubMenu = () => {
-        clearTimeout(timer);
-        if (hasSubItems) {
-            if (itemRef.current) {
-                const rect = itemRef.current.getBoundingClientRect();
-                const estimatedHeight = 16 + 34 + (item.children.length * 34); 
-                if (rect.top + estimatedHeight > window.innerHeight) {
-                    setFlyoutPosition('bottom');
-                } else {
-                    setFlyoutPosition('top');
-                }
-            }
-            setIsSubMenuOpen(true);
-        }
-    };
-
-    const hideSubMenu = () => {
-        timer = window.setTimeout(() => {
-            setIsSubMenuOpen(false);
-        }, 150);
-    };
-
-    const handleMouseEnterContainer = () => {
-        clearTimeout(timer);
-        if (hasSubItems) {
-            showSubMenu();
-        }
-    };
-
-    return (
-        <li ref={itemRef} onMouseLeave={hideSubMenu} onMouseEnter={handleMouseEnterContainer} className="relative">
-            <button
-                onClick={(e) => {
-                    e.preventDefault();
-                    if (!hasSubItems) {
-                        onClick(item.name);
-                    } else {
-                        // Click parent icon in collapsed view opens first child
-                        handleItemClick(item.children[0].name);
-                    }
-                }}
-                className={`group relative flex justify-center items-center h-10 w-10 rounded-lg transition-colors
-                    ${isActiveParent ? 'bg-[#F0EAFB] text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'}
-                    focus:outline-none focus:ring-2 focus:ring-primary
-                `}
-                aria-label={item.name}
-                aria-haspopup={hasSubItems}
-                aria-expanded={isSubMenuOpen}
-            >
-                <item.icon className="h-5 w-5" />
-                {!hasSubItems && (
-                    <span className="absolute left-full ml-3 w-auto p-2 min-w-max rounded-md shadow-md text-white bg-gray-900 text-xs font-bold transition-all duration-100 scale-0 origin-left group-hover:scale-100 z-50">
-                        {item.name}
-                    </span>
-                )}
-            </button>
-
-            {hasSubItems && isSubMenuOpen && (
-                <div
-                    className={`absolute left-full ml-2 w-60 bg-surface rounded-lg shadow-lg p-2 z-31 ${flyoutPosition === 'top' ? 'top-0' : 'bottom-0'}`}
-                    aria-hidden={!isSubMenuOpen}
-                    onMouseEnter={handleMouseEnterContainer}
-                    onMouseLeave={hideSubMenu}
-                >
-                    <ul role="menu">
-                        {/* Header Item */}
-                        <li>
-                            <button onClick={() => handleItemClick(item.children[0].name)} className="w-full text-left rounded-md px-3 py-1.5 text-sm text-text-strong font-semibold hover:bg-surface-hover focus:outline-none focus:bg-surface-hover">
-                                {item.name}
-                            </button>
-                        </li>
-                        {/* Sub Items */}
-                        {item.children.map(child => (
-                            <li key={child.name}>
-                                <button
-                                    onClick={() => handleItemClick(child.name)}
-                                    className={`w-full text-left rounded-md px-3 py-1.5 text-sm transition-colors focus:outline-none focus:bg-surface-hover ${
-                                        activePage === child.name
-                                            ? 'text-primary font-medium'
-                                            : 'text-text-secondary font-medium hover:bg-surface-hover hover:text-text-primary'
-                                    }`}
-                                >
-                                    {child.name}
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
-        </li>
-    );
-};
-
 const AccountAvatar: React.FC<{ name: string }> = ({ name }) => {
     const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     return (
@@ -276,19 +119,149 @@ const AccountAvatar: React.FC<{ name: string }> = ({ name }) => {
     );
 };
 
+const ContextualNavItem: React.FC<{
+    item: typeof accountNavItems[0];
+    isSidebarExpanded: boolean;
+    activePage: string;
+    onPageChange: (page: string) => void;
+    openSubMenus: Record<string, boolean>;
+    handleSubMenuToggle: (itemName: string) => void;
+}> = ({ item, isSidebarExpanded, activePage, onPageChange, openSubMenus, handleSubMenuToggle }) => {
+    const [openFlyout, setOpenFlyout] = useState(false);
+    const flyoutTimeoutIdRef = useRef<number | null>(null);
 
-const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAccount, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, onPreviewQuery, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, users, navigationSource }) => {
+    const handleFlyoutEnter = () => {
+        if (flyoutTimeoutIdRef.current) clearTimeout(flyoutTimeoutIdRef.current);
+        setOpenFlyout(true);
+    };
+
+    const handleFlyoutLeave = () => {
+        flyoutTimeoutIdRef.current = window.setTimeout(() => setOpenFlyout(null), 200);
+    };
+
+    const hasChildren = item.children.length > 0;
+    const isSubMenuOpen = openSubMenus[item.name];
+    const isSomeChildActive = hasChildren && item.children.some(c => c.name === activePage);
+
+    if (isSidebarExpanded) {
+        // --- EXPANDED VIEW LOGIC ---
+        if (!hasChildren) {
+            return (
+                <li>
+                    <button
+                        onClick={() => onPageChange(item.name)}
+                        className={`w-full flex items-center gap-3 text-left p-2 rounded-lg text-sm transition-colors ${
+                            activePage === item.name
+                            ? 'bg-[#EFE9FE] text-primary font-semibold'
+                            : 'text-text-strong font-medium hover:bg-surface-hover'
+                        }`}
+                    >
+                        <item.icon className={`h-5 w-5 shrink-0`} />
+                        <span>{item.name}</span>
+                    </button>
+                </li>
+            );
+        }
+
+        return (
+            <li>
+                <button
+                    onClick={() => handleSubMenuToggle(item.name)}
+                    className={`w-full flex items-center justify-between text-left p-2 rounded-lg hover:bg-surface-hover`}
+                >
+                    <div className="flex items-center gap-3">
+                        <item.icon className={`h-5 w-5 shrink-0 ${isSomeChildActive ? 'text-primary' : 'text-text-strong'}`} />
+                        <span className={`text-sm font-bold text-text-strong`}>{item.name}</span>
+                    </div>
+                    {isSubMenuOpen ? <ChevronUpIcon className="h-4 w-4 text-text-secondary" /> : <ChevronDownIcon className="h-4 w-4 text-text-secondary" />}
+                </button>
+                {isSubMenuOpen && (
+                    <ul className="pl-5 mt-1 space-y-0.5">
+                        {item.children.map(child => (
+                            <li key={child.name}>
+                                <button
+                                    onClick={() => onPageChange(child.name)}
+                                    className={`w-full text-left flex items-center gap-3 py-1.5 px-3 rounded-lg text-sm transition-colors ${
+                                        activePage === child.name 
+                                        ? 'text-primary font-medium' 
+                                        : 'text-text-secondary hover:text-text-primary'
+                                    }`}
+                                >
+                                    <child.icon className="h-4 w-4 shrink-0" />
+                                    <span>{child.name}</span>
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </li>
+        );
+    } else {
+        // --- COMPACT VIEW LOGIC ---
+        const isActive = activePage === item.name || isSomeChildActive;
+        return (
+            <li
+                onMouseEnter={handleFlyoutEnter}
+                onMouseLeave={handleFlyoutLeave}
+                className="relative"
+            >
+                <button
+                    onClick={() => onPageChange(hasChildren ? item.children[0].name : item.name)}
+                    className={`w-full group relative flex items-center justify-center p-2 rounded-lg text-sm transition-colors ${
+                        isActive
+                        ? 'bg-[#EFE9FE] text-primary'
+                        : 'text-text-strong hover:bg-surface-hover'
+                    }`}
+                >
+                    <item.icon className="h-5 w-5 shrink-0" />
+                </button>
+
+                {openFlyout && (
+                     <div 
+                        className="absolute left-full ml-2 top-0 w-60 bg-surface rounded-lg shadow-lg p-2 z-30 border border-border-color"
+                        onMouseEnter={handleFlyoutEnter}
+                        onMouseLeave={handleFlyoutLeave}
+                    >
+                        <div className="px-3 py-2 text-sm font-semibold text-text-strong">{item.name}</div>
+                        {hasChildren ? (
+                             <ul className="space-y-0.5">
+                                {item.children.map(child => (
+                                    <li key={child.name}>
+                                        <button
+                                            onClick={() => onPageChange(child.name)}
+                                            className={`w-full text-left py-1.5 px-3 rounded-md text-sm transition-colors ${
+                                                activePage === child.name 
+                                                ? 'text-primary font-medium' 
+                                                : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
+                                            }`}
+                                        >
+                                            <span>{child.name}</span>
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : null}
+                    </div>
+                )}
+            </li>
+        );
+    }
+};
+
+
+const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAccount, onBackToAccounts, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, onPreviewQuery, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, users, navigationSource }) => {
     const [selectedDatabaseId, setSelectedDatabaseId] = useState<string | null>(null);
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
     const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
     const accountSwitcherRef = useRef<HTMLDivElement>(null);
+    const [accountSwitcherTimeoutId, setAccountSwitcherTimeoutId] = useState<number | null>(null);
     const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({
         'Query performance': true,
         'Optimization': true,
         'Storage and Cost': true,
         'Query Workspace': true,
     });
-
+    
     // State for All Queries filters
     const [allQueriesFilters, setAllQueriesFilters] = useState<QueryListFilters>({
         search: '',
@@ -308,8 +281,8 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
         search: '',
         dateFilter: '7d',
         warehouseFilter: [],
+        severityFilter: ['Medium', 'High'],
     });
-
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -322,6 +295,15 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
+
+    const handleAccountSwitcherEnter = () => {
+        if (accountSwitcherTimeoutId) clearTimeout(accountSwitcherTimeoutId);
+        setIsAccountSwitcherOpen(true);
+    };
+    const handleAccountSwitcherLeave = () => {
+        const timeoutId = window.setTimeout(() => setIsAccountSwitcherOpen(false), 200);
+        setAccountSwitcherTimeoutId(timeoutId);
+    };
 
     const handleSubMenuToggle = (itemName: string) => {
         setOpenSubMenus(prev => ({ ...prev, [itemName]: !prev[itemName] }));
@@ -424,155 +406,99 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
         }
     };
     
-    const getActiveParent = () => {
-        for (const item of accountNavItems) {
-            if (item.name === activePage) return item.name;
-            if (item.children.some(child => child.name === activePage)) {
-                return item.name;
-            }
-        }
-        return 'Account overview';
-    };
-
-    const activeParent = getActiveParent();
-    const isListView = ['All queries', 'Slow queries', 'Similar query patterns', 'Query analyzer', 'Query optimizer'].includes(activePage);
+    const isListView = ['All queries', 'Slow queries', 'Similar query patterns', 'Query analyzer', 'Query optimizer', 'Query simulator'].includes(activePage);
 
     return (
         <div className="flex h-full bg-background">
             {/* Contextual Sidebar */}
             {!isDatabaseDetailView && !selectedQuery && !selectedPullRequest && (
-                <aside className={`hidden lg:flex bg-surface flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out ${isSidebarExpanded ? 'w-64' : 'w-16'}`}>
-                    <div ref={accountSwitcherRef} className="relative p-2">
-                        {isSidebarExpanded ? (
+                <aside className={`bg-surface flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out ${isSidebarExpanded ? 'w-64' : 'w-12'}`}>
+                    <div className={`p-2 flex-shrink-0 transition-all ${isSidebarExpanded ? '' : 'flex justify-center'}`}>
+                        {/* Account Switcher */}
+                        <div 
+                            ref={accountSwitcherRef}
+                            className="relative w-full"
+                            onMouseEnter={handleAccountSwitcherEnter}
+                            onMouseLeave={handleAccountSwitcherLeave}
+                        >
                             <button
-                                onClick={() => setIsAccountSwitcherOpen(!isAccountSwitcherOpen)}
-                                className="w-full flex items-center justify-between text-left p-2 rounded-lg hover:bg-surface-hover transition-colors bg-[#f4f4f4]"
+                                className={`w-full flex items-center transition-colors group relative ${
+                                    isSidebarExpanded 
+                                    ? 'text-left p-2 rounded-lg bg-background hover:bg-surface-hover border border-border-light justify-between' 
+                                    : 'h-10 w-10 rounded-full bg-surface-nested hover:bg-surface-hover justify-center'
+                                }`}
                                 aria-haspopup="true"
                                 aria-expanded={isAccountSwitcherOpen}
+                                title={isSidebarExpanded ? "Switch Account" : account.name}
                             >
-                                <span className="text-sm font-semibold text-text-primary truncate">{account.name}</span>
-                                <IconChevronDown className={`h-5 w-5 text-text-secondary transition-transform ${isAccountSwitcherOpen ? 'rotate-180' : ''}`} />
-                            </button>
-                        ) : (
-                            <div className="flex justify-center group relative">
-                                <button
-                                    onClick={() => setIsAccountSwitcherOpen(!isAccountSwitcherOpen)}
-                                    className="p-1 rounded-full hover:bg-surface-hover transition-colors"
-                                    aria-label={`Switch account from ${account.name}`}
-                                    aria-haspopup="true"
-                                    aria-expanded={isAccountSwitcherOpen}
-                                >
+                                {isSidebarExpanded ? (
+                                    <>
+                                        <div className="flex items-center gap-2 overflow-hidden">
+                                            <span className="text-sm font-bold text-text-primary truncate">{account.name}</span>
+                                        </div>
+                                        <IconChevronDown className={`h-5 w-5 text-text-secondary transition-transform ${isAccountSwitcherOpen ? 'rotate-180' : ''}`} />
+                                    </>
+                                ) : (
                                     <AccountAvatar name={account.name} />
-                                </button>
-                                <span className="absolute left-full ml-3 w-auto p-2 min-w-max rounded-md shadow-md text-white bg-gray-900 text-xs font-bold transition-all duration-100 scale-0 origin-left group-hover:scale-100 z-50">
-                                    {account.name}
-                                </span>
-                            </div>
-                        )}
-                        {isAccountSwitcherOpen && (
-                            <div className={`absolute z-20 mt-2 rounded-lg bg-surface shadow-lg p-2 ${
-                                isSidebarExpanded ? 'w-full' : 'left-full top-0 ml-2 w-64'
-                            }`}>
-                                <div className="text-xs font-semibold text-text-muted px-2 py-1 mb-1">Switch Account</div>
-                                <ul className="max-h-60 overflow-y-auto">
-                                    {accounts.map(acc => {
-                                        const isActive = acc.id === account.id;
-                                        return (
-                                            <li key={acc.id}>
-                                                <button
-                                                    onClick={() => { onSwitchAccount(acc); setIsAccountSwitcherOpen(false); }}
-                                                    className={`w-full text-left flex items-center justify-between gap-2 p-2 rounded-lg text-sm font-medium transition-colors ${
-                                                        isActive
-                                                            ? 'bg-primary/10 text-primary font-semibold'
-                                                            : 'hover:bg-surface-hover text-text-secondary hover:text-text-primary'
-                                                    }`}
-                                                >
-                                                    <div className="flex items-center gap-2 overflow-hidden">
-                                                        <AccountAvatar name={acc.name} />
-                                                        <span className="truncate">{acc.name}</span>
-                                                    </div>
-                                                    {isActive && <IconCheck className="h-5 w-5 text-primary flex-shrink-0" />}
-                                                </button>
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                            </div>
-                        )}
+                                )}
+                            </button>
+                            {isAccountSwitcherOpen && (
+                                <div className={`absolute z-20 mt-2 rounded-lg bg-surface shadow-lg p-2 border border-border-color ${isSidebarExpanded ? 'w-full' : 'w-64 left-full ml-2 -top-2'}`}>
+                                    <div className="text-xs font-semibold text-text-muted px-2 py-1 mb-1">Switch Account</div>
+                                    <ul className="max-h-60 overflow-y-auto">
+                                        {accounts.map(acc => {
+                                            const isActive = acc.id === account.id;
+                                            return (
+                                                <li key={acc.id}>
+                                                    <button
+                                                        onClick={() => { onSwitchAccount(acc); setIsAccountSwitcherOpen(false); }}
+                                                        className={`w-full text-left flex items-center justify-between gap-2 p-2 rounded-lg text-sm font-medium transition-colors ${
+                                                            isActive
+                                                                ? 'bg-primary/10 text-primary font-semibold'
+                                                                : 'hover:bg-surface-hover text-text-secondary hover:text-text-primary'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center gap-2 overflow-hidden">
+                                                            <AccountAvatar name={acc.name} />
+                                                            <span className="truncate">{acc.name}</span>
+                                                        </div>
+                                                        {isActive && <IconCheck className="h-5 w-5 text-primary flex-shrink-0" />}
+                                                    </button>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    <div className={`border-t border-border-light my-2 ${isSidebarExpanded ? 'mx-4' : 'mx-2'}`}></div>
-
-                    <nav className={`flex-grow p-2 ${isSidebarExpanded ? 'overflow-y-auto' : ''}`}>
-                        <ul className="space-y-1 flex flex-col items-center">
-                            {!isSidebarExpanded ? (
-                                accountNavItems.map(item => (
-                                    <CollapsedNavItem
-                                        key={item.name}
-                                        item={item}
-                                        isActiveParent={activeParent === item.name}
-                                        activePage={activePage}
-                                        onClick={onPageChange}
-                                    />
-                                ))
-                            ) : (
-                                accountNavItems.map(item => {
-                                    const isActive = activeParent === item.name;
-                                    const hasChildren = item.children.length > 0;
-                                    const isSubMenuOpen = openSubMenus[item.name];
-                                    
-                                    return (
-                                        <li key={item.name} className="w-full">
-                                            <button
-                                                onClick={() => hasChildren ? handleSubMenuToggle(item.name) : onPageChange(item.name)}
-                                                className={`w-full flex items-center justify-between text-left p-2 rounded-full text-sm transition-colors mx-1 ${
-                                                    activePage === item.name
-                                                      ? 'bg-[#F0EAFB] text-primary font-semibold' // Directly active item
-                                                      : isActive
-                                                      ? 'text-primary font-semibold hover:bg-surface-hover hover:text-text-primary' // Parent of active item
-                                                      : 'text-text-strong font-medium hover:bg-surface-hover'
-                                                }`}
-                                                aria-current={activePage === item.name ? "page" : undefined}
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    <item.icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-primary' : 'text-text-strong'}`} />
-                                                    <span>{item.name}</span>
-                                                </div>
-                                                {hasChildren && <IconChevronDown className={`h-4 w-4 transition-transform ${isSubMenuOpen ? 'rotate-180' : ''}`} />}
-                                            </button>
-                                            {hasChildren && isSubMenuOpen && (
-                                                <ul className="pl-5 mt-1 space-y-1">
-                                                    {item.children.map(child => (
-                                                        <li key={child.name}>
-                                                            <button
-                                                                onClick={() => onPageChange(child.name)}
-                                                                className={`w-full text-left flex items-center gap-2 p-2 rounded-full text-sm transition-colors mx-1 ${activePage === child.name ? 'bg-[#F0EAFB] text-primary font-semibold' : 'text-text-secondary font-medium hover:bg-surface-hover hover:text-text-primary'}`}
-                                                                aria-current={activePage === child.name ? "page" : undefined}
-                                                            >
-                                                                <child.icon className="h-4 w-4 shrink-0" />
-                                                                <span>{child.name}</span>
-                                                            </button>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            )}
-                                        </li>
-                                    );
-                                })
-                            )}
+                    <nav className={`flex-grow px-2 ${isSidebarExpanded ? 'overflow-y-auto' : ''}`}>
+                        <ul className="space-y-1">
+                            {accountNavItems.map(item => (
+                                <ContextualNavItem
+                                    key={item.name}
+                                    item={item}
+                                    isSidebarExpanded={isSidebarExpanded}
+                                    activePage={activePage}
+                                    onPageChange={onPageChange}
+                                    openSubMenus={openSubMenus}
+                                    handleSubMenuToggle={handleSubMenuToggle}
+                                />
+                             ))}
                         </ul>
                     </nav>
 
-                    <div className="p-2 mt-auto">
+                    <div className="p-2 mt-auto flex-shrink-0">
                         <div className={`border-t border-border-light ${isSidebarExpanded ? 'mx-2' : ''}`}></div>
                         <div className={`flex mt-2 ${isSidebarExpanded ? 'justify-end' : 'justify-center'}`}>
                             <button
                                 onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-                                className="p-1.5 rounded-full hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-primary"
+                                className="p-2 rounded-full hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-primary"
                                 aria-label={isSidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
                             >
-                                {isSidebarExpanded
-                                    ? <IconChevronLeft className="h-5 w-5 text-text-secondary" />
+                                {isSidebarExpanded 
+                                    ? <IconChevronLeft className="h-5 w-5 text-text-secondary" /> 
                                     : <IconChevronRight className="h-5 w-5 text-text-secondary" />
                                 }
                             </button>
@@ -585,11 +511,11 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
             <main className={`flex-1 flex flex-col overflow-hidden bg-background`}>
                 <div className={`flex-1 ${isListView ? 'overflow-y-hidden' : 'overflow-y-auto'}`}>
                     {!isDatabaseDetailView && !selectedQuery && !selectedPullRequest && (
-                        <div className="lg:hidden p-4 border-b border-border-color bg-surface sticky top-0 z-10">
+                        <div className="lg:hidden p-4 pb-0">
                             <MobileNav activePage={activePage} onPageChange={onPageChange} accountNavItems={accountNavItems} />
                         </div>
                     )}
-                    <div className={isDatabaseDetailView || selectedQuery || selectedPullRequest || isListView ? "h-full" : "p-4 h-full"}>
+                    <div className={`h-full ${isDatabaseDetailView || selectedQuery || selectedPullRequest || isListView ? "" : "p-4"}`}>
                         {renderContent()}
                     </div>
                 </div>
