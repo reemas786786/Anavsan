@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import { NavItem } from './types';
 
@@ -380,7 +382,7 @@ export const accountNavItems = [
         name: 'Warehouses', 
         icon: IconLayers, 
         children: [
-            { name: 'Warehouse Overview', icon: IconSummary },
+            { name: 'Overview', icon: IconSummary },
             { name: 'All Warehouses', icon: IconList }
         ] 
     },

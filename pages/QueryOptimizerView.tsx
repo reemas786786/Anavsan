@@ -1,19 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { QueryListItem } from '../types';
-import { IconChevronLeft, IconSave, IconClipboardCopy, IconRefresh, IconExclamationTriangle, IconClipboardList, IconWand } from '../constants';
+import { IconChevronLeft, IconSave, IconClipboardCopy, IconRefresh, IconExclamationTriangle, IconClipboardList, IconWand, IconInfo } from '../constants';
 
 const realWorldQuery = `
 WITH
   daily_sales AS (
     SELECT
       DATE(order_date) AS sale_date,
-      SUM(oi.quantity * p.price) AS daily_revenue
+      SUM(oi.quantity * p.price) AS daily_revenue,
+      COUNT(DISTINCT o.order_id) AS daily_orders
     FROM orders o
     JOIN order_items oi ON o.order_id = oi.order_id
     JOIN products p ON oi.product_id = p.product_id
     WHERE o.status NOT IN ('cancelled', 'returned')
     GROUP BY 1
   ),
+
+  customer_lifetime_value AS (
+    SELECT
+      c.customer_id,
+      c.first_name,
+      c.last_name,
+      MIN(o.order_date) AS first_order_date,
+      MAX(o.order_date) AS last_order_date,
+      COUNT(o.order_id) AS number_of_orders,
+      SUM(oi.quantity * p.price) AS total_spent
+    FROM customers c
+    JOIN orders o ON c.customer_id = o.customer_id
+    JOIN order_items oi ON o.order_id = oi.order_id
+    JOIN products p ON oi.product_id = p.product_id
+    GROUP BY 1, 2, 3
+  ),
+
   regional_analysis AS (
     SELECT
       c.region,
@@ -26,21 +44,28 @@ WITH
     JOIN products p ON oi.product_id = p.product_id
     GROUP BY 1, 2, 3
   )
+
+-- Final selection from the comprehensive report
 SELECT 
+    clv.first_name || ' ' || clv.last_name AS full_name,
+    clv.total_spent,
     ra.region,
     ra.sales_month,
     ra.monthly_regional_revenue
-FROM regional_analysis ra
+FROM customer_lifetime_value clv
+JOIN regional_analysis ra ON clv.customer_id = ra.customer_id -- Simplified join
 WHERE
-  ra.region = 'North America'
+  clv.total_spent > 500
+  AND ra.region = 'North America'
   AND ra.sales_month >= '2023-01-01'
 ORDER BY
-  ra.sales_month DESC
+  ra.sales_month DESC,
+  clv.total_spent DESC
 LIMIT 500;
 `;
 
-const optimizedQueryWithPlaceholder = `
--- Optimized by Anavsan AI
+const optimizedQueryBalanced = `
+-- Optimized by Anavsan AI (Balanced)
 WITH regional_analysis AS (
     SELECT
       c.region,
@@ -60,7 +85,6 @@ SELECT
     ra.sales_month,
     ra.monthly_regional_revenue
 FROM regional_analysis ra
--- Placeholder for potential additional filtering.
 -- Please replace [Column 1] with an actual column name.
 WHERE [Column 1] IS NOT NULL
 ORDER BY
@@ -68,7 +92,7 @@ ORDER BY
 LIMIT 500;
 `;
 
-const mockAnalysisChanges = [
+const mockAnalysisChangesBalanced = [
     {
         title: 'Pushed Down Filters',
         description: 'Moved `region` and `sales_month` filters from the final `SELECT` into the `regional_analysis` CTE. This reduces the amount of data processed in the initial scan and join operations.'
@@ -87,6 +111,89 @@ const mockAnalysisChanges = [
     },
 ];
 
+const optimizedQueryCost = `
+-- Optimized for Cost by Anavsan AI
+WITH regional_analysis AS (
+    SELECT
+      c.region,
+      DATE_TRUNC('month', o.order_date) AS sales_month,
+      SUM(oi.quantity * p.price) AS monthly_regional_revenue
+    FROM customers c
+    JOIN orders o ON c.customer_id = o.customer_id
+    -- Pushed filter down to reduce data scan
+    WHERE c.region = 'North America'
+      AND o.order_date >= '2023-01-01'
+    JOIN order_items oi ON o.order_id = oi.order_id
+    JOIN products p ON oi.product_id = p.product_id
+    GROUP BY 1, 2
+)
+SELECT 
+    ra.region,
+    ra.sales_month,
+    ra.monthly_regional_revenue
+FROM regional_analysis ra
+ORDER BY
+  ra.sales_month DESC
+LIMIT 500;
+`;
+
+const mockAnalysisChangesCost = [
+    {
+        title: 'Pushed Down Filters',
+        description: 'Moved `region` and `sales_month` filters into the CTE to drastically reduce data scanned, lowering credit usage.'
+    },
+    {
+        title: 'Removed Unused CTE',
+        description: 'The `daily_sales` CTE was removed as it was not used, saving computation costs.'
+    },
+    {
+        title: 'Simplified Group By',
+        description: 'Reduced columns in `GROUP BY` to only those necessary, potentially allowing for more efficient aggregation and lower memory usage.'
+    },
+];
+
+const optimizedQueryPerformance = `
+-- Optimized for Performance by Anavsan AI
+/*+ MATERIALIZE */
+WITH regional_analysis AS (
+    SELECT
+      c.region,
+      DATE_TRUNC('month', o.order_date) AS sales_month,
+      SUM(oi.quantity * p.price) AS monthly_regional_revenue
+    FROM customers c
+    JOIN orders o ON c.customer_id = o.customer_id
+    WHERE c.region = 'North America'
+      AND o.order_date >= '2023-01-01'
+    JOIN order_items oi ON o.order_id = oi.order_id
+    JOIN products p ON oi.product_id = p.product_id
+    GROUP BY 1, 2
+)
+SELECT 
+    ra.region,
+    ra.sales_month,
+    ra.monthly_regional_revenue
+FROM regional_analysis ra
+ORDER BY
+  ra.sales_month DESC
+LIMIT 500;
+-- HINT: Consider using a MEDIUM warehouse for faster execution.
+`;
+
+const mockAnalysisChangesPerformance = [
+    {
+        title: 'Materialized CTE',
+        description: 'Added a hint to materialize the `regional_analysis` CTE, which can speed up queries that reuse the CTE result, at the cost of higher temporary storage.'
+    },
+    {
+        title: 'Filter Pushdown',
+        description: 'Filters were pushed down to reduce intermediate data size, improving join performance.'
+    },
+    {
+        title: 'Warehouse Sizing Hint',
+        description: 'A comment was added to suggest using a larger (MEDIUM) warehouse, which can significantly reduce execution time for this query pattern.'
+    }
+];
+
 const ChangeSummaryCard: React.FC<{ change: { title: string, description: string } }> = ({ change }) => (
     <div className="flex items-start gap-3 p-3 bg-surface-nested rounded-lg">
         <div className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
@@ -99,6 +206,8 @@ const ChangeSummaryCard: React.FC<{ change: { title: string, description: string
     </div>
 );
 
+type OptimizationMode = 'Performance' | 'Cost' | 'Balanced';
+type RiskTolerance = 'Low' | 'Medium' | 'High';
 
 const QueryOptimizerView: React.FC<{
     query: QueryListItem | null;
@@ -110,9 +219,11 @@ const QueryOptimizerView: React.FC<{
     const [editedQuery, setEditedQuery] = useState(originalQuery);
     const [optimizedQuery, setOptimizedQuery] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [analysisChanges, setAnalysisChanges] = useState<typeof mockAnalysisChanges>([]);
+    const [analysisChanges, setAnalysisChanges] = useState<(typeof mockAnalysisChangesBalanced)>([]);
     const [hasPlaceholders, setHasPlaceholders] = useState(false);
-    
+    const [optimizationMode, setOptimizationMode] = useState<OptimizationMode>('Balanced');
+    const [riskTolerance, setRiskTolerance] = useState<RiskTolerance>('Medium');
+
     const isDirty = editedQuery !== originalQuery;
 
     useEffect(() => {
@@ -122,23 +233,51 @@ const QueryOptimizerView: React.FC<{
         setAnalysisChanges([]);
         setHasPlaceholders(false);
     }, [query]);
-    
-    const handleOptimize = () => {
+
+    const runOptimization = (mode: OptimizationMode) => {
         setIsLoading(true);
         setOptimizedQuery(null);
         setAnalysisChanges([]);
         setHasPlaceholders(false);
 
         setTimeout(() => {
-            setOptimizedQuery(optimizedQueryWithPlaceholder);
-            setAnalysisChanges(mockAnalysisChanges);
-            setHasPlaceholders(true);
+            switch (mode) {
+                case 'Performance':
+                    setOptimizedQuery(optimizedQueryPerformance);
+                    setAnalysisChanges(mockAnalysisChangesPerformance);
+                    setHasPlaceholders(false);
+                    break;
+                case 'Cost':
+                    setOptimizedQuery(optimizedQueryCost);
+                    setAnalysisChanges(mockAnalysisChangesCost);
+                    setHasPlaceholders(false);
+                    break;
+                case 'Balanced':
+                default:
+                    setOptimizedQuery(optimizedQueryBalanced);
+                    setAnalysisChanges(mockAnalysisChangesBalanced);
+                    setHasPlaceholders(true);
+                    break;
+            }
             setIsLoading(false);
         }, 2000);
     };
-
+    
+    const handleModeChange = (mode: OptimizationMode) => {
+        setOptimizationMode(mode);
+        if (optimizedQuery || isLoading) {
+            runOptimization(mode);
+        }
+    };
+    
     const handleReset = () => {
         setEditedQuery(originalQuery);
+    };
+    
+    const riskOptions: Record<RiskTolerance, string> = {
+        Low: 'Only safe, proven optimizations',
+        Medium: 'Balanced approach, moderate changes',
+        High: 'Aggressive for maximum gains',
     };
 
     return (
@@ -149,9 +288,59 @@ const QueryOptimizerView: React.FC<{
                         <IconChevronLeft className="h-4 w-4" /> Back to All Queries
                     </button>
                 )}
-                <h1 className="text-2xl font-bold text-text-primary">Query Optimizer</h1>
-                <p className="mt-1 text-text-secondary">Use AI to automatically rewrite your query for better performance and cost-efficiency.</p>
+                <div>
+                    <h1 className="text-2xl font-bold text-text-primary">Query Optimizer</h1>
+                    <p className="mt-1 text-text-secondary">Use AI to automatically rewrite your query for better performance and cost-efficiency.</p>
+                </div>
             </header>
+
+            <div className="flex-shrink-0 bg-surface rounded-xl p-6 border border-border-color shadow-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <label className="block text-sm font-bold text-text-strong mb-2">Primary Optimization Goal</label>
+                        <div className="flex items-center bg-surface-nested rounded-lg p-1" role="radiogroup" aria-label="Primary Optimization Goal">
+                            {(['Performance', 'Cost', 'Balanced'] as OptimizationMode[]).map(mode => (
+                                <button
+                                    key={mode}
+                                    onClick={() => handleModeChange(mode)}
+                                    role="radio"
+                                    aria-checked={optimizationMode === mode}
+                                    className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors flex-1 text-center ${
+                                        optimizationMode === mode
+                                            ? 'bg-white shadow-sm text-text-primary'
+                                            : 'text-text-secondary hover:bg-surface-hover'
+                                    }`}
+                                >
+                                    {mode}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-bold text-text-strong mb-2">Risk Tolerance</label>
+                        <div className="flex items-stretch gap-2" role="radiogroup" aria-label="Risk Tolerance">
+                            {(['Low', 'Medium', 'High'] as RiskTolerance[]).map(level => {
+                                return (
+                                    <button
+                                        key={level}
+                                        onClick={() => setRiskTolerance(level)}
+                                        role="radio"
+                                        aria-checked={riskTolerance === level}
+                                        className={`p-3 rounded-lg transition-colors flex-1 text-center border ${
+                                            riskTolerance === level
+                                                ? 'bg-status-info-light border-status-info'
+                                                : 'bg-surface-nested border-transparent hover:bg-surface-hover'
+                                        }`}
+                                    >
+                                        <span className={`block text-sm font-semibold ${riskTolerance === level ? 'text-status-info-dark' : 'text-text-primary'}`}>{level}</span>
+                                        <span className="block text-xs text-text-secondary mt-1">{riskOptions[level]}</span>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <main className="flex-grow flex flex-col lg:flex-row gap-4 overflow-hidden">
                 {/* Left Panel: Original Query */}
@@ -166,7 +355,7 @@ const QueryOptimizerView: React.FC<{
                     />
                     <div className="flex items-center gap-2 pt-4 mt-auto">
                         <button
-                            onClick={handleOptimize}
+                            onClick={() => runOptimization(optimizationMode)}
                             disabled={!editedQuery.trim() || isLoading}
                             className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full shadow-sm disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
                         >

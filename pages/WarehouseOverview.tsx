@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Warehouse } from '../types';
 import { IconLayers, IconTrendingUp, IconClock, IconBrain } from '../constants';
@@ -32,7 +33,7 @@ const WarehouseOverview: React.FC<{ warehouses: Warehouse[] }> = ({ warehouses }
     return (
         <div className="p-4 space-y-4">
             <div>
-                <h1 className="text-2xl font-bold text-text-primary">Warehouses Overview</h1>
+                <h1 className="text-2xl font-bold text-text-primary">Overview</h1>
                 <p className="mt-1 text-text-secondary">A summary of warehouse activity and performance.</p>
             </div>
 

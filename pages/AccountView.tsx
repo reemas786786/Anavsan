@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Account, SQLFile, BigScreenWidget, QueryListItem, PullRequest, User, QueryListFilters, SlowQueryFilters, BreadcrumbItem, Warehouse } from '../types';
 import AccountOverviewDashboard from './AccountOverviewDashboard';
@@ -360,7 +361,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
         switch (activePage) {
             case 'Account overview':
                 return <AccountOverviewDashboard account={account} />;
-            case 'Warehouse Overview':
+            case 'Overview':
                 return <WarehouseOverview warehouses={warehousesData} />;
             case 'All Warehouses':
                 return <AllWarehouses warehouses={warehousesData} onSelectWarehouse={setSelectedWarehouse} />;
