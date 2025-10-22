@@ -104,9 +104,9 @@ const AllWarehouses: React.FC<AllWarehousesProps> = ({ warehouses, onSelectWareh
                 <div className="p-2 mb-2 flex-shrink-0 flex items-center gap-x-2 border-b border-border-color">
                     <DateRangeDropdown selectedValue={dateFilter} onChange={setDateFilter} />
                     <div className="h-4 w-px bg-border-color"></div>
-                    <MultiSelectDropdown label="Size" options={warehouseSizes} selectedOptions={sizeFilter} onChange={setSizeFilter} />
+                    <MultiSelectDropdown label="Size" options={warehouseSizes} selectedOptions={sizeFilter} onChange={setSizeFilter} selectionMode="single" />
                     <div className="h-4 w-px bg-border-color"></div>
-                    <MultiSelectDropdown label="Status" options={warehouseStatuses} selectedOptions={statusFilter} onChange={setStatusFilter} />
+                    <MultiSelectDropdown label="Status" options={warehouseStatuses} selectedOptions={statusFilter} onChange={setStatusFilter} selectionMode="single" />
                     <div className="relative flex-grow ml-auto">
                         <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
