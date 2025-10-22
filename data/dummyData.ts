@@ -190,10 +190,12 @@ export const accountCostBreakdown = [
 ];
 
 export const warehousesData: Warehouse[] = [
-    { id: 'w1', name: 'COMPUTE_WH', avgUtilization: 75, peakUtilization: 92, status: 'Active', cost: 850, credits: 340 },
-    { id: 'w2', name: 'TRANSFORM_WH', avgUtilization: 40, peakUtilization: 65, status: 'Active', cost: 250, credits: 100 },
-    { id: 'w3', name: 'BI_WH', avgUtilization: 60, peakUtilization: 88, status: 'Active', cost: 125, credits: 50 },
-    { id: 'w4', name: 'IDLE_WH', avgUtilization: 5, peakUtilization: 10, status: 'Idle', cost: 25, credits: 10 },
+    { id: 'w1', name: 'COMPUTE_WH', size: 'Medium', avgUtilization: 75, peakUtilization: 92, status: 'Running', cost: 850, credits: 340, queriesExecuted: 12450, lastActive: 'Oct 16, 2025 – 09:42 AM' },
+    { id: 'w2', name: 'TRANSFORM_WH', size: 'Large', avgUtilization: 40, peakUtilization: 65, status: 'Running', cost: 250, credits: 100, queriesExecuted: 3201, lastActive: 'Oct 16, 2025 – 09:41 AM' },
+    { id: 'w3', name: 'BI_WH', size: 'X-Small', avgUtilization: 60, peakUtilization: 88, status: 'Suspended', cost: 125, credits: 50, queriesExecuted: 8932, lastActive: 'Oct 15, 2025 – 05:00 PM' },
+    { id: 'w4', name: 'IDLE_WH', size: 'X-Small', avgUtilization: 5, peakUtilization: 10, status: 'Idle', cost: 25, credits: 10, queriesExecuted: 150, lastActive: 'Oct 14, 2025 – 11:20 AM' },
+    { id: 'w5', name: 'FINANCE_WH', size: 'Large', avgUtilization: 88, peakUtilization: 98, status: 'Running', cost: 1200, credits: 480, queriesExecuted: 8932, lastActive: 'Oct 16, 2025 – 09:42 AM' },
+    { id: 'w6', name: 'MARKETING_WH', size: 'Small', avgUtilization: 35, peakUtilization: 70, status: 'Suspended', cost: 220, credits: 88, queriesExecuted: 4510, lastActive: 'Oct 16, 2025 – 08:15 AM' },
 ];
 
 export const usersData: User[] = [

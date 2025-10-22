@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Account, SQLFile, BigScreenWidget, QueryListItem, PullRequest, User, QueryListFilters, SlowQueryFilters, BreadcrumbItem } from '../types';
+import { Account, SQLFile, BigScreenWidget, QueryListItem, PullRequest, User, QueryListFilters, SlowQueryFilters, BreadcrumbItem, Warehouse } from '../types';
 import AccountOverviewDashboard from './AccountOverviewDashboard';
 import { SimilarQueryPatternsView } from './QueryPerformanceView';
 import { accountNavItems } from '../constants';
@@ -23,6 +23,10 @@ import QueryAnalyzerView from './QueryAnalyzerView';
 import QueryOptimizerView from './QueryOptimizerView';
 import QuerySimulatorView from './QuerySimulatorView';
 import SlowQueriesView from './SlowQueriesView';
+import WarehouseOverview from './WarehouseOverview';
+import AllWarehouses from './AllWarehouses';
+import WarehouseDetailView from './WarehouseDetailView';
+import { warehousesData } from '../data/dummyData';
 
 
 interface AccountViewProps {
@@ -251,6 +255,7 @@ const ContextualNavItem: React.FC<{
 
 const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAccount, onBackToAccounts, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, onPreviewQuery, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, users, navigationSource }) => {
     const [selectedDatabaseId, setSelectedDatabaseId] = useState<string | null>(null);
+    const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
     const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
     const accountSwitcherRef = useRef<HTMLDivElement>(null);
@@ -258,6 +263,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
     const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({
         'Query performance': true,
         'Optimization': true,
+        'Warehouses': true,
         'Storage and Cost': true,
         'Query Workspace': true,
     });
@@ -330,6 +336,9 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
     const isDatabaseDetailView = activePage === 'Databases' && !!selectedDatabaseId;
     
     const renderContent = () => {
+        if (selectedWarehouse) {
+            return <WarehouseDetailView warehouse={selectedWarehouse} onBack={() => setSelectedWarehouse(null)} />;
+        }
         if (selectedPullRequest) {
             return <PullRequestDetailView pullRequest={selectedPullRequest} onBack={() => setSelectedPullRequest(null)} users={users} />;
         }
@@ -351,6 +360,10 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
         switch (activePage) {
             case 'Account overview':
                 return <AccountOverviewDashboard account={account} />;
+            case 'Warehouse Overview':
+                return <WarehouseOverview warehouses={warehousesData} />;
+            case 'All Warehouses':
+                return <AllWarehouses warehouses={warehousesData} onSelectWarehouse={setSelectedWarehouse} />;
             case 'My Branches':
                 return <MyBranchesView />;
             case 'Query Versions':
@@ -406,12 +419,12 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
         }
     };
     
-    const isListView = ['All queries', 'Slow queries', 'Similar query patterns', 'Query analyzer', 'Query optimizer', 'Query simulator'].includes(activePage);
+    const isListView = ['All queries', 'Slow queries', 'Similar query patterns', 'Query analyzer', 'Query optimizer', 'Query simulator', 'All Warehouses'].includes(activePage);
 
     return (
         <div className="flex h-full bg-background">
             {/* Contextual Sidebar */}
-            {!isDatabaseDetailView && !selectedQuery && !selectedPullRequest && (
+            {!isDatabaseDetailView && !selectedQuery && !selectedPullRequest && !selectedWarehouse && (
                 <aside className={`bg-surface flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out ${isSidebarExpanded ? 'w-64' : 'w-12'}`}>
                     <div className={`p-2 flex-shrink-0 transition-all ${isSidebarExpanded ? '' : 'flex justify-center'}`}>
                         {/* Account Switcher */}
@@ -510,12 +523,12 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
             {/* Main Content */}
             <main className={`flex-1 flex flex-col overflow-hidden bg-background`}>
                 <div className={`flex-1 ${isListView ? 'overflow-y-hidden' : 'overflow-y-auto'}`}>
-                    {!isDatabaseDetailView && !selectedQuery && !selectedPullRequest && (
+                    {!isDatabaseDetailView && !selectedQuery && !selectedPullRequest && !selectedWarehouse && (
                         <div className="lg:hidden p-4 pb-0">
                             <MobileNav activePage={activePage} onPageChange={onPageChange} accountNavItems={accountNavItems} />
                         </div>
                     )}
-                    <div className={`h-full ${isDatabaseDetailView || selectedQuery || selectedPullRequest || isListView ? "" : "p-4"}`}>
+                    <div className={`h-full ${isDatabaseDetailView || selectedQuery || selectedPullRequest || selectedWarehouse || isListView ? "" : "p-4"}`}>
                         {renderContent()}
                     </div>
                 </div>

@@ -101,11 +101,14 @@ export interface OptimizationOpportunity {
 export interface Warehouse {
     id: string;
     name: string;
+    size: 'X-Small' | 'Small' | 'Medium' | 'Large' | 'X-Large';
     avgUtilization: number;
     peakUtilization: number;
-    status: 'Active' | 'Idle' | 'Suspended';
+    status: 'Active' | 'Idle' | 'Suspended' | 'Running';
     cost: number;
     credits: number;
+    queriesExecuted: number;
+    lastActive: string;
 }
 
 export type UserRole = 'Admin' | 'Analyst' | 'Viewer';

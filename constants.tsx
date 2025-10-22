@@ -377,6 +377,14 @@ export const accountNavItems = [
         ] 
     },
     { 
+        name: 'Warehouses', 
+        icon: IconLayers, 
+        children: [
+            { name: 'Warehouse Overview', icon: IconSummary },
+            { name: 'All Warehouses', icon: IconList }
+        ] 
+    },
+    { 
         name: 'Storage and Cost', 
         icon: IconDatabase, 
         children: [
