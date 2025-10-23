@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Account, SQLFile, BigScreenWidget, QueryListItem, PullRequest, User, QueryListFilters, SlowQueryFilters, BreadcrumbItem, Warehouse } from '../types';
 import AccountOverviewDashboard from './AccountOverviewDashboard';
@@ -261,13 +262,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
     const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
     const accountSwitcherRef = useRef<HTMLDivElement>(null);
     const [accountSwitcherTimeoutId, setAccountSwitcherTimeoutId] = useState<number | null>(null);
-    const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({
-        'Query performance': true,
-        'Optimization': true,
-        'Warehouses': true,
-        'Storage and Cost': true,
-        'Query Workspace': true,
-    });
+    const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({});
     
     // State for All Queries filters
     const [allQueriesFilters, setAllQueriesFilters] = useState<QueryListFilters>({
@@ -303,6 +298,29 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
         };
     }, []);
 
+    useEffect(() => {
+        const savedMenu = localStorage.getItem('anavsan_last_open_submenu');
+        const defaultMenu = 'Query performance';
+        
+        const isValidSavedMenu = accountNavItems.some(item => item.name === savedMenu);
+
+        setOpenSubMenus({ [(isValidSavedMenu ? savedMenu : defaultMenu) as string]: true });
+    }, [account.id]);
+
+    const handleSubMenuToggle = (itemName: string) => {
+        setOpenSubMenus(prev => {
+            const isCurrentlyOpen = !!prev[itemName];
+            
+            if (isCurrentlyOpen) {
+                localStorage.removeItem('anavsan_last_open_submenu');
+                return {};
+            } else {
+                localStorage.setItem('anavsan_last_open_submenu', itemName);
+                return { [itemName]: true };
+            }
+        });
+    };
+
     const handleAccountSwitcherEnter = () => {
         if (accountSwitcherTimeoutId) clearTimeout(accountSwitcherTimeoutId);
         setIsAccountSwitcherOpen(true);
@@ -310,10 +328,6 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
     const handleAccountSwitcherLeave = () => {
         const timeoutId = window.setTimeout(() => setIsAccountSwitcherOpen(false), 200);
         setAccountSwitcherTimeoutId(timeoutId);
-    };
-
-    const handleSubMenuToggle = (itemName: string) => {
-        setOpenSubMenus(prev => ({ ...prev, [itemName]: !prev[itemName] }));
     };
 
     const handleSelectDatabaseFromSummary = (databaseId: string) => {
@@ -362,7 +376,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
             case 'Account overview':
                 return <AccountOverviewDashboard account={account} />;
             case 'Overview':
-                return <WarehouseOverview warehouses={warehousesData} />;
+                return <WarehouseOverview warehouses={warehousesData} onSelectWarehouse={setSelectedWarehouse} />;
             case 'All Warehouses':
                 return <AllWarehouses warehouses={warehousesData} onSelectWarehouse={setSelectedWarehouse} />;
             case 'My Branches':
