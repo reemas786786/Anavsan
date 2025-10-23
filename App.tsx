@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -284,14 +285,6 @@ const App: React.FC = () => {
       setAccountViewPage('All queries');
   };
 
-  const handleNavigateToQueryTool = (account: Account, query: QueryListItem, tool: 'analyzer' | 'optimizer' | 'simulator') => {
-      setSelectedAccount(account);
-      setAnalyzingQuery(query);
-      setNavigationSource('Notifications');
-      setActivePage('Snowflake Accounts');
-      setAccountViewPage(`Query ${tool}`);
-  };
-
   const handleSaveDashboard = (d: DashboardItem) => {
       if (d.id.startsWith('temp-')) {
           d.id = `dash-${Date.now()}`;
@@ -440,7 +433,6 @@ const App: React.FC = () => {
                 accounts={accounts}
                 onNavigateToWarehouse={handleNavigateToWarehouse}
                 onNavigateToQuery={handleNavigateToQuery}
-                onNavigateToQueryTool={handleNavigateToQueryTool}
                 onMarkNotificationAsRead={handleMarkNotificationAsRead}
             />;
         default:

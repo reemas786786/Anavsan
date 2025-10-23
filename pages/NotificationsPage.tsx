@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Notification, ActivityLog, User, NotificationType, NotificationSeverity, ActivityLogStatus, Account, Warehouse, QueryListItem } from '../types';
 import { queryListData, warehousesData } from '../data/dummyData';
@@ -78,11 +79,10 @@ interface InsightDetailPanelProps {
     onClose: () => void;
     onNavigateToWarehouse: (account: Account, warehouse: Warehouse) => void;
     onNavigateToQuery: (account: Account, query: QueryListItem) => void;
-    onNavigateToQueryTool: (account: Account, query: QueryListItem, tool: 'analyzer' | 'optimizer' | 'simulator') => void;
     onMarkAsRead: (id: string) => void;
 }
 
-const InsightDetailPanel: React.FC<InsightDetailPanelProps> = ({ insight, accounts, onClose, onNavigateToWarehouse, onNavigateToQuery, onNavigateToQueryTool, onMarkAsRead }) => {
+const InsightDetailPanel: React.FC<InsightDetailPanelProps> = ({ insight, accounts, onClose, onNavigateToWarehouse, onNavigateToQuery, onMarkAsRead }) => {
     
     useEffect(() => {
         if (!insight.isRead) {
@@ -105,13 +105,6 @@ const InsightDetailPanel: React.FC<InsightDetailPanelProps> = ({ insight, accoun
     const handleQueryClick = () => {
         if (query && account) {
             onNavigateToQuery(account, query);
-            onClose();
-        }
-    };
-    
-    const handleToolClick = (tool: 'analyzer' | 'optimizer') => {
-        if (query && account) {
-            onNavigateToQueryTool(account, query, tool);
             onClose();
         }
     };
@@ -156,12 +149,6 @@ const InsightDetailPanel: React.FC<InsightDetailPanelProps> = ({ insight, accoun
             </div>
 
             <div className="p-6 bg-background flex justify-end items-center gap-3 flex-shrink-0">
-                {query && (
-                    <>
-                        <button onClick={() => handleToolClick('analyzer')} className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-gray-50"><IconSearch className="h-4 w-4" /> Analyze Query</button>
-                        <button onClick={() => handleToolClick('optimizer')} className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full text-white bg-primary hover:bg-primary-hover"><IconWand className="h-4 w-4" /> Optimize Query</button>
-                    </>
-                )}
                 <button onClick={() => onMarkAsRead(insight.id)} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-gray-50">Mark as Read</button>
             </div>
         </div>
@@ -179,7 +166,6 @@ interface AlertsViewProps {
     accounts: Account[];
     onNavigateToWarehouse: (account: Account, warehouse: Warehouse) => void;
     onNavigateToQuery: (account: Account, query: QueryListItem) => void;
-    onNavigateToQueryTool: (account: Account, query: QueryListItem, tool: 'analyzer' | 'optimizer' | 'simulator') => void;
     onMarkNotificationAsRead: (id: string) => void;
 }
 
@@ -188,6 +174,7 @@ const AlertsView: React.FC<AlertsViewProps> = (props) => {
     const [search, setSearch] = useState('');
     const [dateFilter, setDateFilter] = useState<string | { start: string; end: string }>('All');
     const [typeFilter, setTypeFilter] = useState<string[]>([]);
+    const [readStatusFilter, setReadStatusFilter] = useState<string[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [selectedInsight, setSelectedInsight] = useState<Notification | null>(null);
@@ -200,6 +187,11 @@ const AlertsView: React.FC<AlertsViewProps> = (props) => {
 
     const filteredNotifications = useMemo(() => {
         return notifications.filter(n => {
+            if (readStatusFilter.length > 0) {
+                if (readStatusFilter[0] === 'Read' && !n.isRead) return false;
+                if (readStatusFilter[0] === 'Unread' && n.isRead) return false;
+            }
+
             if (search && !(
                 n.message.toLowerCase().includes(search.toLowerCase()) || 
                 n.warehouseName.toLowerCase().includes(search.toLowerCase()) || 
@@ -227,7 +219,7 @@ const AlertsView: React.FC<AlertsViewProps> = (props) => {
             }
             return true;
         });
-    }, [notifications, search, typeFilter, dateFilter]);
+    }, [notifications, search, typeFilter, dateFilter, readStatusFilter]);
     
     const sortedNotifications = useMemo(() => {
         return [...filteredNotifications].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -248,6 +240,7 @@ const AlertsView: React.FC<AlertsViewProps> = (props) => {
                 <div className="p-4 flex-shrink-0 flex items-center gap-x-4 border-b border-border-color">
                     <DateRangeDropdown selectedValue={dateFilter} onChange={setDateFilter} />
                     <MultiSelectDropdown label="Insight Type" options={filterOptions.types} selectedOptions={typeFilter} onChange={setTypeFilter} selectionMode="single" />
+                    <MultiSelectDropdown label="Status" options={['Unread', 'Read']} selectedOptions={readStatusFilter} onChange={setReadStatusFilter} selectionMode="single" />
                     <div className="relative flex-grow ml-auto">
                         <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
                         <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search messages or warehouse/query..." className="w-full pl-10 pr-4 py-2 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary" />
@@ -307,7 +300,6 @@ const AlertsView: React.FC<AlertsViewProps> = (props) => {
                         accounts={props.accounts}
                         onNavigateToWarehouse={props.onNavigateToWarehouse}
                         onNavigateToQuery={props.onNavigateToQuery}
-                        onNavigateToQueryTool={props.onNavigateToQueryTool}
                         onMarkAsRead={props.onMarkNotificationAsRead}
                     />
                 </SidePanel>
@@ -456,7 +448,6 @@ interface NotificationsPageProps {
     accounts: Account[];
     onNavigateToWarehouse: (account: Account, warehouse: Warehouse) => void;
     onNavigateToQuery: (account: Account, query: QueryListItem) => void;
-    onNavigateToQueryTool: (account: Account, query: QueryListItem, tool: 'analyzer' | 'optimizer' | 'simulator') => void;
     onMarkNotificationAsRead: (id: string) => void;
 }
 
