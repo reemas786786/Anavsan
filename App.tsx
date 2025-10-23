@@ -19,8 +19,8 @@ import ConfirmationModal from './components/ConfirmationModal';
 import Modal from './components/Modal';
 import Toast from './components/Toast';
 import BigScreenView from './components/BigScreenView';
-import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem, BigScreenWidget, QueryListItem, AssignedQuery, AssignmentPriority, AssignmentStatus, PullRequest, Notification, ActivityLog, BreadcrumbItem } from './types';
-import { connectionsData, sqlFilesData as initialSqlFiles, usersData, dashboardsData as initialDashboardsData, assignedQueriesData, pullRequestsData, notificationsData as initialNotificationsData, activityLogsData } from './data/dummyData';
+import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem, BigScreenWidget, QueryListItem, AssignedQuery, AssignmentPriority, AssignmentStatus, PullRequest, Notification, ActivityLog, BreadcrumbItem, Warehouse } from './types';
+import { connectionsData, sqlFilesData as initialSqlFiles, usersData, dashboardsData as initialDashboardsData, assignedQueriesData, pullRequestsData, notificationsData as initialNotificationsData, activityLogsData, warehousesData } from './data/dummyData';
 import { accountNavItems } from './constants';
 import SettingsPage from './pages/SettingsPage';
 import Dashboards from './pages/Dashboards';
@@ -84,6 +84,7 @@ const App: React.FC = () => {
   const [confirmation, setConfirmation] = useState<{ title: string; message: React.ReactNode; onConfirm: () => void; confirmText?: string; confirmVariant?: 'danger' | 'warning' | 'primary' } | null>(null);
   
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+  const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedDashboard, setSelectedDashboard] = useState<DashboardItem | null>(null);
   const [editingDashboard, setEditingDashboard] = useState<DashboardItem | null>(null);
@@ -139,16 +140,37 @@ const App: React.FC = () => {
     setSelectedDashboard(null);
     setSelectedQuery(null);
     setSelectedPullRequest(null);
+    setSelectedWarehouse(null);
   };
   
   useEffect(() => {
     let items: BreadcrumbItem[] = [];
     const overviewItem: BreadcrumbItem = { label: 'Data Cloud Overview', onClick: () => handleSetActivePage('Data Cloud Overview') };
 
-    if (selectedAccount) {
+    if (selectedWarehouse && selectedAccount) {
+        items = [
+            { label: 'Snowflake Accounts', onClick: () => { 
+                setSelectedAccount(null); 
+                setSelectedWarehouse(null);
+                handleSetActivePage('Snowflake Accounts'); 
+            }},
+            { label: selectedAccount.name, onClick: () => { 
+                setSelectedWarehouse(null);
+                setAccountViewPage('Account overview');
+            } },
+            { label: 'Warehouses', onClick: () => { 
+                setSelectedWarehouse(null);
+                setAccountViewPage('All Warehouses');
+            } },
+            { label: selectedWarehouse.name }
+        ];
+    } else if (selectedAccount) {
         items = [
             { label: 'Snowflake Accounts', onClick: () => { setSelectedAccount(null); handleSetActivePage('Snowflake Accounts'); }},
-            { label: selectedAccount.name, onClick: () => setAccountViewPage('Account overview') }
+            { label: selectedAccount.name, onClick: () => {
+                setAccountViewPage('Account overview');
+                setSelectedWarehouse(null);
+            } }
         ];
     
         const parentNavItem = accountNavItems.find(item => 
@@ -213,6 +235,7 @@ const App: React.FC = () => {
     isViewingDashboard, 
     editingDashboard, 
     selectedDashboard,
+    selectedWarehouse,
 ]);
   
   const handleLogin = (email: string) => {
@@ -269,6 +292,7 @@ const App: React.FC = () => {
             setAccountViewPage('Account overview');
             setSelectedQuery(null);
             setSelectedPullRequest(null);
+            setSelectedWarehouse(null);
         }} 
         onBackToAccounts={() => {
             setSelectedAccount(null);
@@ -292,6 +316,9 @@ const App: React.FC = () => {
         setSelectedPullRequest={setSelectedPullRequest} 
         users={users} 
         navigationSource={navigationSource} 
+        selectedWarehouse={selectedWarehouse}
+        setSelectedWarehouse={setSelectedWarehouse}
+        warehouses={warehousesData}
       />;
     }
     if (selectedUser) {

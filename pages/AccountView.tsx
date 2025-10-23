@@ -28,7 +28,6 @@ import SlowQueriesView from './SlowQueriesView';
 import WarehouseOverview from './WarehouseOverview';
 import AllWarehouses from './AllWarehouses';
 import WarehouseDetailView from './WarehouseDetailView';
-import { warehousesData } from '../data/dummyData';
 
 
 interface AccountViewProps {
@@ -54,6 +53,9 @@ interface AccountViewProps {
     setSelectedPullRequest: (pr: PullRequest | null) => void;
     users: User[];
     navigationSource: string | null;
+    selectedWarehouse: Warehouse | null;
+    setSelectedWarehouse: (warehouse: Warehouse | null) => void;
+    warehouses: Warehouse[];
 }
 
 const ChevronUpIcon = ({ className }: { className?: string }) => <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 10L8 6L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
@@ -255,9 +257,8 @@ const ContextualNavItem: React.FC<{
 };
 
 
-const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAccount, onBackToAccounts, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, onPreviewQuery, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, users, navigationSource }) => {
+const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAccount, onBackToAccounts, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, onPreviewQuery, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, users, navigationSource, selectedWarehouse, setSelectedWarehouse, warehouses }) => {
     const [selectedDatabaseId, setSelectedDatabaseId] = useState<string | null>(null);
-    const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
     const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
     const accountSwitcherRef = useRef<HTMLDivElement>(null);
@@ -352,7 +353,12 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
     
     const renderContent = () => {
         if (selectedWarehouse) {
-            return <WarehouseDetailView warehouse={selectedWarehouse} onBack={() => setSelectedWarehouse(null)} />;
+            return <WarehouseDetailView 
+                warehouse={selectedWarehouse} 
+                onBack={() => setSelectedWarehouse(null)} 
+                warehouses={warehouses}
+                onSwitchWarehouse={setSelectedWarehouse}
+            />;
         }
         if (selectedPullRequest) {
             return <PullRequestDetailView pullRequest={selectedPullRequest} onBack={() => setSelectedPullRequest(null)} users={users} />;
@@ -376,9 +382,9 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
             case 'Account overview':
                 return <AccountOverviewDashboard account={account} />;
             case 'Overview':
-                return <WarehouseOverview warehouses={warehousesData} onSelectWarehouse={setSelectedWarehouse} />;
+                return <WarehouseOverview warehouses={warehouses} onSelectWarehouse={setSelectedWarehouse} />;
             case 'All Warehouses':
-                return <AllWarehouses warehouses={warehousesData} onSelectWarehouse={setSelectedWarehouse} />;
+                return <AllWarehouses warehouses={warehouses} onSelectWarehouse={setSelectedWarehouse} />;
             case 'My Branches':
                 return <MyBranchesView />;
             case 'Query Versions':

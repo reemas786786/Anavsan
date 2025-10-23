@@ -7,6 +7,35 @@ import Pagination from '../components/Pagination';
 
 // --- HELPER COMPONENTS ---
 
+const getSuggestionForNotification = (notification: Notification): { text: string } => {
+    switch (notification.type) {
+        case 'performance':
+            if (notification.title.includes('degraded')) {
+                return { text: 'Analyze slow queries' };
+            }
+            if (notification.title.includes('queueing')) {
+                return { text: 'Review warehouse load' };
+            }
+            return { text: 'View performance dashboard' };
+        case 'latency':
+            return { text: 'Investigate database load' };
+        case 'storage':
+            if (notification.title.includes('capacity')) {
+                return { text: 'Review storage usage' };
+            }
+            return { text: 'View storage cost breakdown' };
+        case 'query':
+            return { text: 'Optimize slow query' };
+        case 'load':
+            if (notification.title.includes('high load')) {
+                return { text: 'Check warehouse utilization' };
+            }
+            return { text: 'Scale up warehouse' };
+        default:
+            return { text: 'View details' };
+    }
+};
+
 const typeToColorMap: Record<NotificationType, { bg: string; text: string }> = {
     performance: { bg: 'bg-status-warning-light', text: 'text-status-warning' },
     latency: { bg: 'bg-status-warning-light', text: 'text-status-warning' },
@@ -158,7 +187,14 @@ const AlertsView: React.FC<AlertsViewProps> = ({ notifications, onMarkAllAsRead,
                                             <span className="capitalize">{n.type}</span>
                                         </div>
                                     </td>
-                                    <td className={`px-6 py-3 ${!n.isRead ? 'font-semibold text-text-primary' : ''}`}>{n.title}</td>
+                                    <td className="px-6 py-3">
+                                        <div className={`${!n.isRead ? 'font-semibold text-text-primary' : ''}`}>{n.title}</div>
+                                        <div className="mt-1">
+                                            <button className="text-xs font-semibold text-link hover:underline">
+                                                {getSuggestionForNotification(n).text}
+                                            </button>
+                                        </div>
+                                    </td>
                                     <td className="px-6 py-3">{n.source}</td>
                                     <td className="px-6 py-3"><SeverityBadge severity={n.severity} /></td>
                                     <td className="px-6 py-3">{new Date(n.timestamp).toLocaleString()}</td>
