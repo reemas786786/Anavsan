@@ -371,16 +371,19 @@ export interface PullRequest {
     newCode: string;
 }
 
-export type NotificationType = 'performance' | 'latency' | 'storage' | 'query' | 'load';
+export type NotificationType = 'performance' | 'latency' | 'storage' | 'query' | 'load' | 'TABLE_SCAN' | 'JOIN_INEFFICIENCY' | 'WAREHOUSE_IDLE' | 'COST_SPIKE';
 export type NotificationSeverity = 'Info' | 'Warning' | 'Critical';
 
 export interface Notification {
     id: string;
-    type: NotificationType;
-    title: string;
-    timestamp: string;
+    insightTypeId: string;
+    insightTopic: NotificationType;
+    message: string;
+    suggestions: string;
+    timestamp: string; // ISO string
+    warehouseName: string;
+    queryId?: string;
     isRead: boolean;
-    source: string;
     severity: NotificationSeverity;
 }
 

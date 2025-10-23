@@ -261,9 +261,35 @@ const App: React.FC = () => {
     showToast("All notifications marked as read.");
   };
 
+  const handleMarkNotificationAsRead = (notificationId: string) => {
+      setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
+      showToast("Insight marked as read.");
+  };
+
   const handleClearNotification = (id: string) => {
     setNotifications(notifications.filter(n => n.id !== id));
     showToast("Notification cleared.");
+  };
+
+  const handleNavigateToWarehouse = (account: Account, warehouse: Warehouse) => {
+      setSelectedAccount(account);
+      setSelectedWarehouse(warehouse);
+      setActivePage('Snowflake Accounts');
+  };
+
+  const handleNavigateToQuery = (account: Account, query: QueryListItem) => {
+      setSelectedAccount(account);
+      setSelectedQuery(query);
+      setActivePage('Snowflake Accounts');
+      setAccountViewPage('All queries');
+  };
+
+  const handleNavigateToQueryTool = (account: Account, query: QueryListItem, tool: 'analyzer' | 'optimizer' | 'simulator') => {
+      setSelectedAccount(account);
+      setAnalyzingQuery(query);
+      setNavigationSource('Notifications');
+      setActivePage('Snowflake Accounts');
+      setAccountViewPage(`Query ${tool}`);
   };
 
   const handleSaveDashboard = (d: DashboardItem) => {
@@ -404,7 +430,19 @@ const App: React.FC = () => {
         case 'Profile Settings':
              return <ProfileSettingsPage user={currentUser!} onBack={() => handleSetActivePage('Data Cloud Overview')} />;
         case 'Notifications':
-            return <NotificationsPage notifications={notifications} activityLogs={activityLogs} onMarkAllAsRead={handleMarkAllNotificationsAsRead} onClearNotification={handleClearNotification} users={users} onBackToOverview={() => handleSetActivePage('Data Cloud Overview')} />;
+            return <NotificationsPage 
+                notifications={notifications} 
+                activityLogs={activityLogs} 
+                onMarkAllAsRead={handleMarkAllNotificationsAsRead} 
+                onClearNotification={handleClearNotification} 
+                users={users} 
+                onBackToOverview={() => handleSetActivePage('Data Cloud Overview')}
+                accounts={accounts}
+                onNavigateToWarehouse={handleNavigateToWarehouse}
+                onNavigateToQuery={handleNavigateToQuery}
+                onNavigateToQueryTool={handleNavigateToQueryTool}
+                onMarkNotificationAsRead={handleMarkNotificationAsRead}
+            />;
         default:
             return <Overview onSelectAccount={setSelectedAccount} onSelectUser={setSelectedUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} currentUser={currentUser} />;
     }

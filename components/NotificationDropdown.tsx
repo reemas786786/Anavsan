@@ -1,5 +1,4 @@
 import React from 'react';
-// FIX: Replaced non-existent IconExclamationCircle with IconExclamationTriangle.
 import { IconClose, IconBell, IconExclamationTriangle, IconList, IconClock, IconBolt } from '../constants';
 import { Notification, NotificationType } from '../types';
 
@@ -9,20 +8,26 @@ const typeToColorMap: Record<NotificationType, { bg: string; text: string }> = {
     storage: { bg: 'bg-status-info-light', text: 'text-status-info' },
     query: { bg: 'bg-status-info-light', text: 'text-status-info' },
     load: { bg: 'bg-status-error-light', text: 'text-status-error' },
+    TABLE_SCAN: { bg: 'bg-status-warning-light', text: 'text-status-warning-dark' },
+    JOIN_INEFFICIENCY: { bg: 'bg-status-warning-light', text: 'text-status-warning-dark' },
+    WAREHOUSE_IDLE: { bg: 'bg-status-info-light', text: 'text-status-info-dark' },
+    COST_SPIKE: { bg: 'bg-status-error-light', text: 'text-status-error-dark' },
 };
 
 const NotificationIcon: React.FC<{ type: NotificationType, className?: string }> = ({ type, className }) => {
     switch(type) {
         case 'performance':
+        case 'TABLE_SCAN':
+        case 'JOIN_INEFFICIENCY':
             return <IconBell className={className} />;
         case 'latency':
-            // FIX: Replaced non-existent IconExclamationCircle with IconExclamationTriangle.
             return <IconExclamationTriangle className={className} />;
         case 'storage':
             return <IconList className={className} />;
         case 'query':
             return <IconClock className={className} />;
         case 'load':
+        case 'COST_SPIKE':
             return <IconBolt className={className} />;
         default:
             return <IconBell className={className} />;
@@ -34,20 +39,25 @@ interface NotificationItemProps {
 }
 
 const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => {
-    const colors = typeToColorMap[notification.type] || { bg: 'bg-status-info-light', text: 'text-status-info' };
+    const colors = typeToColorMap[notification.insightTopic] || { bg: 'bg-status-info-light', text: 'text-status-info' };
+    
+    const formattedTimestamp = new Date(notification.timestamp).toLocaleString('en-US', {
+        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
+    });
+
     return (
         <li className={`hover:bg-surface-hover`}>
             <a href="#" className="flex gap-4 p-4">
                 <div className="flex-shrink-0">
                     <div className={`w-9 h-9 rounded-full ${colors.bg} flex items-center justify-center`}>
-                        <NotificationIcon type={notification.type} className={`w-5 h-5 ${colors.text}`} />
+                        <NotificationIcon type={notification.insightTopic} className={`w-5 h-5 ${colors.text}`} />
                     </div>
                 </div>
-                <div className="flex-grow">
-                    <p className={`text-sm ${!notification.isRead ? 'text-text-primary font-medium' : 'text-text-secondary'}`}>
-                        {notification.title}
+                <div className="flex-grow overflow-hidden">
+                    <p className={`text-sm truncate ${!notification.isRead ? 'text-text-primary font-medium' : 'text-text-secondary'}`}>
+                        {notification.message}
                     </p>
-                    <p className="text-xs text-text-muted mt-1">{notification.timestamp}</p>
+                    <p className="text-xs text-text-muted mt-1">{formattedTimestamp}</p>
                 </div>
                 {!notification.isRead && (
                     <div className="flex-shrink-0 self-center">
@@ -72,7 +82,9 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
         return null;
     }
 
-    const sortedNotifications = [...notifications].sort((a, b) => (a.isRead === b.isRead) ? 0 : a.isRead ? 1 : -1);
+    const sortedNotifications = [...notifications]
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 5);
 
     return (
         <div className="origin-top-right absolute right-0 top-full mt-2 w-96 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-50 flex flex-col max-h-[calc(100vh-80px)]">

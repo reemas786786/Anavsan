@@ -70,7 +70,7 @@ const Header: React.FC<HeaderProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const hasUnread = hasNewAssignment || notifications.some(n => !n.isRead);
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
     <header className="bg-sidebar-topbar px-4 py-2 flex items-center justify-between flex-shrink-0 h-12 z-40 relative">
@@ -113,8 +113,8 @@ const Header: React.FC<HeaderProps> = ({
         <div className="relative" ref={notificationsRef}>
             <button onClick={() => setIsNotificationsOpen(!isNotificationsOpen)} className="relative p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
               <IconBell className="h-6 w-6" />
-              {hasUnread && (
-                <span className="absolute top-2 right-2 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-sidebar-topbar" />
+              {unreadCount > 0 && (
+                 <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-status-error text-white text-[10px] font-bold ring-2 ring-sidebar-topbar">{unreadCount}</span>
               )}
             </button>
             <NotificationDropdown

@@ -1,40 +1,13 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Notification, ActivityLog, User, NotificationType, NotificationSeverity, ActivityLogStatus } from '../types';
-import { IconBell, IconFileText, IconDelete, IconBolt, IconClock, IconExclamationTriangle, IconList, IconChevronDown, IconChevronLeft, IconChevronRight, IconSearch, IconArrowUp, IconArrowDown } from '../constants';
+import { Notification, ActivityLog, User, NotificationType, NotificationSeverity, ActivityLogStatus, Account, Warehouse, QueryListItem } from '../types';
+import { queryListData, warehousesData } from '../data/dummyData';
+import { IconBell, IconFileText, IconDelete, IconBolt, IconClock, IconExclamationTriangle, IconList, IconChevronDown, IconChevronLeft, IconChevronRight, IconSearch, IconArrowUp, IconArrowDown, IconInfo, IconWand } from '../constants';
 import DateRangeDropdown from '../components/DateRangeDropdown';
 import MultiSelectDropdown from '../components/MultiSelectDropdown';
 import Pagination from '../components/Pagination';
+import SidePanel from '../components/SidePanel';
 
 // --- HELPER COMPONENTS ---
-
-const getSuggestionForNotification = (notification: Notification): { text: string } => {
-    switch (notification.type) {
-        case 'performance':
-            if (notification.title.includes('degraded')) {
-                return { text: 'Analyze slow queries' };
-            }
-            if (notification.title.includes('queueing')) {
-                return { text: 'Review warehouse load' };
-            }
-            return { text: 'View performance dashboard' };
-        case 'latency':
-            return { text: 'Investigate database load' };
-        case 'storage':
-            if (notification.title.includes('capacity')) {
-                return { text: 'Review storage usage' };
-            }
-            return { text: 'View storage cost breakdown' };
-        case 'query':
-            return { text: 'Optimize slow query' };
-        case 'load':
-            if (notification.title.includes('high load')) {
-                return { text: 'Check warehouse utilization' };
-            }
-            return { text: 'Scale up warehouse' };
-        default:
-            return { text: 'View details' };
-    }
-};
 
 const typeToColorMap: Record<NotificationType, { bg: string; text: string }> = {
     performance: { bg: 'bg-status-warning-light', text: 'text-status-warning' },
@@ -42,16 +15,30 @@ const typeToColorMap: Record<NotificationType, { bg: string; text: string }> = {
     storage: { bg: 'bg-status-info-light', text: 'text-status-info' },
     query: { bg: 'bg-status-info-light', text: 'text-status-info' },
     load: { bg: 'bg-status-error-light', text: 'text-status-error' },
+    TABLE_SCAN: { bg: 'bg-status-warning-light', text: 'text-status-warning-dark' },
+    JOIN_INEFFICIENCY: { bg: 'bg-status-warning-light', text: 'text-status-warning-dark' },
+    WAREHOUSE_IDLE: { bg: 'bg-status-info-light', text: 'text-status-info-dark' },
+    COST_SPIKE: { bg: 'bg-status-error-light', text: 'text-status-error-dark' },
 };
 
 const NotificationIcon: React.FC<{ type: NotificationType, className?: string }> = ({ type, className }) => {
     switch(type) {
-        case 'performance': return <IconBell className={className} />;
-        case 'latency': return <IconExclamationTriangle className={className} />;
-        case 'storage': return <IconList className={className} />;
-        case 'query': return <IconClock className={className} />;
-        case 'load': return <IconBolt className={className} />;
-        default: return <IconBell className={className} />;
+        case 'performance':
+        case 'TABLE_SCAN':
+        case 'JOIN_INEFFICIENCY':
+        case 'WAREHOUSE_IDLE':
+            return <IconBell className={className} />;
+        case 'latency':
+            return <IconExclamationTriangle className={className} />;
+        case 'storage':
+            return <IconList className={className} />;
+        case 'query':
+            return <IconClock className={className} />;
+        case 'load':
+        case 'COST_SPIKE':
+            return <IconBolt className={className} />;
+        default:
+            return <IconBell className={className} />;
     }
 };
 
@@ -83,99 +70,197 @@ const ActivityStatusBadge: React.FC<{ status: ActivityLogStatus }> = ({ status }
     );
 };
 
+// --- INSIGHT DETAIL PANEL ---
+
+interface InsightDetailPanelProps {
+    insight: Notification;
+    accounts: Account[];
+    onClose: () => void;
+    onNavigateToWarehouse: (account: Account, warehouse: Warehouse) => void;
+    onNavigateToQuery: (account: Account, query: QueryListItem) => void;
+    onNavigateToQueryTool: (account: Account, query: QueryListItem, tool: 'analyzer' | 'optimizer' | 'simulator') => void;
+    onMarkAsRead: (id: string) => void;
+}
+
+const InsightDetailPanel: React.FC<InsightDetailPanelProps> = ({ insight, accounts, onClose, onNavigateToWarehouse, onNavigateToQuery, onNavigateToQueryTool, onMarkAsRead }) => {
+    
+    useEffect(() => {
+        if (!insight.isRead) {
+            onMarkAsRead(insight.id);
+        }
+    }, [insight, onMarkAsRead]);
+
+    const warehouse = useMemo(() => warehousesData.find(w => w.name === insight.warehouseName), [insight.warehouseName]);
+    const query = useMemo(() => queryListData.find(q => q.id === insight.queryId), [insight.queryId]);
+    // For now, assume all notifications belong to the first account for navigation purposes.
+    const account = accounts.length > 0 ? accounts[0] : null;
+
+    const handleWarehouseClick = () => {
+        if (warehouse && account) {
+            onNavigateToWarehouse(account, warehouse);
+            onClose();
+        }
+    };
+    
+    const handleQueryClick = () => {
+        if (query && account) {
+            onNavigateToQuery(account, query);
+            onClose();
+        }
+    };
+    
+    const handleToolClick = (tool: 'analyzer' | 'optimizer') => {
+        if (query && account) {
+            onNavigateToQueryTool(account, query, tool);
+            onClose();
+        }
+    };
+
+    const formattedTimestamp = new Date(insight.timestamp).toLocaleString('en-US', {
+        month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
+    });
+
+    return (
+        <div className="flex flex-col h-full">
+            <div className="p-6 space-y-4 flex-grow">
+                <div className="pb-4 border-b border-border-color">
+                    <h3 className="text-lg font-bold text-text-strong">{insight.insightTopic.replace(/_/g, ' ')} Detected</h3>
+                    <div className="flex items-center gap-4 text-sm text-text-secondary mt-1">
+                        <span>{formattedTimestamp}</span>
+                        <SeverityBadge severity={insight.severity} />
+                    </div>
+                </div>
+
+                <div className="space-y-4 text-sm">
+                    {warehouse && (
+                        <div>
+                            <label className="font-semibold text-text-secondary">Warehouse</label>
+                            <button onClick={handleWarehouseClick} className="block text-link hover:underline mt-1">{insight.warehouseName}</button>
+                        </div>
+                    )}
+                    {query && (
+                         <div>
+                            <label className="font-semibold text-text-secondary">Query ID</label>
+                            <button onClick={handleQueryClick} className="block text-link hover:underline mt-1 font-mono">{insight.queryId?.substring(7, 13).toUpperCase()}</button>
+                        </div>
+                    )}
+                    <div>
+                        <label className="font-semibold text-text-secondary">Message</label>
+                        <p className="text-text-primary mt-1">{insight.message}</p>
+                    </div>
+                     <div>
+                        <label className="font-semibold text-text-secondary">Suggestion</label>
+                        <p className="text-text-primary mt-1">{insight.suggestions}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="p-6 bg-background flex justify-end items-center gap-3 flex-shrink-0">
+                {query && (
+                    <>
+                        <button onClick={() => handleToolClick('analyzer')} className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-gray-50"><IconSearch className="h-4 w-4" /> Analyze Query</button>
+                        <button onClick={() => handleToolClick('optimizer')} className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full text-white bg-primary hover:bg-primary-hover"><IconWand className="h-4 w-4" /> Optimize Query</button>
+                    </>
+                )}
+                <button onClick={() => onMarkAsRead(insight.id)} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-gray-50">Mark as Read</button>
+            </div>
+        </div>
+    );
+};
+
+
 // --- TAB VIEWS ---
 
 interface AlertsViewProps {
     notifications: Notification[];
     onMarkAllAsRead: () => void;
     onClearNotification: (id: string) => void;
+    // Props for side panel navigation
+    accounts: Account[];
+    onNavigateToWarehouse: (account: Account, warehouse: Warehouse) => void;
+    onNavigateToQuery: (account: Account, query: QueryListItem) => void;
+    onNavigateToQueryTool: (account: Account, query: QueryListItem, tool: 'analyzer' | 'optimizer' | 'simulator') => void;
+    onMarkNotificationAsRead: (id: string) => void;
 }
 
-const AlertsView: React.FC<AlertsViewProps> = ({ notifications, onMarkAllAsRead, onClearNotification }) => {
+const AlertsView: React.FC<AlertsViewProps> = (props) => {
+    const { notifications } = props;
     const [search, setSearch] = useState('');
     const [dateFilter, setDateFilter] = useState<string | { start: string; end: string }>('All');
     const [typeFilter, setTypeFilter] = useState<string[]>([]);
-    const [sourceFilter, setSourceFilter] = useState<string[]>([]);
-    const [severityFilter, setSeverityFilter] = useState<string[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
-    const [sortConfig, setSortConfig] = useState<{ key: keyof Notification; direction: 'ascending' | 'descending' } | null>({ key: 'timestamp', direction: 'descending' });
+    const [selectedInsight, setSelectedInsight] = useState<Notification | null>(null);
 
     const filterOptions = useMemo(() => {
-        const types = [...new Set(notifications.map(n => n.type))];
-        const sources = [...new Set(notifications.map(n => n.source))];
-        const severities = ['Info', 'Warning', 'Critical'];
-        return { types, sources, severities };
+        // FIX: Explicitly typed the 't' parameter as a string to resolve an inference issue.
+        const types = [...new Set(notifications.map(n => n.insightTopic))].map((t: string) => t.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, s => s.toUpperCase()));
+        return { types };
     }, [notifications]);
 
     const filteredNotifications = useMemo(() => {
         return notifications.filter(n => {
-            if (search && !n.title.toLowerCase().includes(search.toLowerCase())) return false;
-            if (typeFilter.length > 0 && !typeFilter.includes(n.type)) return false;
-            if (sourceFilter.length > 0 && !sourceFilter.includes(n.source)) return false;
-            if (severityFilter.length > 0 && !severityFilter.includes(n.severity)) return false;
-            // Date filter logic here...
+            if (search && !(
+                n.message.toLowerCase().includes(search.toLowerCase()) || 
+                n.warehouseName.toLowerCase().includes(search.toLowerCase()) || 
+                n.queryId?.toLowerCase().includes(search.toLowerCase())
+            )) return false;
+            
+            if (typeFilter.length > 0 && !typeFilter.includes(n.insightTopic.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, s => s.toUpperCase()))) return false;
+            
+            if (typeof dateFilter === 'string') {
+                if (dateFilter !== 'All') {
+                    const queryDate = new Date(n.timestamp);
+                    const now = new Date();
+                    let days = 0;
+                    if (dateFilter === '7d') days = 7;
+                    if (dateFilter === '1d') days = 1;
+                    if (dateFilter === '30d') days = 30;
+                    if (days > 0 && now.getTime() - queryDate.getTime() > days * 24 * 60 * 60 * 1000) return false;
+                }
+            } else {
+                const queryDate = new Date(n.timestamp);
+                const startDate = new Date(dateFilter.start);
+                const endDate = new Date(dateFilter.end);
+                endDate.setDate(endDate.getDate() + 1);
+                if (queryDate < startDate || queryDate >= endDate) return false;
+            }
             return true;
         });
-    }, [notifications, search, typeFilter, sourceFilter, severityFilter, dateFilter]);
+    }, [notifications, search, typeFilter, dateFilter]);
     
     const sortedNotifications = useMemo(() => {
-        let sortableItems = [...filteredNotifications];
-        if (sortConfig !== null) {
-            sortableItems.sort((a, b) => {
-                const aVal = a[sortConfig.key] || '';
-                const bVal = b[sortConfig.key] || '';
-                if (aVal < bVal) return sortConfig.direction === 'ascending' ? -1 : 1;
-                if (aVal > bVal) return sortConfig.direction === 'ascending' ? 1 : -1;
-                return 0;
-            });
-        }
-        return sortableItems;
-    }, [filteredNotifications, sortConfig]);
+        return [...filteredNotifications].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    }, [filteredNotifications]);
 
     const paginatedNotifications = sortedNotifications.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
     const totalPages = Math.ceil(sortedNotifications.length / itemsPerPage);
-
-    const requestSort = (key: keyof Notification) => {
-        let direction: 'ascending' | 'descending' = 'ascending';
-        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
-            direction = 'descending';
-        }
-        setSortConfig({ key, direction });
-    };
-
-    const SortIcon: React.FC<{ columnKey: keyof Notification }> = ({ columnKey }) => {
-        if (!sortConfig || sortConfig.key !== columnKey) return <span className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-50"><IconArrowUp/></span>;
-        return sortConfig.direction === 'ascending' ? <IconArrowUp className="w-4 h-4 ml-1" /> : <IconArrowDown className="w-4 h-4 ml-1" />;
-    };
     
+    const formatTimestamp = (isoString: string) => {
+        return new Date(isoString).toLocaleString('en-US', {
+            month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
+        });
+    };
+
     return (
         <div className="space-y-4">
-            <div>
-                <h2 className="text-2xl font-bold text-text-strong">Alerts</h2>
-                <p className="mt-1 text-text-secondary">Monitor critical alerts and performance notifications from all your sources.</p>
-            </div>
             <div className="bg-surface rounded-xl flex flex-col min-h-0">
-                <div className="p-2 flex-shrink-0 flex items-center gap-x-2 border-b border-border-color">
+                <div className="p-4 flex-shrink-0 flex items-center gap-x-4 border-b border-border-color">
                     <DateRangeDropdown selectedValue={dateFilter} onChange={setDateFilter} />
-                    <div className="h-4 w-px bg-border-color"></div>
-                    <MultiSelectDropdown label="Alert Type" options={filterOptions.types} selectedOptions={typeFilter} onChange={setTypeFilter} selectionMode="single" />
-                    <MultiSelectDropdown label="Source" options={filterOptions.sources} selectedOptions={sourceFilter} onChange={setSourceFilter} selectionMode="single" />
-                    <MultiSelectDropdown label="Severity" options={filterOptions.severities} selectedOptions={severityFilter} onChange={setSeverityFilter} selectionMode="single" />
+                    <MultiSelectDropdown label="Insight Type" options={filterOptions.types} selectedOptions={typeFilter} onChange={setTypeFilter} selectionMode="single" />
                     <div className="relative flex-grow ml-auto">
                         <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
-                        <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search alerts..." className="w-full pl-10 pr-4 py-2 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary" />
+                        <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search messages or warehouse/query..." className="w-full pl-10 pr-4 py-2 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary" />
                     </div>
                 </div>
                 <div className="overflow-y-auto flex-grow min-h-0">
                     <table className="w-full text-sm">
                         <thead className="text-sm text-text-primary sticky top-0 z-10 bg-table-header-bg">
                             <tr>
-                                <th scope="col" className="px-6 py-4 font-semibold text-left"><button onClick={() => requestSort('type')} className="group flex items-center">Alert Type <SortIcon columnKey="type" /></button></th>
-                                <th scope="col" className="px-6 py-4 font-semibold text-left"><button onClick={() => requestSort('title')} className="group flex items-center">Message <SortIcon columnKey="title" /></button></th>
-                                <th scope="col" className="px-6 py-4 font-semibold text-left"><button onClick={() => requestSort('source')} className="group flex items-center">Source <SortIcon columnKey="source" /></button></th>
-                                <th scope="col" className="px-6 py-4 font-semibold text-left"><button onClick={() => requestSort('severity')} className="group flex items-center">Severity <SortIcon columnKey="severity" /></button></th>
-                                <th scope="col" className="px-6 py-4 font-semibold text-left"><button onClick={() => requestSort('timestamp')} className="group flex items-center">Timestamp <SortIcon columnKey="timestamp" /></button></th>
+                                <th scope="col" className="px-6 py-4 font-semibold text-left">Insight Type</th>
+                                <th scope="col" className="px-6 py-4 font-semibold text-left">Message</th>
+                                <th scope="col" className="px-6 py-4 font-semibold text-left">Timestamp</th>
+                                <th scope="col" className="px-6 py-4 font-semibold text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody className="text-text-secondary bg-surface">
@@ -183,21 +268,19 @@ const AlertsView: React.FC<AlertsViewProps> = ({ notifications, onMarkAllAsRead,
                                 <tr key={n.id} className="border-b border-border-light last:border-b-0 hover:bg-surface-hover">
                                     <td className="px-6 py-3">
                                         <div className="flex items-center gap-2">
-                                            <NotificationIcon type={n.type} className={`w-5 h-5 ${typeToColorMap[n.type].text}`} />
-                                            <span className="capitalize">{n.type}</span>
+                                            {!n.isRead && <div className="w-2 h-2 bg-primary rounded-full"></div>}
+                                            <span className={`capitalize font-medium ${!n.isRead ? 'text-text-primary' : ''}`}>{n.insightTopic.replace(/_/g, ' ').toLowerCase()}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-3">
-                                        <div className={`${!n.isRead ? 'font-semibold text-text-primary' : ''}`}>{n.title}</div>
-                                        <div className="mt-1">
-                                            <button className="text-xs font-semibold text-link hover:underline">
-                                                {getSuggestionForNotification(n).text}
-                                            </button>
-                                        </div>
+                                        <div className={`${!n.isRead ? 'text-text-primary' : ''}`}>{n.message}</div>
                                     </td>
-                                    <td className="px-6 py-3">{n.source}</td>
-                                    <td className="px-6 py-3"><SeverityBadge severity={n.severity} /></td>
-                                    <td className="px-6 py-3">{new Date(n.timestamp).toLocaleString()}</td>
+                                    <td className="px-6 py-3 whitespace-nowrap">{formatTimestamp(n.timestamp)}</td>
+                                    <td className="px-6 py-3 text-right">
+                                        <button onClick={() => setSelectedInsight(n)} className="p-2 -m-2 text-text-secondary hover:text-primary rounded-full hover:bg-primary/10" title="View Details">
+                                            <IconInfo className="h-5 w-5" />
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -216,6 +299,19 @@ const AlertsView: React.FC<AlertsViewProps> = ({ notifications, onMarkAllAsRead,
                     </div>
                 )}
             </div>
+            {selectedInsight && (
+                <SidePanel isOpen={!!selectedInsight} onClose={() => setSelectedInsight(null)} title="Insight Details">
+                    <InsightDetailPanel 
+                        insight={selectedInsight}
+                        onClose={() => setSelectedInsight(null)}
+                        accounts={props.accounts}
+                        onNavigateToWarehouse={props.onNavigateToWarehouse}
+                        onNavigateToQuery={props.onNavigateToQuery}
+                        onNavigateToQueryTool={props.onNavigateToQueryTool}
+                        onMarkAsRead={props.onMarkNotificationAsRead}
+                    />
+                </SidePanel>
+            )}
         </div>
     );
 };
@@ -289,10 +385,6 @@ const ActivityLogsView: React.FC<ActivityLogsViewProps> = ({ activityLogs, users
 
     return (
         <div className="space-y-4">
-            <div>
-                <h2 className="text-2xl font-bold text-text-strong">Activity Log</h2>
-                <p className="mt-1 text-text-secondary">A chronological feed of all user and system actions within your organization.</p>
-            </div>
             <div className="bg-surface rounded-xl flex flex-col min-h-0">
                 <div className="p-2 flex-shrink-0 flex items-center gap-x-2 border-b border-border-color">
                     <DateRangeDropdown selectedValue={dateFilter} onChange={setDateFilter} />
@@ -361,6 +453,11 @@ interface NotificationsPageProps {
     onClearNotification: (id: string) => void;
     users: User[];
     onBackToOverview: () => void;
+    accounts: Account[];
+    onNavigateToWarehouse: (account: Account, warehouse: Warehouse) => void;
+    onNavigateToQuery: (account: Account, query: QueryListItem) => void;
+    onNavigateToQueryTool: (account: Account, query: QueryListItem, tool: 'analyzer' | 'optimizer' | 'simulator') => void;
+    onMarkNotificationAsRead: (id: string) => void;
 }
 
 const MobileNav: React.FC<{ activeTab: string; onTabChange: (tab: any) => void; navItems: any[]; }> = ({ activeTab, onTabChange, navItems }) => {
@@ -399,7 +496,7 @@ const MobileNav: React.FC<{ activeTab: string; onTabChange: (tab: any) => void; 
 
 
 const NotificationsPage: React.FC<NotificationsPageProps> = (props) => {
-    const [activeTab, setActiveTab] = useState<'Alerts' | 'Activity Logs'>('Alerts');
+    const [activeTab, setActiveTab] = useState<'Alerts' | 'Activity Log'>('Alerts');
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
     const [isFlyoutOpen, setIsFlyoutOpen] = useState<string | null>(null);
     const flyoutTimeoutRef = useRef<number | null>(null);
@@ -414,7 +511,7 @@ const NotificationsPage: React.FC<NotificationsPageProps> = (props) => {
 
     const navItems = [
         { name: 'Alerts', icon: IconBell },
-        { name: 'Activity Logs', icon: IconFileText },
+        { name: 'Activity Log', icon: IconFileText },
     ];
 
     return (
@@ -474,7 +571,7 @@ const NotificationsPage: React.FC<NotificationsPageProps> = (props) => {
                 </div>
                 <div className="p-4 md:p-6">
                     {activeTab === 'Alerts' && <AlertsView {...props} />}
-                    {activeTab === 'Activity Logs' && <ActivityLogsView activityLogs={props.activityLogs} users={props.users} />}
+                    {activeTab === 'Activity Log' && <ActivityLogsView activityLogs={props.activityLogs} users={props.users} />}
                 </div>
             </main>
         </div>
