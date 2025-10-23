@@ -236,6 +236,15 @@ const AlertsView: React.FC<AlertsViewProps> = (props) => {
 
     return (
         <div className="space-y-4">
+            <div className="flex justify-between items-start">
+                <div>
+                    <h1 className="text-2xl font-bold text-text-primary">Alerts</h1>
+                    <p className="mt-1 text-text-secondary">Review and take action on AI-generated insights and performance alerts.</p>
+                </div>
+                <button onClick={props.onMarkAllAsRead} className="text-sm font-medium text-link hover:underline whitespace-nowrap">
+                    Mark all as read
+                </button>
+            </div>
             <div className="bg-surface rounded-xl flex flex-col min-h-0">
                 <div className="p-4 flex-shrink-0 flex items-center gap-x-4 border-b border-border-color">
                     <DateRangeDropdown selectedValue={dateFilter} onChange={setDateFilter} />
@@ -377,6 +386,10 @@ const ActivityLogsView: React.FC<ActivityLogsViewProps> = ({ activityLogs, users
 
     return (
         <div className="space-y-4">
+            <div>
+                <h1 className="text-2xl font-bold text-text-primary">Activity Log</h1>
+                <p className="mt-1 text-text-secondary">Track user and system actions across your Anavsan workspace.</p>
+            </div>
             <div className="bg-surface rounded-xl flex flex-col min-h-0">
                 <div className="p-2 flex-shrink-0 flex items-center gap-x-2 border-b border-border-color">
                     <DateRangeDropdown selectedValue={dateFilter} onChange={setDateFilter} />
