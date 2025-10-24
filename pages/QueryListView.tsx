@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { queryListData as initialData, warehousesData, usersData as allUsersData } from '../data/dummyData';
 import { QueryListItem, QueryType, QueryListFilters } from '../types';
@@ -48,6 +49,7 @@ const QueryIdCell: React.FC<{ query: QueryListItem; onSelectQuery: (query: Query
     const handleMouseEnter = () => {
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
         }
         setIsTooltipVisible(true);
     };
@@ -55,7 +57,7 @@ const QueryIdCell: React.FC<{ query: QueryListItem; onSelectQuery: (query: Query
     const handleMouseLeave = () => {
         timeoutRef.current = window.setTimeout(() => {
             setIsTooltipVisible(false);
-            if (isCopied) setIsCopied(false);
+            setIsCopied(false); // Reset copied state when tooltip hides
         }, 300);
     };
     
@@ -63,37 +65,50 @@ const QueryIdCell: React.FC<{ query: QueryListItem; onSelectQuery: (query: Query
         e.stopPropagation();
         navigator.clipboard.writeText(query.id);
         setIsCopied(true);
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+        }
+        // Keep tooltip open for a bit to show "copied" state
         timeoutRef.current = window.setTimeout(() => {
-            setIsCopied(false);
             setIsTooltipVisible(false);
-        }, 2000);
+            setIsCopied(false);
+        }, 1500);
     };
-    
+
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
 
     return (
-        <td 
-            className="px-6 py-3 font-mono text-xs text-link whitespace-nowrap relative"
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-        >
-            <button onClick={() => onSelectQuery(query)} className="hover:underline focus:outline-none">
-                {query.id.substring(7, 13).toUpperCase()}
-            </button>
-            {isTooltipVisible && (
-                <div 
-                    className="absolute z-10 bottom-full mb-2 left-0 w-auto p-2 bg-surface text-text-primary rounded-md shadow-lg border border-border-light"
-                    onMouseEnter={handleMouseEnter}
-                    onMouseLeave={handleMouseLeave}
-                >
-                    <div className="flex items-center justify-between">
-                       <span className="font-mono text-sm">{query.id}</span>
-                       <button onClick={handleCopy} className="p-1.5 rounded-md text-text-secondary hover:bg-surface-hover hover:text-text-primary ml-2" aria-label={isCopied ? "Copied" : "Copy Query ID"}>
+        <td className="px-6 py-3 font-mono text-xs text-link whitespace-nowrap">
+            <div 
+                className="relative inline-block"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+            >
+                <button onClick={() => onSelectQuery(query)} className="hover:underline focus:outline-none">
+                    {query.id.substring(7, 13).toUpperCase()}
+                </button>
+                {isTooltipVisible && (
+                    <div 
+                        className="absolute z-30 top-full mt-2 left-0 w-auto bg-surface p-1 rounded-lg shadow-lg border border-border-light flex items-center"
+                    >
+                       <span className="font-mono text-sm px-2 text-text-primary whitespace-nowrap">{query.id}</span>
+                       <button 
+                           onClick={handleCopy} 
+                           className="p-1.5 rounded-md text-text-secondary hover:bg-surface-hover hover:text-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                           aria-label={isCopied ? "Copied" : "Copy Query ID"}
+                        >
                            {isCopied ? <IconCheck className="h-4 w-4 text-status-success" /> : <IconClipboardCopy className="h-4 w-4" />}
                        </button>
-                   </div>
-                </div>
-            )}
+                    </div>
+                )}
+            </div>
         </td>
     );
 };
