@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { queryListData as initialData, warehousesData, usersData as allUsersData } from '../data/dummyData';
 import { QueryListItem, QueryType, QueryListFilters } from '../types';
-import { IconSearch, IconDotsVertical, IconView, IconBeaker, IconWand, IconShare, IconAdjustments, IconArrowUp, IconArrowDown } from '../constants';
+import { IconSearch, IconDotsVertical, IconView, IconBeaker, IconWand, IconShare, IconAdjustments, IconArrowUp, IconArrowDown, IconClipboardCopy, IconCheck } from '../constants';
 import MultiSelectDropdown from '../components/MultiSelectDropdown';
 import DateRangeDropdown from '../components/DateRangeDropdown';
 import Pagination from '../components/Pagination';
@@ -39,6 +39,64 @@ const allColumns = [
     { key: 'startTime', label: 'Start Time' },
     { key: 'actions', label: 'Actions' },
 ];
+
+const QueryIdCell: React.FC<{ query: QueryListItem; onSelectQuery: (query: QueryListItem) => void }> = ({ query, onSelectQuery }) => {
+    const [isTooltipVisible, setIsTooltipVisible] = useState(false);
+    const [isCopied, setIsCopied] = useState(false);
+    const timeoutRef = useRef<number | null>(null);
+
+    const handleMouseEnter = () => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+        setIsTooltipVisible(true);
+    };
+
+    const handleMouseLeave = () => {
+        timeoutRef.current = window.setTimeout(() => {
+            setIsTooltipVisible(false);
+            if (isCopied) setIsCopied(false);
+        }, 300);
+    };
+    
+    const handleCopy = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(query.id);
+        setIsCopied(true);
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = window.setTimeout(() => {
+            setIsCopied(false);
+            setIsTooltipVisible(false);
+        }, 2000);
+    };
+    
+
+    return (
+        <td 
+            className="px-6 py-3 font-mono text-xs text-link whitespace-nowrap relative"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+        >
+            <button onClick={() => onSelectQuery(query)} className="hover:underline focus:outline-none">
+                {query.id.substring(7, 13).toUpperCase()}
+            </button>
+            {isTooltipVisible && (
+                <div 
+                    className="absolute z-10 bottom-full mb-2 left-0 w-auto p-2 bg-surface text-text-primary rounded-md shadow-lg border border-border-light"
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
+                >
+                    <div className="flex items-center justify-between">
+                       <span className="font-mono text-sm">{query.id}</span>
+                       <button onClick={handleCopy} className="p-1.5 rounded-md text-text-secondary hover:bg-surface-hover hover:text-text-primary ml-2" aria-label={isCopied ? "Copied" : "Copy Query ID"}>
+                           {isCopied ? <IconCheck className="h-4 w-4 text-status-success" /> : <IconClipboardCopy className="h-4 w-4" />}
+                       </button>
+                   </div>
+                </div>
+            )}
+        </td>
+    );
+};
 
 interface QueryListViewProps {
     onShareQueryClick: (query: QueryListItem) => void;
@@ -193,7 +251,7 @@ export const QueryListView: React.FC<QueryListViewProps> = ({
                         <tbody className="text-text-secondary">
                             {paginatedData.map(q => (
                                 <tr key={q.id} className="border-b border-border-light last:border-b-0 hover:bg-surface-nested" data-row-hover>
-                                    {filters.visibleColumns.includes('queryId') && <td className="px-6 py-3 font-mono text-xs text-link whitespace-nowrap cursor-pointer" onClick={() => onSelectQuery(q)}>{q.id.substring(7, 13).toUpperCase()}</td>}
+                                    {filters.visibleColumns.includes('queryId') && <QueryIdCell query={q} onSelectQuery={onSelectQuery} />}
                                     {filters.visibleColumns.includes('user') && <td className="px-6 py-3">{q.user}</td>}
                                     {filters.visibleColumns.includes('warehouse') && <td className="px-6 py-3">{q.warehouse}</td>}
                                     {filters.visibleColumns.includes('duration') && <td className="px-6 py-3">{q.duration}</td>}

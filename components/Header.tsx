@@ -15,6 +15,7 @@ interface HeaderProps {
     onThemeChange: (theme: 'light' | 'dark') => void;
     notifications: Notification[];
     onMarkAllNotificationsAsRead: () => void;
+    onClearAllNotifications: () => void;
     onNavigate: (page: Page) => void;
 }
 
@@ -50,6 +51,7 @@ const Header: React.FC<HeaderProps> = ({
     onThemeChange,
     notifications,
     onMarkAllNotificationsAsRead,
+    onClearAllNotifications,
     onNavigate,
 }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);

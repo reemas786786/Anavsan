@@ -1,4 +1,6 @@
 
+
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -262,6 +264,11 @@ const App: React.FC = () => {
     showToast("All notifications marked as read.");
   };
 
+  const handleClearAllNotifications = () => {
+    setNotifications([]);
+    showToast("All notifications cleared.");
+  };
+
   const handleMarkNotificationAsRead = (notificationId: string) => {
       setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
       showToast("Insight marked as read.");
@@ -322,7 +329,7 @@ const App: React.FC = () => {
         onSetBigScreenWidget={setBigScreenWidget} 
         activePage={accountViewPage} 
         onPageChange={setAccountViewPage} 
-        onShareQueryClick={(query) => { showToast(`Share link for query ${query.id} copied!`); }} 
+        onShareQueryClick={(query) => setSidePanel({type: 'assignQuery', data: query})} 
         onPreviewQuery={(query) => setSidePanel({type: 'queryPreview', data: query})} 
         selectedQuery={selectedQuery} 
         setSelectedQuery={setSelectedQuery} 
@@ -466,7 +473,33 @@ const App: React.FC = () => {
   };
 
   const handleAssignQuery = (details: { assigneeId: string; priority: AssignmentPriority; message: string; }) => {
-    showToast(`Query assigned successfully.`);
+    if (!sidePanel || sidePanel.type !== 'assignQuery' || !sidePanel.data) return;
+    
+    const queryToAssign = sidePanel.data as QueryListItem;
+    const assignee = users.find(u => u.id === details.assigneeId);
+
+    if (!assignee || !currentUser) {
+        showToast("Error: Could not find user to assign to.");
+        return;
+    }
+
+    const newAssignment: AssignedQuery = {
+        id: `aq-${Date.now()}`,
+        queryId: queryToAssign.id,
+        queryText: queryToAssign.queryText,
+        assignedBy: currentUser.name,
+        assignedTo: assignee.name,
+        priority: details.priority,
+        status: 'Pending',
+        message: details.message,
+        assignedOn: new Date().toISOString(),
+        cost: queryToAssign.costUSD,
+        credits: queryToAssign.costCredits,
+    };
+
+    setAssignedQueries(prev => [newAssignment, ...prev]);
+
+    showToast(`Query assigned to ${assignee.name}.`);
     setSidePanel(null);
   }
   
@@ -518,6 +551,7 @@ const App: React.FC = () => {
                 onThemeChange={setTheme}
                 notifications={notifications}
                 onMarkAllNotificationsAsRead={handleMarkAllNotificationsAsRead}
+                onClearAllNotifications={handleClearAllNotifications}
                 onNavigate={(page) => handleSetActivePage(page)}
             />
 
@@ -602,7 +636,7 @@ const App: React.FC = () => {
        <SidePanel
             isOpen={sidePanel?.type === 'assignQuery'}
             onClose={() => setSidePanel(null)}
-            title="Assign Query for Optimization"
+            title="Share and Assign Query"
         >
             {sidePanel?.type === 'assignQuery' && sidePanel.data && (
                 <AssignQueryFlow query={sidePanel.data} users={users} onCancel={() => setSidePanel(null)} onAssign={handleAssignQuery} />
