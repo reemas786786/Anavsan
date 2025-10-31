@@ -10,7 +10,7 @@ interface AssignQueryFlowProps {
 }
 
 const AssignQueryFlow: React.FC<AssignQueryFlowProps> = ({ query, users, onCancel, onAssign }) => {
-    const dataEngineers = users.filter(u => u.role === 'Admin' || u.role === 'Analyst');
+    const dataEngineers = users.filter(u => u.name === query.user);
 
     const [assigneeId, setAssigneeId] = useState<string>(dataEngineers.length > 0 ? dataEngineers[0].id : '');
     const [priority, setPriority] = useState<AssignmentPriority>('Medium');
