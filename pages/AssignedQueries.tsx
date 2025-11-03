@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { AssignedQuery, AssignmentStatus, AssignmentPriority } from '../types';
+import { AssignedQuery, AssignmentStatus, AssignmentPriority, User } from '../types';
 import { IconDotsVertical, IconArrowUp, IconArrowDown } from '../constants';
 
 const PriorityBadge: React.FC<{ priority: AssignmentPriority }> = ({ priority }) => {
@@ -24,9 +24,11 @@ const StatusBadge: React.FC<{ status: AssignmentStatus }> = ({ status }) => {
 interface AssignedQueriesProps {
     assignedQueries: AssignedQuery[];
     onUpdateStatus: (id: string, status: AssignmentStatus) => void;
+    currentUser: User | null;
+    onPreviewQuery: (query: AssignedQuery) => void;
 }
 
-const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUpdateStatus }) => {
+const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUpdateStatus, currentUser, onPreviewQuery }) => {
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const [sortConfig, setSortConfig] = useState<{ key: keyof AssignedQuery; direction: 'ascending' | 'descending' } | null>({ key: 'priority', direction: 'descending' });
@@ -87,7 +89,7 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUp
     return (
         <div className="space-y-4">
             <div>
-                <h1 className="text-2xl font-bold text-text-primary">Assigned Queries for Optimization</h1>
+                <h1 className="text-2xl font-bold text-text-primary">Assigned Queries</h1>
                 <p className="mt-1 text-text-secondary">Track queries that have been assigned to you or by you for optimization.</p>
             </div>
 
@@ -96,34 +98,36 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUp
                     <table className="w-full text-sm text-left text-text-secondary">
                         <thead className="bg-table-header-bg text-xs text-text-primary font-medium">
                             <tr>
-                                <th scope="col" className="px-6 py-3">
-                                    <button onClick={() => requestSort('queryText')} className="group flex items-center">Query<SortIcon columnKey="queryText" /></button>
-                                </th>
-                                <th scope="col" className="px-6 py-3">
-                                    <button onClick={() => requestSort('assignedBy')} className="group flex items-center">Assigned By<SortIcon columnKey="assignedBy" /></button>
-                                </th>
-                                <th scope="col" className="px-6 py-3">
-                                    <button onClick={() => requestSort('priority')} className="group flex items-center">Priority<SortIcon columnKey="priority" /></button>
-                                </th>
-                                <th scope="col" className="px-6 py-3">
-                                    <button onClick={() => requestSort('cost')} className="group flex items-center">Cost / Credits<SortIcon columnKey="cost" /></button>
-                                </th>
-                                <th scope="col" className="px-6 py-3">
-                                    <button onClick={() => requestSort('status')} className="group flex items-center">Status<SortIcon columnKey="status" /></button>
-                                </th>
+                                <th scope="col" className="px-6 py-3"><button onClick={() => requestSort('queryId')} className="group flex items-center">Query ID<SortIcon columnKey="queryId" /></button></th>
+                                <th scope="col" className="px-6 py-3">Description</th>
+                                <th scope="col" className="px-6 py-3"><button onClick={() => requestSort('credits')} className="group flex items-center">Credits<SortIcon columnKey="credits" /></button></th>
+                                {currentUser?.role === 'Admin' ? (
+                                    <th scope="col" className="px-6 py-3"><button onClick={() => requestSort('assignedTo')} className="group flex items-center">Assigned To<SortIcon columnKey="assignedTo" /></button></th>
+                                ) : (
+                                    <th scope="col" className="px-6 py-3"><button onClick={() => requestSort('assignedBy')} className="group flex items-center">Assigned By<SortIcon columnKey="assignedBy" /></button></th>
+                                )}
+                                <th scope="col" className="px-6 py-3"><button onClick={() => requestSort('priority')} className="group flex items-center">Priority<SortIcon columnKey="priority" /></button></th>
+                                <th scope="col" className="px-6 py-3"><button onClick={() => requestSort('status')} className="group flex items-center">Status<SortIcon columnKey="status" /></button></th>
                                 <th scope="col" className="px-6 py-3 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {sortedQueries.map(query => (
                                 <tr key={query.id} className="border-t border-border-color hover:bg-surface-hover">
-                                    <td className="px-6 py-4 font-mono text-xs text-text-primary whitespace-nowrap max-w-sm">
-                                        <p className="truncate" title={query.queryText}>{query.queryText}</p>
-                                        {query.message && <p className="text-text-secondary italic text-xs mt-1 truncate" title={query.message}>"{query.message}"</p>}
+                                    <td className="px-6 py-4 font-mono text-xs whitespace-nowrap">
+                                        <button onClick={() => onPreviewQuery(query)} className="text-link hover:underline font-sans">
+                                            {query.queryId.substring(7, 13).toUpperCase()}
+                                        </button>
                                     </td>
-                                    <td className="px-6 py-4">{query.assignedBy}</td>
+                                    <td className="px-6 py-4 text-xs italic max-w-xs truncate" title={query.message}>"{query.message}"</td>
+                                    <td className="px-6 py-4 font-semibold text-text-primary">{query.credits.toFixed(2)}</td>
+                                    {currentUser?.role === 'Admin' ? (
+                                        <td className="px-6 py-4">{query.assignedTo}</td>
+                                    ) : (
+                                        <td className="px-6 py-4">{query.assignedBy}</td>
+                                    )}
+
                                     <td className="px-6 py-4"><PriorityBadge priority={query.priority} /></td>
-                                    <td className="px-6 py-4">${query.cost.toFixed(2)} / {query.credits.toFixed(2)} cr</td>
                                     <td className="px-6 py-4"><StatusBadge status={query.status} /></td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="relative inline-block text-left" ref={openMenuId === query.id ? menuRef : null}>
@@ -133,8 +137,11 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUp
                                             {openMenuId === query.id && (
                                                 <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg bg-surface border border-border-color z-10">
                                                     <div className="py-1" role="menu">
+                                                        <button onClick={() => { onPreviewQuery(query); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Query Preview</button>
                                                         <button onClick={() => { onUpdateStatus(query.id, 'Optimized'); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Mark as Optimized</button>
-                                                        <button onClick={() => { onUpdateStatus(query.id, 'Needs Info'); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Needs More Info</button>
+                                                        {currentUser?.role !== 'Admin' && (
+                                                            <button onClick={() => { onUpdateStatus(query.id, 'Needs Info'); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Needs More Info</button>
+                                                        )}
                                                         <button className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Open in Analyzer</button>
                                                     </div>
                                                 </div>

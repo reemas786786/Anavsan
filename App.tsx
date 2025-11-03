@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -45,7 +42,7 @@ import NotificationsPage from './pages/NotificationsPage';
 
 type SidePanelType = 'addAccount' | 'saveQuery' | 'editUser' | 'assignQuery' | 'queryPreview';
 type ModalType = 'addUser';
-type Theme = 'light' | 'dark';
+type Theme = 'light' | 'dark' | 'gray10' | 'black';
 type AuthScreen = 'login' | 'signup' | 'submitted' | 'forgotPassword' | 'checkEmail' | 'createNewPassword' | 'passwordResetSuccess';
 export type DisplayMode = 'cost' | 'credits';
 
@@ -125,12 +122,25 @@ const App: React.FC = () => {
       }
     }, 500);
 
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    const root = document.documentElement;
+    root.classList.remove('dark', 'theme-gray-10', 'theme-black');
+
+    switch (theme) {
+        case 'dark':
+            root.classList.add('dark');
+            break;
+        case 'gray10':
+            root.classList.add('theme-gray-10');
+            break;
+        case 'black':
+            root.classList.add('theme-black');
+            break;
+        case 'light':
+        default:
+            // No class needed for default light theme
+            break;
     }
-  }, [theme]);
+}, [theme]);
 
   const handleSetActivePage = (page: Page, subPage?: string) => {
     setActivePage(page);
@@ -215,7 +225,7 @@ const App: React.FC = () => {
             case 'Assigned Queries':
             case 'Reports':
             case 'AI Agent':
-                items = [overviewItem, { label: activePage }];
+                // No breadcrumbs for these pages per user request
                 break;
             case 'Settings':
                 items = [overviewItem, { label: 'Settings' }, { label: activeSubPage || 'User Management' }];
@@ -307,6 +317,64 @@ const App: React.FC = () => {
       setIsViewingDashboard(false);
       showToast(`Dashboard "${d.title}" saved.`);
   };
+
+  const handleUpdateAssignedQueryStatus = (id: string, status: AssignmentStatus) => {
+    let updatedQuery: AssignedQuery | undefined;
+    setAssignedQueries(aqs => {
+        const newAqs = aqs.map(aq => {
+            if (aq.id === id) {
+                updatedQuery = { ...aq, status };
+                return updatedQuery;
+            }
+            return aq;
+        });
+        return newAqs;
+    });
+
+    if (status === 'Optimized' && updatedQuery && currentUser) {
+        // Find who assigned the query to notify them
+        const assigner = users.find(u => u.name === updatedQuery!.assignedBy);
+
+        // Don't notify if you are the assigner (or if assigner not found)
+        if (assigner && assigner.id !== currentUser.id) {
+            const newNotification: Notification = {
+                id: `notif-${Date.now()}`,
+                insightTypeId: 'QUERY_OPTIMIZED',
+                insightTopic: 'query',
+                message: `${currentUser.name} marked Query ID ${updatedQuery.queryId.substring(7, 13).toUpperCase()} as Optimized.`,
+                suggestions: 'Review the changes in the Assigned Queries section.',
+                timestamp: new Date().toISOString(),
+                warehouseName: updatedQuery.warehouse,
+                queryId: updatedQuery.queryId,
+                isRead: false,
+                severity: 'Info',
+            };
+            setNotifications(prev => [newNotification, ...prev]);
+        }
+    }
+    showToast('Query status updated.');
+};
+
+ const handlePreviewAssignedQuery = (assignedQuery: AssignedQuery) => {
+    const queryListItem: QueryListItem = {
+        id: assignedQuery.queryId,
+        queryText: assignedQuery.queryText,
+        warehouse: assignedQuery.warehouse,
+        costUSD: assignedQuery.cost,
+        costCredits: assignedQuery.credits,
+        status: 'Success', // Mock data
+        duration: '00:00:00', // Mock data
+        estSavingsUSD: 0,
+        estSavingsPercent: 0,
+        timestamp: assignedQuery.assignedOn,
+        type: ['SELECT'], // Mock data
+        user: assignedQuery.assignedTo,
+        bytesScanned: 0,
+        bytesWritten: 0,
+        severity: 'Low',
+    };
+    setSidePanel({ type: 'queryPreview', data: queryListItem });
+};
 
   const renderPage = () => {
     if (selectedAccount) {
@@ -400,7 +468,16 @@ const App: React.FC = () => {
         case 'Reports':
             return <Reports />;
         case 'Assigned Queries':
-            return <AssignedQueries assignedQueries={assignedQueries} onUpdateStatus={(id, status) => {setAssignedQueries(aqs => aqs.map(aq => aq.id === id ? {...aq, status} : aq)); showToast('Query status updated.')}} />;
+            const queriesForUser = currentUser?.role === 'Admin'
+                ? assignedQueries
+                : assignedQueries.filter(q => q.assignedTo === currentUser?.name);
+
+            return <AssignedQueries 
+                assignedQueries={queriesForUser} 
+                onUpdateStatus={handleUpdateAssignedQueryStatus}
+                currentUser={currentUser}
+                onPreviewQuery={handlePreviewAssignedQuery}
+            />;
         case 'Book a Demo':
             return <BookDemo />;
         case 'Docs':
@@ -428,7 +505,7 @@ const App: React.FC = () => {
                 onViewDashboardClick={(d) => { setSelectedDashboard(d); setIsViewingDashboard(true); }}
             />;
         case 'Profile Settings':
-             return <ProfileSettingsPage user={currentUser!} onBack={() => handleSetActivePage('Data Cloud Overview')} />;
+             return <ProfileSettingsPage user={currentUser!} onBack={() => handleSetActivePage('Data Cloud Overview')} theme={theme} onThemeChange={setTheme} />;
         case 'Notifications':
             return <NotificationsPage 
                 notifications={notifications} 
@@ -472,15 +549,39 @@ const App: React.FC = () => {
       showToast(`User role updated successfully.`);
   };
 
-  const handleAssignQuery = (details: { assigneeId: string; priority: AssignmentPriority; message: string; }) => {
+  const handleAssignQuery = (details: { assignee: string; priority: AssignmentPriority; message: string; }) => {
     if (!sidePanel || sidePanel.type !== 'assignQuery' || !sidePanel.data) return;
-    
     const queryToAssign = sidePanel.data as QueryListItem;
-    const assignee = users.find(u => u.id === details.assigneeId);
+    if (!currentUser) { showToast("Error: Current user not found."); return; }
 
-    if (!assignee || !currentUser) {
-        showToast("Error: Could not find user to assign to.");
-        return;
+    let assigneeUser: User | undefined;
+    let assigneeName: string;
+    let assigneeIsNew = false;
+
+    // The 'assignee' detail can be a user ID or an email string.
+    assigneeUser = users.find(u => u.id === details.assignee || u.email.toLowerCase() === details.assignee.toLowerCase());
+    
+    if (assigneeUser) {
+        assigneeName = assigneeUser.name;
+    } else {
+        // It's a new user's email
+        assigneeIsNew = true;
+        const newEmail = details.assignee;
+        const newUser: User = { 
+            id: `user-${Date.now()}`, 
+            name: newEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+            email: newEmail, 
+            role: 'Analyst',
+            status: 'Invited', 
+            dateAdded: new Date().toISOString().split('T')[0], 
+            cost: 0, 
+            credits: 0, 
+            message: 'Invitation pending' 
+        };
+        setUsers(prev => [newUser, ...prev]);
+        assigneeName = newUser.name;
+        // Simulate sending email.
+        showToast(`An invitation email has been sent to ${newEmail}.`);
     }
 
     const newAssignment: AssignedQuery = {
@@ -488,20 +589,37 @@ const App: React.FC = () => {
         queryId: queryToAssign.id,
         queryText: queryToAssign.queryText,
         assignedBy: currentUser.name,
-        assignedTo: assignee.name,
+        assignedTo: assigneeName,
         priority: details.priority,
         status: 'Pending',
         message: details.message,
         assignedOn: new Date().toISOString(),
         cost: queryToAssign.costUSD,
         credits: queryToAssign.costCredits,
+        warehouse: queryToAssign.warehouse,
     };
-
     setAssignedQueries(prev => [newAssignment, ...prev]);
 
-    showToast(`Query assigned to ${assignee.name}.`);
+    if (!assigneeIsNew) {
+        showToast(`Query assigned to ${assigneeName}.`);
+    } else {
+        // Add a notification for the admin about the assignment
+        const newNotification: Notification = {
+            id: `notif-${Date.now()}`,
+            insightTypeId: 'QUERY_ASSIGNED',
+            insightTopic: 'query',
+            message: `Query ${newAssignment.queryId.substring(7, 13).toUpperCase()} assigned to new user ${assigneeName}.`,
+            suggestions: 'An invitation has been sent. The user will appear in User Management.',
+            timestamp: new Date().toISOString(),
+            warehouseName: newAssignment.warehouse,
+            queryId: newAssignment.queryId,
+            isRead: false,
+            severity: 'Info',
+        };
+        setNotifications(prev => [newNotification, ...prev]);
+    }
     setSidePanel(null);
-  }
+};
   
   const authPage = () => {
       switch(authScreen) {
@@ -516,13 +634,13 @@ const App: React.FC = () => {
       }
   }
 
-  const showCompactLayout = !selectedAccount && activePage !== 'Notifications';
+  const showCompactLayout = !selectedAccount && activePage !== 'Notifications' && activePage !== 'Profile Settings';
   
   const mainContentPadding = useMemo(() => {
     if (selectedAccount || activePage === 'Notifications' || activePage === 'Settings' || activePage === 'Profile Settings' || editingDashboard || isViewingDashboard) {
         return '';
     }
-    if (activePage === 'Data Cloud Overview' || activePage === 'Snowflake Accounts' || activePage === 'Dashboards' || activePage === 'Assigned Queries' || activePage === 'Reports' || activePage === 'AI Agent') {
+    if (activePage === 'Data Cloud Overview' || activePage === 'Snowflake Accounts' || activePage === 'Dashboards' || activePage === 'Assigned Queries' || activePage === 'Reports' || activePage === 'AI Agent' || activePage === 'Book a Demo' || activePage === 'Docs' || activePage === 'Support') {
         return 'p-4';
     }
     return '';
@@ -547,8 +665,6 @@ const App: React.FC = () => {
                 onOpenProfileSettings={() => handleSetActivePage('Profile Settings')}
                 onLogout={handleLogout}
                 hasNewAssignment={assignedQueries.some(q => q.status === 'Pending')}
-                theme={theme}
-                onThemeChange={setTheme}
                 notifications={notifications}
                 onMarkAllNotificationsAsRead={handleMarkAllNotificationsAsRead}
                 onClearAllNotifications={handleClearAllNotifications}
@@ -564,14 +680,14 @@ const App: React.FC = () => {
             )}
             
             <div className="flex flex-1 overflow-hidden">
-                <Sidebar
+                {activePage !== 'Profile Settings' && <Sidebar
                     activePage={activePage}
                     setActivePage={handleSetActivePage}
                     isOpen={isSidebarOpen}
                     onClose={() => setSidebarOpen(false)}
                     activeSubPage={activeSubPage}
                     showCompact={showCompactLayout}
-                />
+                />}
                 <main className={`flex-1 ${managesOwnScroll ? 'overflow-hidden' : 'overflow-y-auto'}`}>
                     <div className={mainContentPadding}>
                         {renderPage()}

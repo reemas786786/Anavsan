@@ -1,27 +1,38 @@
 
-import React, { useState } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { QueryListItem, User, UserRole, AssignmentPriority } from '../types';
 
 interface AssignQueryFlowProps {
     query: QueryListItem;
     users: User[];
     onCancel: () => void;
-    onAssign: (assignmentDetails: { assigneeId: string; priority: AssignmentPriority; message: string; }) => void;
+    onAssign: (assignmentDetails: { assignee: string; priority: AssignmentPriority; message: string; }) => void;
 }
 
 const AssignQueryFlow: React.FC<AssignQueryFlowProps> = ({ query, users, onCancel, onAssign }) => {
-    const dataEngineers = users.filter(u => u.name === query.user);
+    const dataEngineers = users.filter(u => u.role === 'Admin' || u.role === 'Analyst');
 
-    const [assigneeId, setAssigneeId] = useState<string>(dataEngineers.length > 0 ? dataEngineers[0].id : '');
+    const executedUser = useMemo(() => users.find(u => u.name === query.user), [users, query.user]);
+
+    const [assigneeInput, setAssigneeInput] = useState(executedUser ? executedUser.email : '');
     const [priority, setPriority] = useState<AssignmentPriority>('Medium');
     const [message, setMessage] = useState('');
 
+    const isNewUser = useMemo(() => {
+        if (executedUser || !assigneeInput || !assigneeInput.includes('@')) return false;
+        return !users.some(u => u.email.toLowerCase() === assigneeInput.toLowerCase());
+    }, [assigneeInput, users, executedUser]);
+
     const handleSubmit = () => {
-        if (!assigneeId) {
-            alert("Please select a user to assign the query to.");
+        if (!assigneeInput) {
+            alert("Please select or enter a user to assign the query to.");
             return;
         }
-        onAssign({ assigneeId, priority, message });
+
+        const assigneePayload = executedUser ? executedUser.id : assigneeInput;
+        
+        onAssign({ assignee: assigneePayload, priority, message });
     };
 
     return (
@@ -35,19 +46,52 @@ const AssignQueryFlow: React.FC<AssignQueryFlowProps> = ({ query, users, onCance
                 </div>
 
                 <div>
-                    <label htmlFor="assignee" className="block text-sm font-medium text-text-secondary mb-1">
-                        Assign to Data Engineer
+                    <label className="block text-sm font-medium text-text-secondary mb-1">Warehouse</label>
+                    <div className="bg-input-bg p-3 rounded-full border border-border-color text-sm text-text-primary">
+                        {query.warehouse}
+                    </div>
+                </div>
+
+                <div>
+                    <label htmlFor="assignee-input" className="block text-sm font-medium text-text-secondary mb-1">
+                        Assign to
                     </label>
-                    <select
-                        id="assignee"
-                        value={assigneeId}
-                        onChange={(e) => setAssigneeId(e.target.value)}
-                        className="w-full border border-border-color rounded-full px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg"
-                    >
-                        {dataEngineers.map(user => (
-                            <option key={user.id} value={user.id}>{user.name}</option>
-                        ))}
-                    </select>
+                    {executedUser ? (
+                        <>
+                            <input
+                                id="assignee-input"
+                                type="text"
+                                value={executedUser.name}
+                                disabled
+                                className="w-full border border-border-color rounded-full px-3 py-2 text-sm bg-surface-nested cursor-not-allowed"
+                            />
+                            <p className="mt-2 text-xs text-text-muted">
+                                Only the executed user can be assigned this query.
+                            </p>
+                        </>
+                    ) : (
+                        <>
+                            <input
+                                id="assignee-input"
+                                type="email"
+                                list="data-engineers"
+                                value={assigneeInput}
+                                onChange={(e) => setAssigneeInput(e.target.value)}
+                                className="w-full border border-border-color rounded-full px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg"
+                                placeholder="Select user or enter new email..."
+                            />
+                            <datalist id="data-engineers">
+                                {dataEngineers.map(user => (
+                                    <option key={user.id} value={user.email}>{user.name}</option>
+                                ))}
+                            </datalist>
+                            {isNewUser && (
+                                <p className="mt-2 text-xs text-text-muted">
+                                    An invitation will be sent to this email. They’ll need to sign up to access the assigned query.
+                                </p>
+                            )}
+                        </>
+                    )}
                 </div>
 
                 <fieldset>
@@ -77,7 +121,7 @@ const AssignQueryFlow: React.FC<AssignQueryFlowProps> = ({ query, users, onCance
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         className="w-full border border-border-color rounded-3xl px-3 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg placeholder-text-secondary"
-                        placeholder="e.g., This query is consuming 12k credits, check for joins..."
+                        placeholder="e.g., Please analyze and optimize before next sync."
                      />
                 </div>
             </div>

@@ -283,6 +283,19 @@ export const queryListData: QueryListItem[] = Array.from({ length: 500 }, (_, i)
     };
 });
 
+// Per user request for query list view setup.
+if (queryListData.length >= 2) {
+    // To ensure they are the first two rows, set their timestamps to be the most recent.
+    queryListData[0].timestamp = new Date().toISOString();
+    queryListData[1].timestamp = new Date(Date.now() - 1000 * 60).toISOString(); // 1 minute ago
+
+    // First row user is an existing user.
+    queryListData[0].user = 'Arjun Singh';
+
+    // Second row user is a new user (not in usersData).
+    queryListData[1].user = 'Maya Patel'; 
+}
+
 
 // --- Storage-related Dummy Data ---
 
@@ -422,6 +435,7 @@ export const assignedQueriesData: AssignedQuery[] = [
         assignedOn: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
         cost: queryListData[0].costUSD,
         credits: queryListData[0].costCredits,
+        warehouse: queryListData[0].warehouse,
     },
     {
         id: 'aq-2',
@@ -435,6 +449,21 @@ export const assignedQueriesData: AssignedQuery[] = [
         assignedOn: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
         cost: queryListData[5].costUSD,
         credits: queryListData[5].costCredits,
+        warehouse: queryListData[5].warehouse,
+    },
+    {
+        id: 'aq-3',
+        queryId: queryListData[10].id,
+        queryText: queryListData[10].queryText,
+        assignedBy: 'Alice Johnson',
+        assignedTo: 'Bob Williams',
+        priority: 'Low',
+        status: 'Optimized',
+        message: 'This one is done. Great work!',
+        assignedOn: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        cost: queryListData[10].costUSD,
+        credits: queryListData[10].costCredits,
+        warehouse: queryListData[10].warehouse,
     },
 ];
 

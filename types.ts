@@ -330,6 +330,7 @@ export interface AssignedQuery {
     assignedOn: string; // ISO string
     cost: number;
     credits: number;
+    warehouse: string;
 }
 
 // --- Pull Request Types ---

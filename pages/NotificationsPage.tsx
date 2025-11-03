@@ -241,9 +241,6 @@ const AlertsView: React.FC<AlertsViewProps> = (props) => {
                     <h1 className="text-2xl font-bold text-text-primary">Alerts</h1>
                     <p className="mt-1 text-text-secondary">Review and take action on AI-generated insights and performance alerts.</p>
                 </div>
-                <button onClick={props.onMarkAllAsRead} className="text-sm font-medium text-link hover:underline whitespace-nowrap">
-                    Mark all as read
-                </button>
             </div>
             <div className="bg-surface rounded-xl flex flex-col min-h-0">
                 <div className="p-4 flex-shrink-0 flex items-center gap-x-4 border-b border-border-color">
@@ -254,6 +251,9 @@ const AlertsView: React.FC<AlertsViewProps> = (props) => {
                         <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
                         <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search messages or warehouse/query..." className="w-full pl-10 pr-4 py-2 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary" />
                     </div>
+                    <button onClick={props.onMarkAllAsRead} className="ml-4 text-sm font-semibold px-4 py-2 rounded-full border border-border-color bg-surface hover:bg-surface-hover text-link whitespace-nowrap">
+                        Mark all as read
+                    </button>
                 </div>
                 <div className="overflow-y-auto flex-grow min-h-0">
                     <table className="w-full text-sm">

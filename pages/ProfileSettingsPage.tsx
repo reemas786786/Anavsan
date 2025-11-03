@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { User } from '../types';
-import { IconUser, IconLockClosed, IconBell, IconPhoto, IconEdit, IconChevronLeft, IconChevronRight } from '../constants';
-import Breadcrumb from '../components/Breadcrumb';
+import { IconUser, IconLockClosed, IconBell, IconPhoto, IconEdit, IconChevronLeft, IconChevronRight, IconAdjustments } from '../constants';
 
 const IconEye: React.FC<{className?: string}> = ({className}) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className || "h-5 w-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -135,6 +134,40 @@ const NotificationPreferenceSection: React.FC = () => (
     </div>
 );
 
+const ChangeThemeSection: React.FC<{ theme: string; onThemeChange: (theme: string) => void }> = ({ theme, onThemeChange }) => {
+    const themes = [
+        { id: 'light', label: 'White theme', bg: 'bg-white', border: 'border-gray-300' },
+        { id: 'gray10', label: 'Gray 10', bg: 'bg-gray-100', border: 'border-gray-300' },
+        { id: 'dark', label: 'Gray 90', bg: 'bg-gray-900', border: 'border-gray-700' },
+        { id: 'black', label: 'Gray 100', bg: 'bg-black', border: 'border-gray-700' },
+    ];
+    return (
+        <div>
+            <h2 className="text-2xl font-bold text-text-strong mb-6">Change theme</h2>
+            <div className="bg-surface p-8 rounded-2xl">
+                <div className="space-y-4">
+                    {themes.map(t => (
+                        <label key={t.id} className="flex items-center justify-between p-4 rounded-lg border border-border-color cursor-pointer has-[:checked]:bg-primary/10 has-[:checked]:border-primary transition-all">
+                            <div className="flex items-center">
+                                <div className={`w-8 h-8 rounded-full ${t.bg} ${t.border} border`}></div>
+                                <span className="ml-4 font-semibold text-text-primary">{t.label}</span>
+                            </div>
+                            <input
+                                type="radio"
+                                name="theme"
+                                value={t.id}
+                                checked={theme === t.id}
+                                onChange={() => onThemeChange(t.id)}
+                                className="h-5 w-5 text-primary focus:ring-primary border-gray-300"
+                            />
+                        </label>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const BrandSettingsSection: React.FC = () => {
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [brandColor, setBrandColor] = useState('#6932D5'); // Default primary color
@@ -233,10 +266,15 @@ const BrandSettingsSection: React.FC = () => {
     );
 };
 
-const ProfileSettingsPage: React.FC<{
+interface ProfileSettingsPageProps {
     user: User;
     onBack: () => void;
-}> = ({ user, onBack }) => {
+    theme: string;
+    onThemeChange: (theme: string) => void;
+}
+
+
+const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, onBack, theme, onThemeChange }) => {
     const [activeSection, setActiveSection] = useState('User information');
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
@@ -244,6 +282,7 @@ const ProfileSettingsPage: React.FC<{
         { name: 'User information', icon: IconUser },
         { name: 'Change password', icon: IconLockClosed },
         { name: 'Notification preference', icon: IconBell },
+        { name: 'Change theme', icon: IconAdjustments },
         { name: 'Brand settings', icon: IconPhoto },
     ];
 
@@ -252,6 +291,7 @@ const ProfileSettingsPage: React.FC<{
             case 'User information': return <UserInformationSection user={user} />;
             case 'Change password': return <ChangePasswordSection />;
             case 'Notification preference': return <NotificationPreferenceSection />;
+            case 'Change theme': return <ChangeThemeSection theme={theme} onThemeChange={onThemeChange} />;
             case 'Brand settings': return <BrandSettingsSection />;
             default: return <UserInformationSection user={user} />;
         }
@@ -291,7 +331,6 @@ const ProfileSettingsPage: React.FC<{
                 </div>
             </aside>
             <main className="flex-1 overflow-y-auto p-6 bg-background">
-                 <Breadcrumb items={[{ label: 'Data Cloud Overview', onClick: onBack }, { label: 'Profile settings' }]} />
                 <div className="mt-6">
                     {renderSection()}
                 </div>

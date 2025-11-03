@@ -262,7 +262,6 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
     const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
     const accountSwitcherRef = useRef<HTMLDivElement>(null);
-    const [accountSwitcherTimeoutId, setAccountSwitcherTimeoutId] = useState<number | null>(null);
     const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({});
     
     // State for All Queries filters
@@ -320,15 +319,6 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                 return { [itemName]: true };
             }
         });
-    };
-
-    const handleAccountSwitcherEnter = () => {
-        if (accountSwitcherTimeoutId) clearTimeout(accountSwitcherTimeoutId);
-        setIsAccountSwitcherOpen(true);
-    };
-    const handleAccountSwitcherLeave = () => {
-        const timeoutId = window.setTimeout(() => setIsAccountSwitcherOpen(false), 200);
-        setAccountSwitcherTimeoutId(timeoutId);
     };
 
     const handleSelectDatabaseFromSummary = (databaseId: string) => {
@@ -452,10 +442,9 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                         <div 
                             ref={accountSwitcherRef}
                             className="relative w-full"
-                            onMouseEnter={handleAccountSwitcherEnter}
-                            onMouseLeave={handleAccountSwitcherLeave}
                         >
                             <button
+                                onClick={() => setIsAccountSwitcherOpen(prev => !prev)}
                                 className={`w-full flex items-center transition-colors group relative ${
                                     isSidebarExpanded 
                                     ? 'text-left p-2 rounded-lg bg-background hover:bg-surface-hover border border-border-light justify-between' 
@@ -478,7 +467,6 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                             </button>
                             {isAccountSwitcherOpen && (
                                 <div className={`absolute z-20 mt-2 rounded-lg bg-surface shadow-lg p-2 border border-border-color ${isSidebarExpanded ? 'w-full' : 'w-64 left-full ml-2 -top-2'}`}>
-                                    <div className="text-xs font-semibold text-text-muted px-2 py-1 mb-1">Switch Account</div>
                                     <ul className="max-h-60 overflow-y-auto">
                                         {accounts.map(acc => {
                                             const isActive = acc.id === account.id;

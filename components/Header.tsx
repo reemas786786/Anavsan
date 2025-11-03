@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { IconMenu, IconAIAgent, IconUser, IconSearch, IconBell, IconClose, IconHelpCircle, IconSun, IconMoon } from '../constants';
+import { IconMenu, IconAIAgent, IconUser, IconSearch, IconBell, IconClose, IconHelpCircle } from '../constants';
 import NotificationDropdown from './NotificationDropdown';
 import { Notification, Page } from '../types';
 
@@ -11,8 +11,6 @@ interface HeaderProps {
     onOpenProfileSettings: () => void;
     onLogout: () => void;
     hasNewAssignment?: boolean;
-    theme: 'light' | 'dark';
-    onThemeChange: (theme: 'light' | 'dark') => void;
     notifications: Notification[];
     onMarkAllNotificationsAsRead: () => void;
     onClearAllNotifications: () => void;
@@ -47,8 +45,6 @@ const Header: React.FC<HeaderProps> = ({
     onOpenProfileSettings, 
     onLogout, 
     hasNewAssignment, 
-    theme, 
-    onThemeChange,
     notifications,
     onMarkAllNotificationsAsRead,
     onClearAllNotifications,
@@ -102,13 +98,6 @@ const Header: React.FC<HeaderProps> = ({
               className="block w-full bg-white/20 border-0 text-white rounded-full py-2 pl-12 pr-3 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-sidebar-topbar"
             />
         </div>
-        <button
-          onClick={() => onThemeChange(theme === 'light' ? 'dark' : 'light')}
-          className="p-2 ml-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors"
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-        >
-          {theme === 'light' ? <IconMoon className="h-6 w-6" /> : <IconSun className="h-6 w-6" />}
-        </button>
         <button className="p-2 rounded-full text-primary bg-primary/20 hover:bg-primary/30 transition-colors">
             <IconAIAgent className="h-6 w-6" />
         </button>
