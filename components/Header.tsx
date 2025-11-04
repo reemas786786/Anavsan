@@ -1,5 +1,6 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { IconMenu, IconAIAgent, IconUser, IconSearch, IconBell, IconClose, IconHelpCircle } from '../constants';
+import { IconMenu, IconSparkles, IconUser, IconSearch, IconBell, IconClose, IconHelpCircle } from '../constants';
 import NotificationDropdown from './NotificationDropdown';
 import { Notification, Page } from '../types';
 
@@ -15,6 +16,7 @@ interface HeaderProps {
     onMarkAllNotificationsAsRead: () => void;
     onClearAllNotifications: () => void;
     onNavigate: (page: Page) => void;
+    onOpenQuickAsk: () => void;
 }
 
 const AnavsanLogo: React.FC<{}> = () => (
@@ -49,6 +51,7 @@ const Header: React.FC<HeaderProps> = ({
     onMarkAllNotificationsAsRead,
     onClearAllNotifications,
     onNavigate,
+    onOpenQuickAsk,
 }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -98,8 +101,8 @@ const Header: React.FC<HeaderProps> = ({
               className="block w-full bg-white/20 border-0 text-white rounded-full py-2 pl-12 pr-3 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-sidebar-topbar"
             />
         </div>
-        <button className="p-2 rounded-full text-primary bg-primary/20 hover:bg-primary/30 transition-colors">
-            <IconAIAgent className="h-6 w-6" />
+        <button onClick={onOpenQuickAsk} className="p-2 rounded-full text-primary bg-primary/20 hover:bg-primary/30 transition-colors">
+            <IconSparkles className="h-6 w-6" />
         </button>
         <div className="relative" ref={notificationsRef}>
             <button onClick={() => setIsNotificationsOpen(!isNotificationsOpen)} className="relative p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
@@ -112,6 +115,7 @@ const Header: React.FC<HeaderProps> = ({
                 isOpen={isNotificationsOpen}
                 onClose={() => setIsNotificationsOpen(false)}
                 notifications={notifications}
+                // FIX: Correct prop name from onMarkAllAsRead to onMarkAllNotificationsAsRead.
                 onMarkAllAsRead={onMarkAllNotificationsAsRead}
                 onViewAll={() => {
                     onNavigate('Notifications');

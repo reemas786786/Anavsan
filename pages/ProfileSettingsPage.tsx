@@ -136,10 +136,10 @@ const NotificationPreferenceSection: React.FC = () => (
 
 const ChangeThemeSection: React.FC<{ theme: string; onThemeChange: (theme: string) => void }> = ({ theme, onThemeChange }) => {
     const themes = [
-        { id: 'light', label: 'White theme', bg: 'bg-white', border: 'border-gray-300' },
-        { id: 'gray10', label: 'Gray 10', bg: 'bg-gray-100', border: 'border-gray-300' },
-        { id: 'dark', label: 'Gray 90', bg: 'bg-gray-900', border: 'border-gray-700' },
-        { id: 'black', label: 'Gray 100', bg: 'bg-black', border: 'border-gray-700' },
+        { id: 'light', label: 'White theme', description: 'Clean and bright with brand accents.', bg: 'bg-white', border: 'border-gray-300' },
+        { id: 'gray10', label: 'Gray 10', description: 'Light neutral with soft contrast.', bg: 'bg-gray-100', border: 'border-gray-300' },
+        { id: 'dark', label: 'Gray 90', description: 'Dark tone for balanced focus.', bg: 'bg-gray-900', border: 'border-gray-700' },
+        { id: 'black', label: 'Gray 100', description: 'Deep contrast for sharp visibility.', bg: 'bg-black', border: 'border-gray-700' },
     ];
     return (
         <div>
@@ -149,8 +149,11 @@ const ChangeThemeSection: React.FC<{ theme: string; onThemeChange: (theme: strin
                     {themes.map(t => (
                         <label key={t.id} className="flex items-center justify-between p-4 rounded-lg border border-border-color cursor-pointer has-[:checked]:bg-primary/10 has-[:checked]:border-primary transition-all">
                             <div className="flex items-center">
-                                <div className={`w-8 h-8 rounded-full ${t.bg} ${t.border} border`}></div>
-                                <span className="ml-4 font-semibold text-text-primary">{t.label}</span>
+                                <div className={`w-8 h-8 rounded-full ${t.bg} ${t.border} border flex-shrink-0`}></div>
+                                <div className="ml-4">
+                                    <span className="font-semibold text-text-primary">{t.label}</span>
+                                    <p className="text-sm text-text-secondary">{t.description}</p>
+                                </div>
                             </div>
                             <input
                                 type="radio"
@@ -158,7 +161,7 @@ const ChangeThemeSection: React.FC<{ theme: string; onThemeChange: (theme: strin
                                 value={t.id}
                                 checked={theme === t.id}
                                 onChange={() => onThemeChange(t.id)}
-                                className="h-5 w-5 text-primary focus:ring-primary border-gray-300"
+                                className="h-5 w-5 text-primary focus:ring-primary border-gray-300 ml-4 flex-shrink-0"
                             />
                         </label>
                     ))}

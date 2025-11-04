@@ -38,6 +38,7 @@ import CheckEmailPage from './pages/CheckEmailPage';
 import CreateNewPasswordPage from './pages/CreateNewPasswordPage';
 import PasswordResetSuccessPage from './pages/PasswordResetSuccessPage';
 import NotificationsPage from './pages/NotificationsPage';
+import AIQuickAskPanel from './components/AIQuickAskPanel';
 
 
 type SidePanelType = 'addAccount' | 'saveQuery' | 'editUser' | 'assignQuery' | 'queryPreview';
@@ -67,6 +68,7 @@ const App: React.FC = () => {
   const [activeSubPage, setActiveSubPage] = useState<string | undefined>();
   
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isQuickAskOpen, setIsQuickAskOpen] = useState(false);
 
   // Data states
   const [accounts, setAccounts] = useState<Account[]>(connectionsData);
@@ -634,13 +636,15 @@ const App: React.FC = () => {
       }
   }
 
-  const showCompactLayout = !selectedAccount && activePage !== 'Notifications' && activePage !== 'Profile Settings';
+  const showCompactLayout = useMemo(() => {
+    return activePage === 'AI Agent' || (!selectedAccount && activePage !== 'Notifications' && activePage !== 'Profile Settings');
+  }, [activePage, selectedAccount]);
   
   const mainContentPadding = useMemo(() => {
-    if (selectedAccount || activePage === 'Notifications' || activePage === 'Settings' || activePage === 'Profile Settings' || editingDashboard || isViewingDashboard) {
+    if (selectedAccount || activePage === 'AI Agent' || activePage === 'Notifications' || activePage === 'Settings' || activePage === 'Profile Settings' || editingDashboard || isViewingDashboard) {
         return '';
     }
-    if (activePage === 'Data Cloud Overview' || activePage === 'Snowflake Accounts' || activePage === 'Dashboards' || activePage === 'Assigned Queries' || activePage === 'Reports' || activePage === 'AI Agent' || activePage === 'Book a Demo' || activePage === 'Docs' || activePage === 'Support') {
+    if (activePage === 'Data Cloud Overview' || activePage === 'Snowflake Accounts' || activePage === 'Dashboards' || activePage === 'Assigned Queries' || activePage === 'Reports' || activePage === 'Book a Demo' || activePage === 'Docs' || activePage === 'Support') {
         return 'p-4';
     }
     return '';
@@ -669,6 +673,7 @@ const App: React.FC = () => {
                 onMarkAllNotificationsAsRead={handleMarkAllNotificationsAsRead}
                 onClearAllNotifications={handleClearAllNotifications}
                 onNavigate={(page) => handleSetActivePage(page)}
+                onOpenQuickAsk={() => setIsQuickAskOpen(true)}
             />
 
             {breadcrumbItems.length > 0 && (
@@ -696,6 +701,15 @@ const App: React.FC = () => {
             </div>
         </div>
       )}
+
+      <AIQuickAskPanel
+          isOpen={isQuickAskOpen}
+          onClose={() => setIsQuickAskOpen(false)}
+          onOpenAgent={() => {
+              setIsQuickAskOpen(false);
+              handleSetActivePage('AI Agent');
+          }}
+      />
 
       <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
 
@@ -752,7 +766,7 @@ const App: React.FC = () => {
        <SidePanel
             isOpen={sidePanel?.type === 'assignQuery'}
             onClose={() => setSidePanel(null)}
-            title="Share and Assign Query"
+            title="Assign query"
         >
             {sidePanel?.type === 'assignQuery' && sidePanel.data && (
                 <AssignQueryFlow query={sidePanel.data} users={users} onCancel={() => setSidePanel(null)} onAssign={handleAssignQuery} />

@@ -1,5 +1,3 @@
-
-
 import React, { useState, useMemo } from 'react';
 import { QueryListItem, User, UserRole, AssignmentPriority } from '../types';
 
@@ -40,7 +38,7 @@ const AssignQueryFlow: React.FC<AssignQueryFlowProps> = ({ query, users, onCance
             <div className="p-8 space-y-6 flex-grow">
                 <div>
                     <label className="block text-sm font-medium text-text-secondary mb-1">Query</label>
-                    <pre className="bg-input-bg p-3 rounded-lg border border-border-color text-xs text-text-primary overflow-x-auto">
+                    <pre className="bg-input-bg p-3 rounded-lg border border-border-color text-xs text-text-primary overflow-auto max-h-40 whitespace-pre-wrap">
                         <code>{query.queryText}</code>
                     </pre>
                 </div>

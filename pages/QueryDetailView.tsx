@@ -11,6 +11,13 @@ interface QueryDetailViewProps {
     sourcePage: string;
 }
 
+const DetailItem: React.FC<{ label: string; value: React.ReactNode; }> = ({ label, value }) => (
+    <div>
+        <p className="text-sm text-text-secondary">{label}</p>
+        <div className="text-sm font-semibold text-text-primary mt-1">{value}</div>
+    </div>
+);
+
 const QueryDetailView: React.FC<QueryDetailViewProps> = ({ query, onBack, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, sourcePage }) => {
     const [isCopied, setIsCopied] = React.useState(false);
 
@@ -210,7 +217,6 @@ LIMIT 500;
 -- ...
 -- ...
 -- ...
--- ...
 -- End of demonstrative query.
 `;
 
@@ -239,53 +245,17 @@ LIMIT 500;
                 </div>
             </div>
             
-            <div className="bg-surface rounded-3xl">
-                <h3 className="text-base font-semibold text-text-strong p-4">Details</h3>
-                <div className="text-sm">
-                    {/* Row 1 */}
-                    <div className="flex flex-col md:flex-row">
-                        <div className="flex-1 flex justify-between p-4 md:border-r border-border-color">
-                            <span className="text-text-secondary">Duration</span>
-                            <span className="font-semibold text-text-primary">{query.duration}</span>
-                        </div>
-                        <div className="flex-1 flex justify-between p-4">
-                            <span className="text-text-secondary">Credits</span>
-                            <span className="font-semibold text-text-primary">{query.costCredits.toFixed(2)}</span>
-                        </div>
-                    </div>
-                    {/* Row 2 */}
-                    <div className="flex flex-col md:flex-row">
-                        <div className="flex-1 flex justify-between p-4 md:border-r border-border-color">
-                            <span className="text-text-secondary">Bytes Scanned</span>
-                            <span className="font-semibold text-text-primary">{formatBytes(query.bytesScanned)}</span>
-                        </div>
-                        <div className="flex-1 flex justify-between p-4">
-                            <span className="text-text-secondary">Bytes Written</span>
-                            <span className="font-semibold text-text-primary">{formatBytes(query.bytesWritten)}</span>
-                        </div>
-                    </div>
-                    {/* Row 3 */}
-                    <div className="flex flex-col md:flex-row">
-                        <div className="flex-1 flex justify-between p-4 md:border-r border-border-color">
-                            <span className="text-text-secondary">Warehouse</span>
-                            <span className="font-semibold text-text-primary">{query.warehouse}</span>
-                        </div>
-                        <div className="flex-1 flex justify-between p-4">
-                            <span className="text-text-secondary">Start Time</span>
-                            <span className="font-semibold text-text-primary">{startTime}</span>
-                        </div>
-                    </div>
-                    {/* Row 4 */}
-                    <div className="flex flex-col md:flex-row">
-                        <div className="flex-1 flex justify-between p-4 md:border-r border-border-color">
-                            <span className="text-text-secondary">End Time</span>
-                            <span className="font-semibold text-text-primary">{endTime}</span>
-                        </div>
-                        <div className="flex-1 flex justify-between p-4">
-                            <span className="text-text-secondary">Query Tag</span>
-                            <span className="font-semibold text-text-primary">{query.queryTag || 'N/A'}</span>
-                        </div>
-                    </div>
+            <div className="bg-surface p-4 rounded-3xl">
+                <h3 className="text-base font-semibold text-text-strong mb-4">Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-x-8 gap-y-6 text-sm">
+                    <DetailItem label="Duration" value={query.duration} />
+                    <DetailItem label="Credits" value={query.costCredits.toFixed(2)} />
+                    <DetailItem label="Bytes Scanned" value={formatBytes(query.bytesScanned)} />
+                    <DetailItem label="Bytes Written" value={formatBytes(query.bytesWritten)} />
+                    <DetailItem label="Warehouse" value={query.warehouse} />
+                    <DetailItem label="Start Time" value={startTime} />
+                    <DetailItem label="End Time" value={endTime} />
+                    <DetailItem label="Query Tag" value={query.queryTag || 'N/A'} />
                 </div>
             </div>
 
