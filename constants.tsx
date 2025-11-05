@@ -170,6 +170,12 @@ export const IconShare: React.FC<{ className?: string }> = ({ className }) => (
     </svg>
 );
 
+export const IconFlag: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 01-.005-10.499l-3.11.732a9 9 0 01-6.085-.711l-.108-.054a9 9 0 00-6.208-.682L3 4.5M3 15V4.5" />
+    </svg>
+);
+
 export const IconClipboardCopy: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75m9-1.125a2.25 2.25 0 00-2.25-2.25H9.375a2.25 2.25 0 00-2.25 2.25v9.75" />
@@ -346,6 +352,7 @@ export const NAV_ITEMS_TOP: NavItem[] = [
     { name: 'Snowflake Accounts', icon: IconConnections },
     { name: 'AI Agent', icon: IconAIAgent },
     { name: 'Assigned Queries', icon: IconClipboardList },
+    { name: 'Query Library', icon: IconSave },
     { name: 'Reports', icon: IconReports },
 ];
 

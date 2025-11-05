@@ -5,6 +5,7 @@ export type Page =
   | 'Dashboards'
   | 'Snowflake Accounts' 
   | 'AI Agent' 
+  | 'Query Library'
   | 'Reports' 
   | 'Assigned Queries'
   | 'Notifications'
@@ -72,6 +73,7 @@ export interface SQLVersion {
   tag?: string;
   description: string;
   sql?: string;
+  user: string;
 }
 
 export interface SQLFile {
@@ -79,6 +81,8 @@ export interface SQLFile {
   name: string;
   versions: SQLVersion[];
   createdDate: string;
+  accountId: string;
+  accountName: string;
 }
 
 export interface TopQuery {

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Connections from './pages/Connections';
-import AIAgent from './pages/AIAgent';
 import Reports from './pages/Reports';
 import BookDemo from './pages/BookDemo';
 import Docs from './pages/Docs';
@@ -19,7 +18,7 @@ import ConfirmationModal from './components/ConfirmationModal';
 import Modal from './components/Modal';
 import Toast from './components/Toast';
 import BigScreenView from './components/BigScreenView';
-import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem, BigScreenWidget, QueryListItem, AssignedQuery, AssignmentPriority, AssignmentStatus, PullRequest, Notification, ActivityLog, BreadcrumbItem, Warehouse } from './types';
+import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem, BigScreenWidget, QueryListItem, AssignedQuery, AssignmentPriority, AssignmentStatus, PullRequest, Notification, ActivityLog, BreadcrumbItem, Warehouse, SQLVersion } from './types';
 import { connectionsData, sqlFilesData as initialSqlFiles, usersData, dashboardsData as initialDashboardsData, assignedQueriesData, pullRequestsData, notificationsData as initialNotificationsData, activityLogsData, warehousesData } from './data/dummyData';
 import { accountNavItems } from './constants';
 import SettingsPage from './pages/SettingsPage';
@@ -39,6 +38,9 @@ import CreateNewPasswordPage from './pages/CreateNewPasswordPage';
 import PasswordResetSuccessPage from './pages/PasswordResetSuccessPage';
 import NotificationsPage from './pages/NotificationsPage';
 import AIQuickAskPanel from './components/AIQuickAskPanel';
+import AIAgent from './pages/AIAgent';
+import QueryLibrary from './pages/QueryLibrary';
+import RecommendationPreviewPanel from './components/RecommendationPreviewPanel';
 
 
 type SidePanelType = 'addAccount' | 'saveQuery' | 'editUser' | 'assignQuery' | 'queryPreview';
@@ -95,6 +97,7 @@ const App: React.FC = () => {
   const [selectedQuery, setSelectedQuery] = useState<QueryListItem | null>(null);
   const [analyzingQuery, setAnalyzingQuery] = useState<QueryListItem | null>(null);
   const [navigationSource, setNavigationSource] = useState<string | null>(null);
+  const [recommendationPanelItem, setRecommendationPanelItem] = useState<{file: SQLFile, version: SQLVersion} | null>(null);
 
   const [selectedPullRequest, setSelectedPullRequest] = useState<PullRequest | null>(null);
   
@@ -227,6 +230,7 @@ const App: React.FC = () => {
             case 'Assigned Queries':
             case 'Reports':
             case 'AI Agent':
+            case 'Query Library':
                 // No breadcrumbs for these pages per user request
                 break;
             case 'Settings':
@@ -378,6 +382,43 @@ const App: React.FC = () => {
     setSidePanel({ type: 'queryPreview', data: queryListItem });
 };
 
+  const createQueryItemFromVersion = (file: SQLFile, version: SQLVersion): QueryListItem => ({
+    id: `version-${version.id}`,
+    queryText: version.sql || file.name,
+    warehouse: 'COMPUTE_WH', // Mocked as it's not in the version data
+    costUSD: 0,
+    costCredits: 0,
+    status: 'Success',
+    duration: '00:00:00',
+    estSavingsUSD: 0,
+    estSavingsPercent: 0,
+    timestamp: version.date,
+    type: ['SELECT'], // Mocked
+    user: 'Library User', // Mocked
+    bytesScanned: 0,
+    bytesWritten: 0,
+    severity: 'Low',
+  });
+
+  const handlePreviewFromLibrary = (file: SQLFile, version: SQLVersion) => {
+      const queryItem = createQueryItemFromVersion(file, version);
+      setSidePanel({ type: 'queryPreview', data: queryItem });
+  };
+
+  const handleNavigateToToolFromLibrary = (file: SQLFile, version: SQLVersion, tool: 'analyzer' | 'optimizer' | 'simulator') => {
+      const account = accounts.find(a => a.id === file.accountId);
+      if (!account) {
+          showToast(`Error: Account '${file.accountName}' not found.`);
+          return;
+      }
+      const queryItem = createQueryItemFromVersion(file, version);
+      
+      setSelectedAccount(account);
+      setAnalyzingQuery(queryItem);
+      setNavigationSource('Query Library');
+      setAccountViewPage(`Query ${tool}`);
+  };
+
   const renderPage = () => {
     if (selectedAccount) {
       return <AccountView 
@@ -465,10 +506,18 @@ const App: React.FC = () => {
             return <Overview onSelectAccount={setSelectedAccount} onSelectUser={setSelectedUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} currentUser={currentUser} />;
         case 'Snowflake Accounts':
             return <Connections accounts={accounts} onSelectAccount={setSelectedAccount} onAddAccountClick={() => setSidePanel({ type: 'addAccount' })} onDeleteAccount={(id) => { setConfirmation({ title: 'Delete Account', message: 'Are you sure?', onConfirm: () => {setAccounts(accs => accs.filter(a => a.id !== id)); showToast('Account deleted.'); }, confirmText: 'Delete', confirmVariant: 'danger'}) }} />;
-        case 'AI Agent':
-            return <AIAgent />;
         case 'Reports':
             return <Reports />;
+        case 'AI Agent':
+            return <AIAgent />;
+        case 'Query Library':
+            return <QueryLibrary
+                sqlFiles={sqlFiles}
+                accounts={accounts}
+                onPreview={handlePreviewFromLibrary}
+                onNavigateToTool={handleNavigateToToolFromLibrary}
+                onRowClick={(file, version) => setRecommendationPanelItem({ file, version })}
+            />;
         case 'Assigned Queries':
             const queriesForUser = currentUser?.role === 'Admin'
                 ? assignedQueries
@@ -637,14 +686,14 @@ const App: React.FC = () => {
   }
 
   const showCompactLayout = useMemo(() => {
-    return activePage === 'AI Agent' || (!selectedAccount && activePage !== 'Notifications' && activePage !== 'Profile Settings');
+    return activePage === 'AI Agent' || activePage === 'Query Library' || (!selectedAccount && activePage !== 'Notifications' && activePage !== 'Profile Settings');
   }, [activePage, selectedAccount]);
   
   const mainContentPadding = useMemo(() => {
     if (selectedAccount || activePage === 'AI Agent' || activePage === 'Notifications' || activePage === 'Settings' || activePage === 'Profile Settings' || editingDashboard || isViewingDashboard) {
         return '';
     }
-    if (activePage === 'Data Cloud Overview' || activePage === 'Snowflake Accounts' || activePage === 'Dashboards' || activePage === 'Assigned Queries' || activePage === 'Reports' || activePage === 'Book a Demo' || activePage === 'Docs' || activePage === 'Support') {
+    if (activePage === 'Data Cloud Overview' || activePage === 'Snowflake Accounts' || activePage === 'Dashboards' || activePage === 'Assigned Queries' || activePage === 'Reports' || activePage === 'Book a Demo' || activePage === 'Docs' || activePage === 'Support' || activePage === 'Query Library') {
         return 'p-4';
     }
     return '';
@@ -784,6 +833,19 @@ const App: React.FC = () => {
                     onAnalyze={(q) => { setSidePanel(null); setAnalyzingQuery(q); setNavigationSource('Slow queries'); setAccountViewPage('Query analyzer'); }}
                     onOptimize={(q) => { setSidePanel(null); setAnalyzingQuery(q); setNavigationSource('Slow queries'); setAccountViewPage('Query optimizer'); }}
                     onSimulate={(q) => { setSidePanel(null); setAnalyzingQuery(q); setNavigationSource('Slow queries'); setAccountViewPage('Query simulator'); }}
+                />
+            )}
+       </SidePanel>
+       
+       <SidePanel
+            isOpen={!!recommendationPanelItem}
+            onClose={() => setRecommendationPanelItem(null)}
+            title="Query Recommendations"
+        >
+            {recommendationPanelItem && (
+                <RecommendationPreviewPanel
+                    file={recommendationPanelItem.file}
+                    version={recommendationPanelItem.version}
                 />
             )}
        </SidePanel>

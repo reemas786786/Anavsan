@@ -1,4 +1,4 @@
-import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget, SimilarQuery, QueryListItem, QueryStatus, QueryType, QuerySeverity, StorageBreakdownItem, TopStorageConsumer, StorageGrowthPoint, UnusedTable, StorageActivityLogItem, StorageByTeamItem, DuplicateDataPattern, StorageOptimizationOpportunity, DataAgeDistributionItem, StorageTierItem, TieringOpportunityItem, CostForecastPoint, TierForecastPoint, AnomalyAlertItem, SavingsProjection, Database, DatabaseTable, StorageByTypeItem, AssignedQuery, PullRequest, Notification, ActivityLog } from '../types';
+import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget, SimilarQuery, QueryListItem, QueryStatus, QueryType, QuerySeverity, StorageBreakdownItem, TopStorageConsumer, StorageGrowthPoint, UnusedTable, StorageActivityLogItem, StorageByTeamItem, DuplicateDataPattern, StorageOptimizationOpportunity, DataAgeDistributionItem, StorageTierItem, TieringOpportunityItem, CostForecastPoint, TierForecastPoint, AnomalyAlertItem, SavingsProjection, Database, DatabaseTable, StorageByTypeItem, AssignedQuery, PullRequest, Notification, ActivityLog, SQLVersion } from '../types';
 
 export const availableWidgetsData: Omit<Widget, 'id' | 'dataSource' | 'imageUrl'>[] = [
     { 
@@ -113,28 +113,40 @@ export const sqlFilesData: SQLFile[] = [
     {
         id: 'file-1',
         name: 'daily_metrics_aggregation.sql',
+        accountId: '1',
+        accountName: 'Snowflake Prod',
         createdDate: '2023-10-28',
         versions: [
-            { id: 'v1-3', version: 3, date: '2023-11-18', tag: 'Optimized', description: 'Refactored joins for better performance.', sql: newSalesQuery },
-            { id: 'v1-2', version: 2, date: '2023-11-15', tag: 'Analyzed', description: 'Added filter for last 3 months.', sql: newSalesQuery },
-            { id: 'v1-1', version: 1, date: '2023-11-12', description: 'Initial version, full table scan.', sql: oldSalesQuery },
+            // FIX: Added 'user' property to conform to SQLVersion type.
+            { id: 'v1-3', version: 3, date: '2023-11-18', tag: 'Optimized', description: 'Refactored joins for better performance.', sql: newSalesQuery, user: 'Priya Patel' },
+            // FIX: Added 'user' property to conform to SQLVersion type.
+            { id: 'v1-2', version: 2, date: '2023-11-15', tag: 'Analyzed', description: 'Added filter for last 3 months.', sql: newSalesQuery, user: 'Priya Patel' },
+            // FIX: Added 'user' property to conform to SQLVersion type.
+            { id: 'v1-1', version: 1, date: '2023-11-12', description: 'Initial version, full table scan.', sql: oldSalesQuery, user: 'Arjun Singh' },
         ]
     },
     {
         id: 'file-2',
         name: 'user_segmentation_logic.sql',
+        accountId: '2',
+        accountName: 'Marketing Dev',
         createdDate: '2023-11-05',
         versions: [
-            { id: 'v2-2', version: 2, date: '2023-11-20', tag: 'Simulated', description: 'Tested with new clustering algorithm.' },
-            { id: 'v2-1', version: 1, date: '2023-11-10', description: 'First draft of segmentation logic.' },
+            // FIX: Added 'user' property to conform to SQLVersion type.
+            { id: 'v2-2', version: 2, date: '2023-11-20', tag: 'Simulated', description: 'Tested with new clustering algorithm.', user: 'Alice Johnson' },
+            // FIX: Added 'user' property to conform to SQLVersion type.
+            { id: 'v2-1', version: 1, date: '2023-11-10', description: 'First draft of segmentation logic.', user: 'Alice Johnson' },
         ]
     },
     {
         id: 'file-3',
         name: 'marketing_campaign_roi.sql',
+        accountId: '1',
+        accountName: 'Snowflake Prod',
         createdDate: '2023-09-15',
         versions: [
-             { id: 'v3-1', version: 1, date: '2023-09-15', description: 'Initial commit for ROI calculation.' },
+             // FIX: Added 'user' property to conform to SQLVersion type.
+             { id: 'v3-1', version: 1, date: '2023-09-15', description: 'Initial commit for ROI calculation.', user: 'Bob Williams' },
         ]
     }
 ];
