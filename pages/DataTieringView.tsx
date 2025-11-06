@@ -108,7 +108,7 @@ const StorageByTierWidget: React.FC = () => {
 
 const TieringOpportunitiesWidget: React.FC = () => (
     <WidgetCard title="Tiering Opportunities">
-        <div className="overflow-auto" style={{ maxHeight: 300 }}>
+        <div className="overflow-auto">
             <table className="w-full text-sm">
                 <thead className="text-left text-xs text-text-primary sticky top-0 bg-table-header-bg">
                     <tr>

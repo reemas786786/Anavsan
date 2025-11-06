@@ -92,7 +92,7 @@ const PrivilegesTable: React.FC = () => {
     return (
         <div className="bg-surface p-4 rounded-3xl break-inside-avoid mb-4">
             <h3 className="text-base font-semibold text-text-strong mb-3">Privileges</h3>
-            <div className="overflow-auto" style={{ maxHeight: '300px' }}>
+            <div className="overflow-auto">
                 <table className="w-full text-sm">
                     <thead className="text-left text-xs text-text-primary sticky top-0 bg-table-header-bg z-10">
                         <tr>

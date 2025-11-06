@@ -53,17 +53,21 @@ const QueryLibrary: React.FC<QueryLibraryProps> = ({ sqlFiles, accounts, onPrevi
         return sqlFiles.flatMap(file => 
             file.versions
                 .filter(version => version.tag === 'Analyzed' || version.tag === 'Optimized')
-                .map(version => ({
-                    id: `${file.id}-${version.id}`,
-                    queryId: `${file.id.replace('file-', 'F')}${version.id.replace('v','V')}`,
-                    queryName: file.name,
-                    accountName: file.accountName,
-                    user: version.user,
-                    tag: version.tag,
-                    date: version.date,
-                    file: file,
-                    version: version
-                }))
+                .map(version => {
+                    const fileNum = file.id.replace('file-', '');
+                    const versionNum = version.id.replace('v', '').replace('-', '');
+                    return {
+                        id: `${file.id}-${version.id}`,
+                        queryId: `QL-${fileNum}${versionNum}`,
+                        queryName: file.name,
+                        accountName: file.accountName,
+                        user: version.user,
+                        tag: version.tag,
+                        date: version.date,
+                        file: file,
+                        version: version
+                    }
+                })
         );
     }, [sqlFiles]);
     
@@ -121,13 +125,13 @@ const QueryLibrary: React.FC<QueryLibraryProps> = ({ sqlFiles, accounts, onPrevi
     };
 
     return (
-        <div className="flex flex-col h-full bg-background space-y-4">
+        <div className="flex flex-col bg-background space-y-4">
             <div>
                 <h1 className="text-2xl font-bold text-text-primary">Query Library</h1>
-                <p className="mt-1 text-text-secondary">A central repository of analyzed and optimized queries across your accounts.</p>
+                <p className="mt-1 text-text-secondary">Access your analyzed and optimized queries for future reference or reuse.</p>
             </div>
 
-            <div className="bg-surface rounded-xl flex flex-col flex-grow min-h-0">
+            <div className="bg-surface rounded-xl flex flex-col">
                 <div className="p-4 flex justify-between items-center flex-shrink-0 border-b border-border-color">
                     <div className="flex items-center gap-4">
                         <MultiSelectDropdown label="Account" options={filterOptions.accounts} selectedOptions={accountFilter} onChange={setAccountFilter} />
@@ -146,7 +150,7 @@ const QueryLibrary: React.FC<QueryLibraryProps> = ({ sqlFiles, accounts, onPrevi
                     </div>
                 </div>
 
-                <div className="overflow-y-auto flex-grow min-h-0">
+                <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead className="text-sm text-text-primary sticky top-0 z-10 bg-table-header-bg">
                             <tr>
@@ -154,7 +158,7 @@ const QueryLibrary: React.FC<QueryLibraryProps> = ({ sqlFiles, accounts, onPrevi
                                 <th scope="col" className="px-6 py-4 font-semibold text-left"><button onClick={() => requestSort('accountName')} className="group flex items-center">Account <SortIcon columnKey="accountName" /></button></th>
                                 <th scope="col" className="px-6 py-4 font-semibold text-left"><button onClick={() => requestSort('user')} className="group flex items-center">User <SortIcon columnKey="user" /></button></th>
                                 <th scope="col" className="px-6 py-4 font-semibold text-left"><button onClick={() => requestSort('tag')} className="group flex items-center">Tag <SortIcon columnKey="tag" /></button></th>
-                                <th scope="col" className="px-6 py-4 font-semibold text-left"><button onClick={() => requestSort('date')} className="group flex items-center">Date <SortIcon columnKey="date" /></button></th>
+                                <th scope="col" className="px-6 py-4 font-semibold text-left"><button onClick={() => requestSort('date')} className="group flex items-center">Execution date <SortIcon columnKey="date" /></button></th>
                                 <th scope="col" className="px-6 py-4 font-semibold text-right">Actions</th>
                             </tr>
                         </thead>

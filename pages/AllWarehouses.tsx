@@ -95,12 +95,12 @@ const AllWarehouses: React.FC<AllWarehousesProps> = ({ warehouses, onSelectWareh
     };
 
     return (
-        <div className="p-4 flex flex-col h-full space-y-4">
+        <div className="p-4 flex flex-col space-y-4">
             <div>
                 <h1 className="text-2xl font-bold text-text-primary">All Warehouses</h1>
                 <p className="mt-1 text-text-secondary">A list of all warehouses in this account.</p>
             </div>
-            <div className="bg-surface rounded-xl flex flex-col flex-grow min-h-0">
+            <div className="bg-surface rounded-xl flex flex-col">
                 <div className="p-2 mb-2 flex-shrink-0 flex items-center gap-x-2 border-b border-border-color">
                     <DateRangeDropdown selectedValue={dateFilter} onChange={setDateFilter} />
                     <div className="h-4 w-px bg-border-color"></div>
@@ -119,7 +119,7 @@ const AllWarehouses: React.FC<AllWarehousesProps> = ({ warehouses, onSelectWareh
                     </div>
                 </div>
 
-                <div className="overflow-y-auto flex-grow min-h-0">
+                <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead className="text-sm text-text-primary sticky top-0 z-10 bg-table-header-bg">
                             <tr>

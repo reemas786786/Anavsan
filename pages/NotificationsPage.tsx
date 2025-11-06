@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Notification, ActivityLog, User, NotificationType, NotificationSeverity, ActivityLogStatus, Account, Warehouse, QueryListItem } from '../types';
 import { queryListData, warehousesData } from '../data/dummyData';

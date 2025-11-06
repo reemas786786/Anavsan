@@ -102,13 +102,13 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
     };
 
     return (
-        <div className="flex flex-col h-full bg-background space-y-4">
+        <div className="flex flex-col bg-background space-y-4">
             <div>
                 <h1 className="text-2xl font-bold text-text-primary flex-shrink-0">Snowflake Accounts</h1>
                 <p className="mt-1 text-text-secondary">Manage and monitor all your connected Snowflake data warehouses.</p>
             </div>
 
-            <div className="bg-surface rounded-xl flex flex-col flex-grow min-h-0">
+            <div className="bg-surface rounded-xl flex flex-col">
                 <div className="p-4 flex justify-between items-center flex-shrink-0">
                     <div className="relative">
                         <IconSearch className="h-5 w-5 text-text-muted absolute left-4 top-1/2 -translate-y-1/2" />
@@ -126,7 +126,7 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
                     </button>
                 </div>
 
-                <div className="overflow-y-auto flex-grow min-h-0">
+                <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead className="text-sm text-text-primary sticky top-0 z-10 bg-table-header-bg">
                             <tr>

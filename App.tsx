@@ -40,12 +40,12 @@ import NotificationsPage from './pages/NotificationsPage';
 import AIQuickAskPanel from './components/AIQuickAskPanel';
 import AIAgent from './pages/AIAgent';
 import QueryLibrary from './pages/QueryLibrary';
-import RecommendationPreviewPanel from './components/RecommendationPreviewPanel';
+import QueryLibraryDetailView from './pages/QueryLibraryDetailView';
 
 
 type SidePanelType = 'addAccount' | 'saveQuery' | 'editUser' | 'assignQuery' | 'queryPreview';
 type ModalType = 'addUser';
-type Theme = 'light' | 'dark' | 'gray10' | 'black';
+type Theme = 'light' | 'dark' | 'gray10' | 'black' | 'system';
 type AuthScreen = 'login' | 'signup' | 'submitted' | 'forgotPassword' | 'checkEmail' | 'createNewPassword' | 'passwordResetSuccess';
 export type DisplayMode = 'cost' | 'credits';
 
@@ -97,12 +97,12 @@ const App: React.FC = () => {
   const [selectedQuery, setSelectedQuery] = useState<QueryListItem | null>(null);
   const [analyzingQuery, setAnalyzingQuery] = useState<QueryListItem | null>(null);
   const [navigationSource, setNavigationSource] = useState<string | null>(null);
-  const [recommendationPanelItem, setRecommendationPanelItem] = useState<{file: SQLFile, version: SQLVersion} | null>(null);
+  const [selectedLibraryItem, setSelectedLibraryItem] = useState<{ file: SQLFile; version: SQLVersion; } | null>(null);
 
   const [selectedPullRequest, setSelectedPullRequest] = useState<PullRequest | null>(null);
   
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setTheme] = useState<Theme>('system');
   const [displayMode, setDisplayMode] = useState<DisplayMode>('cost');
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -128,22 +128,36 @@ const App: React.FC = () => {
     }, 500);
 
     const root = document.documentElement;
-    root.classList.remove('dark', 'theme-gray-10', 'theme-black');
+    
+    const applyThemeClasses = (effectiveTheme: 'light' | 'dark' | 'gray10' | 'black') => {
+        root.classList.remove('dark', 'theme-gray-10', 'theme-black');
 
-    switch (theme) {
-        case 'dark':
-            root.classList.add('dark');
-            break;
-        case 'gray10':
-            root.classList.add('theme-gray-10');
-            break;
-        case 'black':
-            root.classList.add('theme-black');
-            break;
-        case 'light':
-        default:
-            // No class needed for default light theme
-            break;
+        switch (effectiveTheme) {
+            case 'dark':
+                root.classList.add('dark');
+                break;
+            case 'gray10':
+                root.classList.add('theme-gray-10');
+                break;
+            case 'black':
+                root.classList.add('theme-black');
+                break;
+            case 'light':
+            default:
+                break;
+        }
+    };
+
+    if (theme === 'system') {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const updateTheme = () => {
+            applyThemeClasses(mediaQuery.matches ? 'dark' : 'light');
+        };
+        updateTheme(); // initial application
+        mediaQuery.addEventListener('change', updateTheme);
+        return () => mediaQuery.removeEventListener('change', updateTheme);
+    } else {
+        applyThemeClasses(theme);
     }
 }, [theme]);
 
@@ -159,6 +173,7 @@ const App: React.FC = () => {
     setSelectedQuery(null);
     setSelectedPullRequest(null);
     setSelectedWarehouse(null);
+    setSelectedLibraryItem(null);
   };
   
   useEffect(() => {
@@ -225,6 +240,14 @@ const App: React.FC = () => {
             { label: 'Dashboards', onClick: () => handleSetActivePage('Dashboards') },
             { label: editingDashboard.id.startsWith('temp-') ? 'New Dashboard' : `Editing '${editingDashboard.title}'` }
         ];
+    } else if (selectedLibraryItem) {
+        const fileNum = selectedLibraryItem.file.id.replace('file-', '');
+        const versionNum = selectedLibraryItem.version.id.replace('v', '').replace('-', '');
+        const queryId = `QL-${fileNum}${versionNum}`;
+         items = [
+            { label: 'Query Library', onClick: () => setSelectedLibraryItem(null) },
+            { label: queryId }
+        ];
     } else if (activePage !== 'Data Cloud Overview' && activePage !== 'Snowflake Accounts' && activePage !== 'Dashboards') {
         switch (activePage) {
             case 'Assigned Queries':
@@ -255,6 +278,7 @@ const App: React.FC = () => {
     editingDashboard, 
     selectedDashboard,
     selectedWarehouse,
+    selectedLibraryItem,
 ]);
   
   const handleLogin = (email: string) => {
@@ -420,6 +444,14 @@ const App: React.FC = () => {
   };
 
   const renderPage = () => {
+    if (selectedLibraryItem) {
+        return <QueryLibraryDetailView 
+            file={selectedLibraryItem.file} 
+            version={selectedLibraryItem.version}
+            sqlFiles={sqlFiles}
+            onBack={() => setSelectedLibraryItem(null)}
+        />
+    }
     if (selectedAccount) {
       return <AccountView 
         account={selectedAccount} 
@@ -516,7 +548,7 @@ const App: React.FC = () => {
                 accounts={accounts}
                 onPreview={handlePreviewFromLibrary}
                 onNavigateToTool={handleNavigateToToolFromLibrary}
-                onRowClick={(file, version) => setRecommendationPanelItem({ file, version })}
+                onRowClick={(file, version) => setSelectedLibraryItem({ file, version })}
             />;
         case 'Assigned Queries':
             const queriesForUser = currentUser?.role === 'Admin'
@@ -686,22 +718,25 @@ const App: React.FC = () => {
   }
 
   const showCompactLayout = useMemo(() => {
+    if (selectedLibraryItem) {
+        return false;
+    }
     return activePage === 'AI Agent' || activePage === 'Query Library' || (!selectedAccount && activePage !== 'Notifications' && activePage !== 'Profile Settings');
-  }, [activePage, selectedAccount]);
+  }, [activePage, selectedAccount, selectedLibraryItem]);
   
   const mainContentPadding = useMemo(() => {
-    if (selectedAccount || activePage === 'AI Agent' || activePage === 'Notifications' || activePage === 'Settings' || activePage === 'Profile Settings' || editingDashboard || isViewingDashboard) {
+    if (selectedAccount || activePage === 'AI Agent' || activePage === 'Notifications' || activePage === 'Settings' || activePage === 'Profile Settings' || editingDashboard || isViewingDashboard || selectedLibraryItem) {
         return '';
     }
     if (activePage === 'Data Cloud Overview' || activePage === 'Snowflake Accounts' || activePage === 'Dashboards' || activePage === 'Assigned Queries' || activePage === 'Reports' || activePage === 'Book a Demo' || activePage === 'Docs' || activePage === 'Support' || activePage === 'Query Library') {
         return 'p-4';
     }
     return '';
-  }, [activePage, selectedAccount, editingDashboard, isViewingDashboard]);
+  }, [activePage, selectedAccount, editingDashboard, isViewingDashboard, selectedLibraryItem]);
 
   const managesOwnScroll = useMemo(() => {
-    return !!(selectedAccount || activePage === 'Notifications' || activePage === 'Settings' || activePage === 'Profile Settings' || editingDashboard || isViewingDashboard);
-  }, [selectedAccount, activePage, editingDashboard, isViewingDashboard]);
+    return !!(selectedAccount || activePage === 'Notifications' || activePage === 'Settings' || activePage === 'Profile Settings' || editingDashboard || isViewingDashboard || selectedLibraryItem);
+  }, [selectedAccount, activePage, editingDashboard, isViewingDashboard, selectedLibraryItem]);
 
   return (
     <>
@@ -833,19 +868,6 @@ const App: React.FC = () => {
                     onAnalyze={(q) => { setSidePanel(null); setAnalyzingQuery(q); setNavigationSource('Slow queries'); setAccountViewPage('Query analyzer'); }}
                     onOptimize={(q) => { setSidePanel(null); setAnalyzingQuery(q); setNavigationSource('Slow queries'); setAccountViewPage('Query optimizer'); }}
                     onSimulate={(q) => { setSidePanel(null); setAnalyzingQuery(q); setNavigationSource('Slow queries'); setAccountViewPage('Query simulator'); }}
-                />
-            )}
-       </SidePanel>
-       
-       <SidePanel
-            isOpen={!!recommendationPanelItem}
-            onClose={() => setRecommendationPanelItem(null)}
-            title="Query Recommendations"
-        >
-            {recommendationPanelItem && (
-                <RecommendationPreviewPanel
-                    file={recommendationPanelItem.file}
-                    version={recommendationPanelItem.version}
                 />
             )}
        </SidePanel>

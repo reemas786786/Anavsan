@@ -12,8 +12,8 @@ import {
     IconChevronRight,
     IconCheck,
 } from '../constants';
-// FIX: Changed to a named import as QueryListView does not have a default export.
-import { QueryListView } from './QueryListView';
+// FIX: Changed to a default import as QueryListView is the default export.
+import QueryListView from './QueryListView';
 import StorageSummaryView from './StorageSummaryView';
 import DatabasesView from './DatabasesView';
 import QueryDetailView from './QueryDetailView';

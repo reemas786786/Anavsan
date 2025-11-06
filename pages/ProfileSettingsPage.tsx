@@ -125,17 +125,109 @@ const ChangePasswordSection: React.FC = () => {
         </div>
     );
 };
-const NotificationPreferenceSection: React.FC = () => (
-    <div>
-        <h2 className="text-2xl font-bold text-text-strong mb-6">Notification preference</h2>
-        <div className="bg-surface p-8 rounded-2xl">
-            <p className="text-text-secondary">Notification preferences will be available in a future update.</p>
+const ToggleSwitch: React.FC<{ enabled: boolean; setEnabled: (enabled: boolean) => void; ariaLabel: string }> = ({ enabled, setEnabled, ariaLabel }) => (
+    <button
+      type="button"
+      onClick={() => setEnabled(!enabled)}
+      className={`${
+        enabled ? 'bg-status-success' : 'bg-gray-200 dark:bg-gray-500'
+      } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2`}
+      role="switch"
+      aria-checked={enabled}
+      aria-label={ariaLabel}
+    >
+      <span
+        aria-hidden="true"
+        className={`${
+          enabled ? 'translate-x-5' : 'translate-x-0'
+        } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+      />
+    </button>
+  );
+
+const CheckboxItem: React.FC<{ id: string; name: string; label: string; description: string; checked: boolean; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; disabled?: boolean; }> = ({ id, name, label, description, checked, onChange, disabled }) => (
+    <div className="flex justify-between items-start">
+        <div className="text-sm">
+            <label htmlFor={id} className={`font-medium ${disabled ? 'text-text-muted cursor-not-allowed' : 'text-text-strong cursor-pointer'}`}>
+              {label}
+            </label>
+            <p className={`text-text-secondary ${disabled ? 'text-text-muted' : ''}`}>{description}</p>
+        </div>
+        <div className="ml-3 flex h-6 items-center">
+            <input
+              id={id}
+              name={name}
+              type="checkbox"
+              checked={checked}
+              onChange={onChange}
+              disabled={disabled}
+              className="h-4 w-4 rounded border-gray-400 text-primary focus:ring-primary disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            />
         </div>
     </div>
 );
 
+const NotificationPreferenceSection: React.FC = () => {
+    const [emailEnabled, setEmailEnabled] = useState(true);
+    const [preferences, setPreferences] = useState({
+        queryAssignment: true,
+        productUpdates: true,
+    });
+
+    const handlePrefChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setPreferences(prev => ({ ...prev, [e.target.name]: e.target.checked }));
+    };
+
+    const handleSaveChanges = () => {
+        // In a real app, this would make an API call.
+        console.log("Saving preferences:", { emailEnabled, preferences });
+        // Could show a toast message here.
+    }
+
+    return (
+        <div>
+            <h2 className="text-2xl font-bold text-text-strong mb-6">Notification preferences</h2>
+            <div className="bg-surface p-8 rounded-2xl">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-text-strong">Email notifications</h3>
+                    <ToggleSwitch enabled={emailEnabled} setEnabled={setEmailEnabled} ariaLabel="Enable email notifications" />
+                </div>
+
+                <div className={`mt-6 space-y-6 transition-opacity ${!emailEnabled ? 'opacity-50' : ''}`}>
+                    <CheckboxItem
+                        id="queryAssignment"
+                        name="queryAssignment"
+                        label="Query assignment"
+                        description="Get an email when a query is assigned to you."
+                        checked={preferences.queryAssignment}
+                        onChange={handlePrefChange}
+                        disabled={!emailEnabled}
+                    />
+                    <CheckboxItem
+                        id="productUpdates"
+                        name="productUpdates"
+                        label="Product updates"
+                        description="Receive news, feature updates, and tips from Anavsan."
+                        checked={preferences.productUpdates}
+                        onChange={handlePrefChange}
+                        disabled={!emailEnabled}
+                    />
+                </div>
+
+                <div className="mt-8 pt-6 border-t border-border-light flex justify-end">
+                    <button onClick={handleSaveChanges} className="bg-button-secondary-bg text-primary font-semibold px-6 py-2 rounded-full hover:bg-button-secondary-bg-hover transition-colors">
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 const ChangeThemeSection: React.FC<{ theme: string; onThemeChange: (theme: string) => void }> = ({ theme, onThemeChange }) => {
     const themes = [
+        { id: 'system', label: 'System default', description: 'Follows your operating system setting.', bg: 'bg-gradient-to-br from-white to-gray-900', border: 'border-gray-500' },
         { id: 'light', label: 'White theme', description: 'Clean and bright with brand accents.', bg: 'bg-white', border: 'border-gray-300' },
         { id: 'gray10', label: 'Gray 10', description: 'Light neutral with soft contrast.', bg: 'bg-gray-100', border: 'border-gray-300' },
         { id: 'dark', label: 'Gray 90', description: 'Dark tone for balanced focus.', bg: 'bg-gray-900', border: 'border-gray-700' },
@@ -333,8 +425,8 @@ const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, onBack,
                     </button>
                 </div>
             </aside>
-            <main className="flex-1 overflow-y-auto p-6 bg-background">
-                <div className="mt-6">
+            <main className="flex-1 overflow-y-auto p-4 bg-background">
+                <div className="max-w-4xl space-y-8">
                     {renderSection()}
                 </div>
             </main>

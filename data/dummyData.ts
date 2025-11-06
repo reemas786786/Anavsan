@@ -96,18 +96,110 @@ export const dashboardsData: DashboardItem[] = [
     }
 ];
 
-const oldSalesQuery = `SELECT 
-  region, 
-  SUM(amount) 
-FROM sales
-GROUP BY region;`;
+const longOriginalQuery = `WITH
+  daily_sales AS (
+    SELECT
+      DATE(order_date) AS sale_date,
+      SUM(oi.quantity * p.price) AS daily_revenue,
+      COUNT(DISTINCT o.order_id) AS daily_orders
+    FROM orders o
+    JOIN order_items oi ON o.order_id = oi.order_id
+    JOIN products p ON oi.product_id = p.product_id
+    WHERE o.status NOT IN ('cancelled', 'returned')
+    GROUP BY 1
+  ),
+  customer_lifetime_value AS (
+    SELECT
+      c.customer_id,
+      c.first_name,
+      c.last_name,
+      COUNT(o.order_id) AS number_of_orders,
+      SUM(oi.quantity * p.price) AS total_spent
+    FROM customers c
+    JOIN orders o ON c.customer_id = o.customer_id
+    JOIN order_items oi ON o.order_id = oi.order_id
+    JOIN products p ON oi.product_id = p.product_id
+    GROUP BY 1, 2, 3
+  ),
+  regional_analysis AS (
+    SELECT
+      o.customer_id,
+      c.region,
+      p.category,
+      DATE_TRUNC('month', o.order_date) AS sales_month,
+      SUM(oi.quantity * p.price) AS monthly_regional_revenue
+    FROM customers c
+    JOIN orders o ON c.customer_id = o.customer_id
+    JOIN order_items oi ON o.order_id = oi.order_id
+    JOIN products p ON oi.product_id = p.product_id
+    GROUP BY 1, 2, 3, 4
+  )
+SELECT 
+    clv.first_name || ' ' || clv.last_name AS full_name,
+    clv.total_spent,
+    ra.region,
+    ra.sales_month,
+    ra.monthly_regional_revenue
+FROM customer_lifetime_value clv
+JOIN regional_analysis ra ON clv.customer_id = ra.customer_id
+WHERE
+  clv.total_spent > 500
+  AND ra.region = 'North America'
+  AND ra.sales_month >= '2023-01-01'
+ORDER BY
+  ra.sales_month DESC,
+  clv.total_spent DESC
+LIMIT 500;
+-- Note: This is a complex, long-form query created for demonstration purposes.
+`;
 
-const newSalesQuery = `SELECT 
-  region, 
-  SUM(amount)
-FROM sales
-WHERE sale_date >= DATEADD(month, -3, CURRENT_DATE())
-GROUP BY region;`;
+const longOptimizedQuery = `
+-- Optimized by Anavsan AI
+WITH
+  customer_lifetime_value AS (
+    SELECT
+      c.customer_id,
+      c.first_name,
+      c.last_name,
+      COUNT(o.order_id) AS number_of_orders,
+      SUM(oi.quantity * p.price) AS total_spent
+    FROM customers c
+    JOIN orders o ON c.customer_id = o.customer_id
+    JOIN order_items oi ON o.order_id = oi.order_id
+    JOIN products p ON oi.product_id = p.product_id
+    WHERE c.region = 'North America' -- Filter pushed down
+    GROUP BY 1, 2, 3
+    HAVING SUM(oi.quantity * p.price) > 500 -- Pre-filter customers
+  ),
+  regional_analysis AS (
+    SELECT
+      o.customer_id,
+      c.region,
+      p.category,
+      DATE_TRUNC('month', o.order_date) AS sales_month,
+      SUM(oi.quantity * p.price) AS monthly_regional_revenue
+    FROM customers c
+    JOIN orders o ON c.customer_id = o.customer_id
+    JOIN order_items oi ON o.order_id = oi.order_id
+    JOIN products p ON oi.product_id = p.product_id
+    WHERE c.region = 'North America' -- Filter pushed down
+      AND o.order_date >= '2023-01-01'
+    GROUP BY 1, 2, 3, 4
+  )
+SELECT 
+    clv.first_name || ' ' || clv.last_name AS full_name,
+    clv.total_spent,
+    ra.region,
+    ra.sales_month,
+    ra.monthly_regional_revenue
+FROM customer_lifetime_value clv
+JOIN regional_analysis ra ON clv.customer_id = ra.customer_id
+ORDER BY
+  ra.sales_month DESC,
+  clv.total_spent DESC
+LIMIT 500;
+-- Note: This query has been optimized by pushing filters into CTEs and removing unused CTEs.
+`;
 
 export const sqlFilesData: SQLFile[] = [
     {
@@ -118,11 +210,11 @@ export const sqlFilesData: SQLFile[] = [
         createdDate: '2023-10-28',
         versions: [
             // FIX: Added 'user' property to conform to SQLVersion type.
-            { id: 'v1-3', version: 3, date: '2023-11-18', tag: 'Optimized', description: 'Refactored joins for better performance.', sql: newSalesQuery, user: 'Priya Patel' },
+            { id: 'v1-3', version: 3, date: '2023-11-18', tag: 'Optimized', description: 'Refactored joins and pushed down filters.', sql: longOptimizedQuery, user: 'Priya Patel' },
             // FIX: Added 'user' property to conform to SQLVersion type.
-            { id: 'v1-2', version: 2, date: '2023-11-15', tag: 'Analyzed', description: 'Added filter for last 3 months.', sql: newSalesQuery, user: 'Priya Patel' },
+            { id: 'v1-2', version: 2, date: '2023-11-15', tag: 'Analyzed', description: 'Initial analysis before optimization.', sql: longOriginalQuery, user: 'Priya Patel' },
             // FIX: Added 'user' property to conform to SQLVersion type.
-            { id: 'v1-1', version: 1, date: '2023-11-12', description: 'Initial version, full table scan.', sql: oldSalesQuery, user: 'Arjun Singh' },
+            { id: 'v1-1', version: 1, date: '2023-11-12', description: 'Initial version, full table scans.', sql: longOriginalQuery, user: 'Arjun Singh' },
         ]
     },
     {
@@ -246,8 +338,8 @@ export const pullRequestsData: PullRequest[] = [
         reviewers: [
             { id: 'user-9', name: 'Arjun Singh', role: 'DataOps', approved: false },
         ],
-        oldCode: oldSalesQuery,
-        newCode: newSalesQuery,
+        oldCode: longOriginalQuery,
+        newCode: longOptimizedQuery,
     }
 ];
 

@@ -119,7 +119,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEdi
     };
 
     return (
-        <div className="flex flex-col h-full bg-background space-y-4">
+        <div className="flex flex-col bg-background space-y-4">
             <div className="flex-shrink-0">
                 <h1 className="text-2xl font-bold text-text-primary">User Management</h1>
                 <p className="mt-1 text-text-secondary">Manage users, roles, and permissions for your organization.</p>
@@ -136,7 +136,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEdi
                 </div>
             </div>
 
-            <div className="bg-surface rounded-xl flex flex-col flex-grow min-h-0">
+            <div className="bg-surface rounded-xl flex flex-col">
                  <div className="p-2 mb-2 flex-shrink-0">
                      <div className="flex justify-between items-center">
                         <div className="relative">
@@ -159,7 +159,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, onAddUser, onEdi
                     </div>
                 </div>
 
-                <div className="overflow-y-auto flex-grow min-h-0">
+                <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead className="text-sm text-text-primary sticky top-0 z-10 bg-table-header-bg">
                             <tr>

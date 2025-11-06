@@ -111,89 +111,6 @@ const mockAnalysisChangesBalanced = [
     },
 ];
 
-const optimizedQueryCost = `
--- Optimized for Cost by Anavsan AI
-WITH regional_analysis AS (
-    SELECT
-      c.region,
-      DATE_TRUNC('month', o.order_date) AS sales_month,
-      SUM(oi.quantity * p.price) AS monthly_regional_revenue
-    FROM customers c
-    JOIN orders o ON c.customer_id = o.customer_id
-    -- Pushed filter down to reduce data scan
-    WHERE c.region = 'North America'
-      AND o.order_date >= '2023-01-01'
-    JOIN order_items oi ON o.order_id = oi.order_id
-    JOIN products p ON oi.product_id = p.product_id
-    GROUP BY 1, 2
-)
-SELECT 
-    ra.region,
-    ra.sales_month,
-    ra.monthly_regional_revenue
-FROM regional_analysis ra
-ORDER BY
-  ra.sales_month DESC
-LIMIT 500;
-`;
-
-const mockAnalysisChangesCost = [
-    {
-        title: 'Pushed Down Filters',
-        description: 'Moved `region` and `sales_month` filters into the CTE to drastically reduce data scanned, lowering credit usage.'
-    },
-    {
-        title: 'Removed Unused CTE',
-        description: 'The `daily_sales` CTE was removed as it was not used, saving computation costs.'
-    },
-    {
-        title: 'Simplified Group By',
-        description: 'Reduced columns in `GROUP BY` to only those necessary, potentially allowing for more efficient aggregation and lower memory usage.'
-    },
-];
-
-const optimizedQueryPerformance = `
--- Optimized for Performance by Anavsan AI
-/*+ MATERIALIZE */
-WITH regional_analysis AS (
-    SELECT
-      c.region,
-      DATE_TRUNC('month', o.order_date) AS sales_month,
-      SUM(oi.quantity * p.price) AS monthly_regional_revenue
-    FROM customers c
-    JOIN orders o ON c.customer_id = o.customer_id
-    WHERE c.region = 'North America'
-      AND o.order_date >= '2023-01-01'
-    JOIN order_items oi ON o.order_id = oi.order_id
-    JOIN products p ON oi.product_id = p.product_id
-    GROUP BY 1, 2
-)
-SELECT 
-    ra.region,
-    ra.sales_month,
-    ra.monthly_regional_revenue
-FROM regional_analysis ra
-ORDER BY
-  ra.sales_month DESC
-LIMIT 500;
--- HINT: Consider using a MEDIUM warehouse for faster execution.
-`;
-
-const mockAnalysisChangesPerformance = [
-    {
-        title: 'Materialized CTE',
-        description: 'Added a hint to materialize the `regional_analysis` CTE, which can speed up queries that reuse the CTE result, at the cost of higher temporary storage.'
-    },
-    {
-        title: 'Filter Pushdown',
-        description: 'Filters were pushed down to reduce intermediate data size, improving join performance.'
-    },
-    {
-        title: 'Warehouse Sizing Hint',
-        description: 'A comment was added to suggest using a larger (MEDIUM) warehouse, which can significantly reduce execution time for this query pattern.'
-    }
-];
-
 const ChangeSummaryCard: React.FC<{ change: { title: string, description: string } }> = ({ change }) => (
     <div className="flex items-start gap-3 p-3 bg-surface-nested rounded-lg">
         <div className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
@@ -205,9 +122,6 @@ const ChangeSummaryCard: React.FC<{ change: { title: string, description: string
         </div>
     </div>
 );
-
-type OptimizationMode = 'Performance' | 'Cost' | 'Balanced';
-type RiskTolerance = 'Low' | 'Medium' | 'High';
 
 const QueryOptimizerView: React.FC<{
     query: QueryListItem | null;
@@ -221,8 +135,6 @@ const QueryOptimizerView: React.FC<{
     const [isLoading, setIsLoading] = useState(false);
     const [analysisChanges, setAnalysisChanges] = useState<(typeof mockAnalysisChangesBalanced)>([]);
     const [hasPlaceholders, setHasPlaceholders] = useState(false);
-    const [optimizationMode, setOptimizationMode] = useState<OptimizationMode>('Balanced');
-    const [riskTolerance, setRiskTolerance] = useState<RiskTolerance>('Medium');
 
     const isDirty = editedQuery !== originalQuery;
 
@@ -234,52 +146,24 @@ const QueryOptimizerView: React.FC<{
         setHasPlaceholders(false);
     }, [query]);
 
-    const runOptimization = (mode: OptimizationMode) => {
+    const runOptimization = () => {
         setIsLoading(true);
         setOptimizedQuery(null);
         setAnalysisChanges([]);
         setHasPlaceholders(false);
 
         setTimeout(() => {
-            switch (mode) {
-                case 'Performance':
-                    setOptimizedQuery(optimizedQueryPerformance);
-                    setAnalysisChanges(mockAnalysisChangesPerformance);
-                    setHasPlaceholders(false);
-                    break;
-                case 'Cost':
-                    setOptimizedQuery(optimizedQueryCost);
-                    setAnalysisChanges(mockAnalysisChangesCost);
-                    setHasPlaceholders(false);
-                    break;
-                case 'Balanced':
-                default:
-                    setOptimizedQuery(optimizedQueryBalanced);
-                    setAnalysisChanges(mockAnalysisChangesBalanced);
-                    setHasPlaceholders(true);
-                    break;
-            }
+            setOptimizedQuery(optimizedQueryBalanced);
+            setAnalysisChanges(mockAnalysisChangesBalanced);
+            setHasPlaceholders(true);
             setIsLoading(false);
         }, 2000);
-    };
-    
-    const handleModeChange = (mode: OptimizationMode) => {
-        setOptimizationMode(mode);
-        if (optimizedQuery || isLoading) {
-            runOptimization(mode);
-        }
     };
     
     const handleReset = () => {
         setEditedQuery(originalQuery);
     };
     
-    const riskOptions: Record<RiskTolerance, string> = {
-        Low: 'Only safe, proven optimizations',
-        Medium: 'Balanced approach, moderate changes',
-        High: 'Aggressive for maximum gains',
-    };
-
     return (
         <div className="p-4 space-y-4 h-full flex flex-col">
              <header className="flex-shrink-0">
@@ -294,57 +178,9 @@ const QueryOptimizerView: React.FC<{
                 </div>
             </header>
 
-            <div className="flex-shrink-0 bg-surface rounded-xl p-6 border border-border-color shadow-sm">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                    <div>
-                        <label className="block text-sm font-bold text-text-strong mb-2">Primary Optimization Goal</label>
-                        <div className="flex items-center bg-surface-nested rounded-lg p-1" role="radiogroup" aria-label="Primary Optimization Goal">
-                            {(['Performance', 'Cost', 'Balanced'] as OptimizationMode[]).map(mode => (
-                                <button
-                                    key={mode}
-                                    onClick={() => handleModeChange(mode)}
-                                    role="radio"
-                                    aria-checked={optimizationMode === mode}
-                                    className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors flex-1 text-center ${
-                                        optimizationMode === mode
-                                            ? 'bg-white shadow-sm text-text-primary'
-                                            : 'text-text-secondary hover:bg-surface-hover'
-                                    }`}
-                                >
-                                    {mode}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-text-strong mb-2">Risk Tolerance</label>
-                        <div className="flex items-stretch gap-2" role="radiogroup" aria-label="Risk Tolerance">
-                            {(['Low', 'Medium', 'High'] as RiskTolerance[]).map(level => {
-                                return (
-                                    <button
-                                        key={level}
-                                        onClick={() => setRiskTolerance(level)}
-                                        role="radio"
-                                        aria-checked={riskTolerance === level}
-                                        className={`p-3 rounded-lg transition-colors flex-1 text-center border ${
-                                            riskTolerance === level
-                                                ? 'bg-status-info-light border-status-info'
-                                                : 'bg-surface-nested border-transparent hover:bg-surface-hover'
-                                        }`}
-                                    >
-                                        <span className={`block text-sm font-semibold ${riskTolerance === level ? 'text-status-info-dark' : 'text-text-primary'}`}>{level}</span>
-                                        <span className="block text-xs text-text-secondary mt-1">{riskOptions[level]}</span>
-                                    </button>
-                                )
-                            })}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <main className="flex-grow flex flex-col lg:flex-row gap-4 overflow-hidden">
+            <main className="flex-grow grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-hidden">
                 {/* Left Panel: Original Query */}
-                <div className="w-full lg:w-1/2 flex flex-col bg-surface p-4 rounded-xl border border-border-color">
+                <div className="w-full flex flex-col bg-surface p-4 rounded-xl border border-border-color">
                     <h3 className="text-base font-semibold text-text-strong mb-2">Your Query</h3>
                     <textarea
                         value={editedQuery}
@@ -355,7 +191,7 @@ const QueryOptimizerView: React.FC<{
                     />
                     <div className="flex items-center gap-2 pt-4 mt-auto">
                         <button
-                            onClick={() => runOptimization(optimizationMode)}
+                            onClick={runOptimization}
                             disabled={!editedQuery.trim() || isLoading}
                             className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full shadow-sm disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
                         >
@@ -370,7 +206,7 @@ const QueryOptimizerView: React.FC<{
                 </div>
 
                 {/* Right Panel: Optimized Query */}
-                <div className="w-full lg:w-1/2 flex flex-col bg-surface p-4 rounded-xl border border-border-color">
+                <div className="w-full flex flex-col bg-surface p-4 rounded-xl border border-border-color">
                     <h3 className="text-base font-semibold text-text-strong mb-2">Optimized by AI</h3>
                     {isLoading ? (
                          <div className="flex-grow flex flex-col items-center justify-center text-center p-8">
@@ -401,8 +237,8 @@ const QueryOptimizerView: React.FC<{
                         </div>
                     ) : (
                         <div className="flex-grow flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-border-color rounded-lg">
-                            <div className="w-12 h-12 bg-surface-nested rounded-full flex items-center justify-center mb-4 border border-border-color">
-                                <IconWand className="w-6 h-6 text-primary" />
+                            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                                <IconWand className="w-8 h-8 text-primary" />
                             </div>
                             <h3 className="font-semibold text-text-primary">Optimized query will appear here</h3>
                             <p className="text-sm text-text-secondary mt-1">Click "Optimize with AI" to generate a new version.</p>
@@ -411,7 +247,7 @@ const QueryOptimizerView: React.FC<{
                 </div>
             </main>
             {analysisChanges.length > 0 && (
-                 <section className="flex-shrink-0 bg-surface p-4 rounded-xl border border-border-color">
+                 <section className="flex-shrink-0 bg-surface p-4 rounded-xl border border-border-color mt-4">
                     <h3 className="text-base font-semibold text-text-strong mb-2">Summary of Changes</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {analysisChanges.map(change => <ChangeSummaryCard key={change.title} change={change} />)}
