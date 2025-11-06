@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -39,7 +40,8 @@ import PasswordResetSuccessPage from './pages/PasswordResetSuccessPage';
 import NotificationsPage from './pages/NotificationsPage';
 import AIQuickAskPanel from './components/AIQuickAskPanel';
 import AIAgent from './pages/AIAgent';
-import QueryLibrary from './pages/QueryLibrary';
+// FIX: Changed to a named import for QueryLibrary as it is not a default export.
+import { QueryLibrary } from './pages/QueryLibrary';
 import QueryLibraryDetailView from './pages/QueryLibraryDetailView';
 
 

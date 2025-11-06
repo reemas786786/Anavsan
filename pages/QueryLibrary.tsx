@@ -28,7 +28,7 @@ interface QueryLibraryProps {
     onRowClick: (file: SQLFile, version: SQLVersion) => void;
 }
 
-const QueryLibrary: React.FC<QueryLibraryProps> = ({ sqlFiles, accounts, onPreview, onNavigateToTool, onRowClick }) => {
+export const QueryLibrary: React.FC<QueryLibraryProps> = ({ sqlFiles, accounts, onPreview, onNavigateToTool, onRowClick }) => {
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'ascending' | 'descending' } | null>({ key: 'date', direction: 'descending' });
@@ -52,7 +52,7 @@ const QueryLibrary: React.FC<QueryLibraryProps> = ({ sqlFiles, accounts, onPrevi
     const libraryItems = useMemo(() => {
         return sqlFiles.flatMap(file => 
             file.versions
-                .filter(version => version.tag === 'Analyzed' || version.tag === 'Optimized')
+                .filter(version => version.tag)
                 .map(version => {
                     const fileNum = file.id.replace('file-', '');
                     const versionNum = version.id.replace('v', '').replace('-', '');
@@ -78,6 +78,10 @@ const QueryLibrary: React.FC<QueryLibraryProps> = ({ sqlFiles, accounts, onPrevi
             users: [...new Set(libraryItems.map(item => item.user).filter(Boolean))] as string[],
         }
     }, [libraryItems]);
+    
+    const totalCount = libraryItems.length;
+    const analyzedCount = libraryItems.filter(item => item.tag === 'Analyzed').length;
+    const optimizedCount = libraryItems.filter(item => item.tag === 'Optimized').length;
 
     const filteredAndSortedItems = useMemo(() => {
         let filtered = libraryItems.filter(item => {
@@ -129,6 +133,18 @@ const QueryLibrary: React.FC<QueryLibraryProps> = ({ sqlFiles, accounts, onPrevi
             <div>
                 <h1 className="text-2xl font-bold text-text-primary">Query Library</h1>
                 <p className="mt-1 text-text-secondary">Access your analyzed and optimized queries for future reference or reuse.</p>
+            </div>
+
+             <div className="flex items-center gap-2">
+                <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm'}>
+                    Total Queries: <span className="font-bold text-text-strong">{totalCount}</span>
+                </div>
+                <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm'}>
+                    Analyzed: <span className="font-bold text-status-warning-dark">{analyzedCount}</span>
+                </div>
+                <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm'}>
+                    Optimized: <span className="font-bold text-status-success-dark">{optimizedCount}</span>
+                </div>
             </div>
 
             <div className="bg-surface rounded-xl flex flex-col">
@@ -208,5 +224,3 @@ const QueryLibrary: React.FC<QueryLibraryProps> = ({ sqlFiles, accounts, onPrevi
         </div>
     );
 };
-
-export default QueryLibrary;
