@@ -168,19 +168,28 @@ const CheckboxItem: React.FC<{ id: string; name: string; label: string; descript
 );
 
 const NotificationPreferenceSection: React.FC = () => {
-    const [emailEnabled, setEmailEnabled] = useState(true);
-    const [preferences, setPreferences] = useState({
-        queryAssignment: true,
-        productUpdates: true,
+    const [prefs, setPrefs] = useState({
+        emailEnabled: true,
+        emailQueryAssignment: true,
+        emailQueryInsights: true,
+        slackEnabled: false,
+        slackChannel: 'Anavsan Channel',
+        slackQueryAssignment: true,
+        slackQueryInsights: true,
     });
 
-    const handlePrefChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setPreferences(prev => ({ ...prev, [e.target.name]: e.target.checked }));
+    const handleToggle = (key: 'emailEnabled' | 'slackEnabled') => {
+        setPrefs(p => ({ ...p, [key]: !p[key] }));
+    };
+
+    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, checked } = e.target;
+        setPrefs(p => ({ ...p, [name]: checked }));
     };
 
     const handleSaveChanges = () => {
         // In a real app, this would make an API call.
-        console.log("Saving preferences:", { emailEnabled, preferences });
+        console.log("Saving preferences:", prefs);
         // Could show a toast message here.
     }
 
@@ -188,29 +197,70 @@ const NotificationPreferenceSection: React.FC = () => {
         <div>
             <h2 className="text-2xl font-bold text-text-strong mb-6">Notification preferences</h2>
             <div className="bg-surface p-8 rounded-2xl">
+                {/* Email Notifications */}
                 <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold text-text-strong">Email notifications</h3>
-                    <ToggleSwitch enabled={emailEnabled} setEnabled={setEmailEnabled} ariaLabel="Enable email notifications" />
+                    <ToggleSwitch enabled={prefs.emailEnabled} setEnabled={() => handleToggle('emailEnabled')} ariaLabel="Enable email notifications" />
                 </div>
 
-                <div className={`mt-6 space-y-6 transition-opacity ${!emailEnabled ? 'opacity-50' : ''}`}>
+                <div className={`mt-6 space-y-6 transition-opacity ${!prefs.emailEnabled ? 'opacity-50' : ''}`}>
                     <CheckboxItem
-                        id="queryAssignment"
-                        name="queryAssignment"
+                        id="emailQueryAssignment"
+                        name="emailQueryAssignment"
                         label="Query assignment"
                         description="Get an email when a query is assigned to you."
-                        checked={preferences.queryAssignment}
-                        onChange={handlePrefChange}
-                        disabled={!emailEnabled}
+                        checked={prefs.emailQueryAssignment}
+                        onChange={handleCheckboxChange}
+                        disabled={!prefs.emailEnabled}
                     />
                     <CheckboxItem
-                        id="productUpdates"
-                        name="productUpdates"
-                        label="Product updates"
+                        id="emailQueryInsights"
+                        name="emailQueryInsights"
+                        label="Query insights"
                         description="Receive news, feature updates, and tips from Anavsan."
-                        checked={preferences.productUpdates}
-                        onChange={handlePrefChange}
-                        disabled={!emailEnabled}
+                        checked={prefs.emailQueryInsights}
+                        onChange={handleCheckboxChange}
+                        disabled={!prefs.emailEnabled}
+                    />
+                </div>
+                
+                {/* Divider */}
+                <div className="my-8 border-t border-border-light"></div>
+
+                {/* Slack Notifications */}
+                <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-text-strong">Slack notifications</h3>
+                    <ToggleSwitch enabled={prefs.slackEnabled} setEnabled={() => handleToggle('slackEnabled')} ariaLabel="Enable Slack notifications" />
+                </div>
+                
+                <div className={`mt-6 space-y-6 transition-opacity ${!prefs.slackEnabled ? 'opacity-50' : ''}`}>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <p className="text-sm font-medium text-text-strong">Your channel name</p>
+                            <p className="text-sm text-text-secondary">{prefs.slackChannel}</p>
+                        </div>
+                        <button disabled={!prefs.slackEnabled} className="flex items-center gap-2 text-sm font-semibold text-primary disabled:text-text-muted disabled:cursor-not-allowed">
+                            Edit <IconEdit className="h-4 w-4" />
+                        </button>
+                    </div>
+
+                    <CheckboxItem
+                        id="slackQueryAssignment"
+                        name="slackQueryAssignment"
+                        label="Query assignment"
+                        description="Get a Slack notification when a query is assigned to you."
+                        checked={prefs.slackQueryAssignment}
+                        onChange={handleCheckboxChange}
+                        disabled={!prefs.slackEnabled}
+                    />
+                    <CheckboxItem
+                        id="slackQueryInsights"
+                        name="slackQueryInsights"
+                        label="Query insights"
+                        description="Get Slack alerts for new query insights."
+                        checked={prefs.slackQueryInsights}
+                        onChange={handleCheckboxChange}
+                        disabled={!prefs.slackEnabled}
                     />
                 </div>
 
@@ -425,9 +475,11 @@ const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, onBack,
                     </button>
                 </div>
             </aside>
-            <main className="flex-1 overflow-y-auto p-4 bg-background">
-                <div className="max-w-4xl space-y-8">
-                    {renderSection()}
+            <main className="flex-1 overflow-y-auto bg-background">
+                <div className="p-4 md:p-8">
+                    <div className="max-w-4xl space-y-12">
+                        {renderSection()}
+                    </div>
                 </div>
             </main>
         </div>
