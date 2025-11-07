@@ -1,9 +1,8 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { SQLFile, Account, SQLVersion, User } from '../types';
-import { IconSearch, IconDotsVertical, IconWand, IconBeaker, IconView, IconArrowUp, IconArrowDown } from '../constants';
+import { IconSearch, IconArrowUp, IconArrowDown } from '../constants';
 import Pagination from '../components/Pagination';
 import MultiSelectDropdown from '../components/MultiSelectDropdown';
-import SidePanel from '../components/SidePanel';
 
 const Tag: React.FC<{ tag?: string }> = ({ tag }) => {
     if (!tag) return null;
@@ -23,14 +22,10 @@ const Tag: React.FC<{ tag?: string }> = ({ tag }) => {
 interface QueryLibraryProps {
     sqlFiles: SQLFile[];
     accounts: Account[];
-    onPreview: (file: SQLFile, version: SQLVersion) => void;
-    onNavigateToTool: (file: SQLFile, version: SQLVersion, tool: 'analyzer' | 'optimizer' | 'simulator') => void;
     onRowClick: (file: SQLFile, version: SQLVersion) => void;
 }
 
-export const QueryLibrary: React.FC<QueryLibraryProps> = ({ sqlFiles, accounts, onPreview, onNavigateToTool, onRowClick }) => {
-    const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-    const menuRef = useRef<HTMLDivElement>(null);
+export const QueryLibrary: React.FC<QueryLibraryProps> = ({ sqlFiles, accounts, onRowClick }) => {
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'ascending' | 'descending' } | null>({ key: 'date', direction: 'descending' });
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -38,16 +33,6 @@ export const QueryLibrary: React.FC<QueryLibraryProps> = ({ sqlFiles, accounts, 
     const [accountFilter, setAccountFilter] = useState<string[]>([]);
     const [tagFilter, setTagFilter] = useState<string[]>([]);
     const [userFilter, setUserFilter] = useState<string[]>([]);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setOpenMenuId(null);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
 
     const libraryItems = useMemo(() => {
         return sqlFiles.flatMap(file => 
@@ -175,7 +160,6 @@ export const QueryLibrary: React.FC<QueryLibraryProps> = ({ sqlFiles, accounts, 
                                 <th scope="col" className="px-6 py-4 font-semibold text-left"><button onClick={() => requestSort('user')} className="group flex items-center">User <SortIcon columnKey="user" /></button></th>
                                 <th scope="col" className="px-6 py-4 font-semibold text-left"><button onClick={() => requestSort('tag')} className="group flex items-center">Tag <SortIcon columnKey="tag" /></button></th>
                                 <th scope="col" className="px-6 py-4 font-semibold text-left"><button onClick={() => requestSort('date')} className="group flex items-center">Execution date <SortIcon columnKey="date" /></button></th>
-                                <th scope="col" className="px-6 py-4 font-semibold text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="text-text-secondary">
@@ -186,23 +170,6 @@ export const QueryLibrary: React.FC<QueryLibraryProps> = ({ sqlFiles, accounts, 
                                     <td className="px-6 py-3">{item.user}</td>
                                     <td className="px-6 py-3"><Tag tag={item.tag} /></td>
                                     <td className="px-6 py-3">{new Date(item.date).toLocaleDateString()}</td>
-                                    <td className="px-6 py-3 text-right">
-                                        <div className="relative inline-block text-left" ref={openMenuId === item.id ? menuRef : null}>
-                                            <button onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }} title="Actions" className="p-2 text-text-secondary hover:text-primary rounded-full hover:bg-primary/10 transition-colors">
-                                                <IconDotsVertical className="h-5 w-5"/>
-                                            </button>
-                                            {openMenuId === item.id && (
-                                                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg bg-surface shadow-lg z-20 border border-border-color">
-                                                    <div className="py-1" role="menu">
-                                                        <button onClick={() => { onPreview(item.file, item.version); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem"><IconView className="h-4 w-4"/> Preview</button>
-                                                        <button onClick={() => { onNavigateToTool(item.file, item.version, 'analyzer'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem"><IconSearch className="h-4 w-4"/> Analyze</button>
-                                                        <button onClick={() => { onNavigateToTool(item.file, item.version, 'optimizer'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem"><IconWand className="h-4 w-4"/> Optimize</button>
-                                                        <button onClick={() => { onNavigateToTool(item.file, item.version, 'simulator'); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem"><IconBeaker className="h-4 w-4"/> Simulate</button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </td>
                                 </tr>
                             ))}
                         </tbody>

@@ -1,7 +1,4 @@
 
-
-
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -416,43 +413,6 @@ const App: React.FC = () => {
     setSidePanel({ type: 'assignedQueryPreview', data: assignedQuery });
   };
 
-  const createQueryItemFromVersion = (file: SQLFile, version: SQLVersion): QueryListItem => ({
-    id: `version-${version.id}`,
-    queryText: version.sql || file.name,
-    warehouse: 'COMPUTE_WH', // Mocked as it's not in the version data
-    costUSD: 0,
-    costCredits: 0,
-    status: 'Success',
-    duration: '00:00:00',
-    estSavingsUSD: 0,
-    estSavingsPercent: 0,
-    timestamp: version.date,
-    type: ['SELECT'], // Mocked
-    user: 'Library User', // Mocked
-    bytesScanned: 0,
-    bytesWritten: 0,
-    severity: 'Low',
-  });
-
-  const handlePreviewFromLibrary = (file: SQLFile, version: SQLVersion) => {
-      const queryItem = createQueryItemFromVersion(file, version);
-      setSidePanel({ type: 'queryPreview', data: queryItem });
-  };
-
-  const handleNavigateToToolFromLibrary = (file: SQLFile, version: SQLVersion, tool: 'analyzer' | 'optimizer' | 'simulator') => {
-      const account = accounts.find(a => a.id === file.accountId);
-      if (!account) {
-          showToast(`Error: Account '${file.accountName}' not found.`);
-          return;
-      }
-      const queryItem = createQueryItemFromVersion(file, version);
-      
-      setSelectedAccount(account);
-      setAnalyzingQuery(queryItem);
-      setNavigationSource('Query Library');
-      setAccountViewPage(`Query ${tool}`);
-  };
-
   const renderPage = () => {
     if (selectedLibraryItem) {
         return <QueryLibraryDetailView 
@@ -556,8 +516,6 @@ const App: React.FC = () => {
             return <QueryLibrary
                 sqlFiles={sqlFiles}
                 accounts={accounts}
-                onPreview={handlePreviewFromLibrary}
-                onNavigateToTool={handleNavigateToToolFromLibrary}
                 onRowClick={(file, version) => setSelectedLibraryItem({ file, version })}
             />;
         case 'Assigned Queries':
