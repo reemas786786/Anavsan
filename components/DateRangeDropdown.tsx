@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { IconChevronDown, IconChevronLeft, IconChevronRight, IconCalendar } from '../constants';
 
@@ -127,7 +128,7 @@ const DateRangeDropdown: React.FC<DateRangeDropdownProps> = ({ selectedValue, on
                 aria-haspopup="listbox"
                 aria-expanded={isOpen}
             >
-                <span className="text-text-secondary">Time range:</span>
+                <span className="text-text-secondary">Date range:</span>
                 <span className="font-bold text-text-primary">{displayLabel()}</span>
                 <IconChevronDown className={`h-4 w-4 text-text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>

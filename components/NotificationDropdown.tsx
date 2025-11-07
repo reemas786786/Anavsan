@@ -19,6 +19,7 @@ const NotificationIcon: React.FC<{ type: NotificationType, className?: string }>
         case 'performance':
         case 'TABLE_SCAN':
         case 'JOIN_INEFFICIENCY':
+        case 'WAREHOUSE_IDLE':
             return <IconBell className={className} />;
         case 'latency':
             return <IconExclamationTriangle className={className} />;

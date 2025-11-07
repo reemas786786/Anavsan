@@ -115,7 +115,6 @@ const Header: React.FC<HeaderProps> = ({
                 isOpen={isNotificationsOpen}
                 onClose={() => setIsNotificationsOpen(false)}
                 notifications={notifications}
-                // FIX: Correct prop name from onMarkAllAsRead to onMarkAllNotificationsAsRead.
                 onMarkAllAsRead={onMarkAllNotificationsAsRead}
                 onViewAll={() => {
                     onNavigate('Notifications');

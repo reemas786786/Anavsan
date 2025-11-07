@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useRef, useEffect } from 'react';
 import { IconChevronLeft, IconChevronRight, IconUser, IconBell, IconChevronDown } from '../constants';
 import UserManagement from './settings/UserManagement';
@@ -86,7 +87,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                         onEditUserRole={onEditUserRoleClick}
                         onSuspendUser={onSuspendUserClick}
                         onActivateUserClick={onActivateUserClick}
-                        // FIX: Correct prop name from onRemoveUser to onRemoveUserClick
                         onRemoveUserClick={onRemoveUserClick}
                     />
                 );

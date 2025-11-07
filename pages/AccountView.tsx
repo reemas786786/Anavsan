@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Account, SQLFile, BigScreenWidget, QueryListItem, PullRequest, User, QueryListFilters, SlowQueryFilters, BreadcrumbItem, Warehouse } from '../types';
 import AccountOverviewDashboard from './AccountOverviewDashboard';
@@ -12,7 +13,6 @@ import {
     IconChevronRight,
     IconCheck,
 } from '../constants';
-// FIX: Changed to a default import as QueryListView is the default export.
 import QueryListView from './QueryListView';
 import StorageSummaryView from './StorageSummaryView';
 import DatabasesView from './DatabasesView';

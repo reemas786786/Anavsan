@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { User } from '../types';
 import { IconUser, IconLockClosed, IconBell, IconPhoto, IconEdit, IconChevronLeft, IconChevronRight, IconAdjustments } from '../constants';
 
@@ -168,7 +168,7 @@ const CheckboxItem: React.FC<{ id: string; name: string; label: string; descript
 );
 
 const NotificationPreferenceSection: React.FC = () => {
-    const [prefs, setPrefs] = useState({
+    const [savedPrefs, setSavedPrefs] = useState({
         emailEnabled: true,
         emailQueryAssignment: true,
         emailQueryInsights: true,
@@ -177,20 +177,31 @@ const NotificationPreferenceSection: React.FC = () => {
         slackQueryAssignment: true,
         slackQueryInsights: true,
     });
+    const [tempPrefs, setTempPrefs] = useState(savedPrefs);
+    const [isEditingChannel, setIsEditingChannel] = useState(false);
+
+    const hasChanges = useMemo(() => JSON.stringify(savedPrefs) !== JSON.stringify(tempPrefs), [savedPrefs, tempPrefs]);
 
     const handleToggle = (key: 'emailEnabled' | 'slackEnabled') => {
-        setPrefs(p => ({ ...p, [key]: !p[key] }));
+        setTempPrefs(p => ({ ...p, [key]: !p[key] }));
     };
 
     const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, checked } = e.target;
-        setPrefs(p => ({ ...p, [name]: checked }));
+        setTempPrefs(p => ({ ...p, [name]: checked }));
     };
 
     const handleSaveChanges = () => {
+        setSavedPrefs(tempPrefs);
+        setIsEditingChannel(false);
         // In a real app, this would make an API call.
-        console.log("Saving preferences:", prefs);
+        console.log("Saving preferences:", tempPrefs);
         // Could show a toast message here.
+    }
+    
+    const handleCancelChanges = () => {
+        setTempPrefs(savedPrefs);
+        setIsEditingChannel(false);
     }
 
     return (
@@ -200,27 +211,27 @@ const NotificationPreferenceSection: React.FC = () => {
                 {/* Email Notifications */}
                 <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold text-text-strong">Email notifications</h3>
-                    <ToggleSwitch enabled={prefs.emailEnabled} setEnabled={() => handleToggle('emailEnabled')} ariaLabel="Enable email notifications" />
+                    <ToggleSwitch enabled={tempPrefs.emailEnabled} setEnabled={() => handleToggle('emailEnabled')} ariaLabel="Enable email notifications" />
                 </div>
 
-                <div className={`mt-6 space-y-6 transition-opacity ${!prefs.emailEnabled ? 'opacity-50' : ''}`}>
+                <div className={`mt-6 space-y-6 transition-opacity ${!tempPrefs.emailEnabled ? 'opacity-50' : ''}`}>
                     <CheckboxItem
                         id="emailQueryAssignment"
                         name="emailQueryAssignment"
                         label="Query assignment"
                         description="Get an email when a query is assigned to you."
-                        checked={prefs.emailQueryAssignment}
+                        checked={tempPrefs.emailQueryAssignment}
                         onChange={handleCheckboxChange}
-                        disabled={!prefs.emailEnabled}
+                        disabled={!tempPrefs.emailEnabled}
                     />
                     <CheckboxItem
                         id="emailQueryInsights"
                         name="emailQueryInsights"
                         label="Query insights"
                         description="Receive news, feature updates, and tips from Anavsan."
-                        checked={prefs.emailQueryInsights}
+                        checked={tempPrefs.emailQueryInsights}
                         onChange={handleCheckboxChange}
-                        disabled={!prefs.emailEnabled}
+                        disabled={!tempPrefs.emailEnabled}
                     />
                 </div>
                 
@@ -230,42 +241,70 @@ const NotificationPreferenceSection: React.FC = () => {
                 {/* Slack Notifications */}
                 <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold text-text-strong">Slack notifications</h3>
-                    <ToggleSwitch enabled={prefs.slackEnabled} setEnabled={() => handleToggle('slackEnabled')} ariaLabel="Enable Slack notifications" />
+                    <ToggleSwitch enabled={tempPrefs.slackEnabled} setEnabled={() => handleToggle('slackEnabled')} ariaLabel="Enable Slack notifications" />
                 </div>
                 
-                <div className={`mt-6 space-y-6 transition-opacity ${!prefs.slackEnabled ? 'opacity-50' : ''}`}>
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <p className="text-sm font-medium text-text-strong">Your channel name</p>
-                            <p className="text-sm text-text-secondary">{prefs.slackChannel}</p>
+                <div className={`mt-6 space-y-6 transition-opacity ${!tempPrefs.slackEnabled ? 'opacity-50' : ''}`}>
+                    {isEditingChannel ? (
+                        <div className="space-y-2">
+                            <label htmlFor="slack-channel-input" className="text-sm font-medium text-text-strong">Your channel name</label>
+                            <input
+                                id="slack-channel-input"
+                                type="text"
+                                value={tempPrefs.slackChannel}
+                                onChange={(e) => setTempPrefs(p => ({ ...p, slackChannel: e.target.value }))}
+                                className="w-full border border-border-color rounded-full px-4 py-2 text-sm focus:ring-primary focus:border-primary bg-input-bg"
+                                disabled={!tempPrefs.slackEnabled}
+                            />
                         </div>
-                        <button disabled={!prefs.slackEnabled} className="flex items-center gap-2 text-sm font-semibold text-primary disabled:text-text-muted disabled:cursor-not-allowed">
-                            Edit <IconEdit className="h-4 w-4" />
-                        </button>
-                    </div>
+                    ) : (
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <p className="text-sm font-medium text-text-strong">Your channel name</p>
+                                <p className="text-sm text-text-secondary">{tempPrefs.slackChannel}</p>
+                            </div>
+                            <button
+                                onClick={() => setIsEditingChannel(true)}
+                                disabled={!tempPrefs.slackEnabled}
+                                className="flex items-center gap-2 text-sm font-semibold text-primary disabled:text-text-muted disabled:cursor-not-allowed"
+                            >
+                                Edit <IconEdit className="h-4 w-4" />
+                            </button>
+                        </div>
+                    )}
+
 
                     <CheckboxItem
                         id="slackQueryAssignment"
                         name="slackQueryAssignment"
                         label="Query assignment"
                         description="Get a Slack notification when a query is assigned to you."
-                        checked={prefs.slackQueryAssignment}
+                        checked={tempPrefs.slackQueryAssignment}
                         onChange={handleCheckboxChange}
-                        disabled={!prefs.slackEnabled}
+                        disabled={!tempPrefs.slackEnabled}
                     />
                     <CheckboxItem
                         id="slackQueryInsights"
                         name="slackQueryInsights"
                         label="Query insights"
                         description="Get Slack alerts for new query insights."
-                        checked={prefs.slackQueryInsights}
+                        checked={tempPrefs.slackQueryInsights}
                         onChange={handleCheckboxChange}
-                        disabled={!prefs.slackEnabled}
+                        disabled={!tempPrefs.slackEnabled}
                     />
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-border-light flex justify-end">
-                    <button onClick={handleSaveChanges} className="bg-button-secondary-bg text-primary font-semibold px-6 py-2 rounded-full hover:bg-button-secondary-bg-hover transition-colors">
+                <div className="mt-8 pt-6 border-t border-border-light flex justify-end gap-3">
+                    {hasChanges && (
+                        <button onClick={handleCancelChanges} className="bg-button-secondary-bg text-primary font-semibold px-6 py-2 rounded-full hover:bg-button-secondary-bg-hover transition-colors">
+                            Cancel
+                        </button>
+                    )}
+                    <button
+                        onClick={handleSaveChanges}
+                        disabled={!hasChanges}
+                        className="bg-primary text-white font-semibold px-6 py-2 rounded-full hover:bg-primary-hover transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    >
                         Save Changes
                     </button>
                 </div>

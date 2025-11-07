@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { queryListData as initialData, warehousesData, usersData as allUsersData } from '../data/dummyData';
 import { QueryListItem, QueryType, QueryListFilters } from '../types';
@@ -42,7 +43,6 @@ const allColumns = [
     { key: 'actions', label: 'Actions' },
 ];
 
-// FIX: Corrected syntax and completed the component definition. Added 'query' to destructuring to fix "Cannot find name 'query'" error.
 const QueryIdCell: React.FC<{ query: QueryListItem; onSelectQuery: (query: QueryListItem) => void; }> = ({ query, onSelectQuery }) => {
     const [isCopied, setIsCopied] = useState(false);
 

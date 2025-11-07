@@ -1,4 +1,7 @@
 
+
+
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -20,7 +23,7 @@ import Modal from './components/Modal';
 import Toast from './components/Toast';
 import BigScreenView from './components/BigScreenView';
 import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem, BigScreenWidget, QueryListItem, AssignedQuery, AssignmentPriority, AssignmentStatus, PullRequest, Notification, ActivityLog, BreadcrumbItem, Warehouse, SQLVersion } from './types';
-import { connectionsData, sqlFilesData as initialSqlFiles, usersData, dashboardsData as initialDashboardsData, assignedQueriesData, pullRequestsData, notificationsData as initialNotificationsData, activityLogsData, warehousesData } from './data/dummyData';
+import { connectionsData, sqlFilesData as initialSqlFiles, usersData, dashboardsData as initialDashboardsData, assignedQueriesData, pullRequestsData, notificationsData as initialNotificationsData, activityLogsData, warehousesData, queryListData } from './data/dummyData';
 import { accountNavItems } from './constants';
 import SettingsPage from './pages/SettingsPage';
 import Dashboards from './pages/Dashboards';
@@ -40,12 +43,12 @@ import PasswordResetSuccessPage from './pages/PasswordResetSuccessPage';
 import NotificationsPage from './pages/NotificationsPage';
 import AIQuickAskPanel from './components/AIQuickAskPanel';
 import AIAgent from './pages/AIAgent';
-// FIX: Changed to a named import for QueryLibrary as it is not a default export.
 import { QueryLibrary } from './pages/QueryLibrary';
 import QueryLibraryDetailView from './pages/QueryLibraryDetailView';
+import AssignedQueryModalContent from './components/AssignedQueryModalContent';
 
 
-type SidePanelType = 'addAccount' | 'saveQuery' | 'editUser' | 'assignQuery' | 'queryPreview';
+type SidePanelType = 'addAccount' | 'saveQuery' | 'editUser' | 'assignQuery' | 'queryPreview' | 'assignedQueryPreview';
 type ModalType = 'addUser';
 type Theme = 'light' | 'dark' | 'gray10' | 'black' | 'system';
 type AuthScreen = 'login' | 'signup' | 'submitted' | 'forgotPassword' | 'checkEmail' | 'createNewPassword' | 'passwordResetSuccess';
@@ -313,7 +316,8 @@ const App: React.FC = () => {
 
   const handleMarkNotificationAsRead = (notificationId: string) => {
       setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
-      showToast("Insight marked as read.");
+      // Do not show toast for implicit "mark as read"
+      // showToast("Insight marked as read.");
   };
 
   const handleClearNotification = (id: string) => {
@@ -407,6 +411,10 @@ const App: React.FC = () => {
     };
     setSidePanel({ type: 'queryPreview', data: queryListItem });
 };
+
+  const handleOpenAssignedQueryPreview = (assignedQuery: AssignedQuery) => {
+    setSidePanel({ type: 'assignedQueryPreview', data: assignedQuery });
+  };
 
   const createQueryItemFromVersion = (file: SQLFile, version: SQLVersion): QueryListItem => ({
     id: `version-${version.id}`,
@@ -595,6 +603,7 @@ const App: React.FC = () => {
             return <NotificationsPage 
                 notifications={notifications} 
                 activityLogs={activityLogs} 
+                assignedQueries={assignedQueries}
                 onMarkAllAsRead={handleMarkAllNotificationsAsRead} 
                 onClearNotification={handleClearNotification} 
                 users={users} 
@@ -603,6 +612,7 @@ const App: React.FC = () => {
                 onNavigateToWarehouse={handleNavigateToWarehouse}
                 onNavigateToQuery={handleNavigateToQuery}
                 onMarkNotificationAsRead={handleMarkNotificationAsRead}
+                onOpenAssignedQueryPreview={handleOpenAssignedQueryPreview}
             />;
         default:
             return <Overview onSelectAccount={setSelectedAccount} onSelectUser={setSelectedUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} currentUser={currentUser} />;
@@ -739,6 +749,17 @@ const App: React.FC = () => {
   const managesOwnScroll = useMemo(() => {
     return !!(selectedAccount || activePage === 'Notifications' || activePage === 'Settings' || activePage === 'Profile Settings' || editingDashboard || isViewingDashboard || selectedLibraryItem);
   }, [selectedAccount, activePage, editingDashboard, isViewingDashboard, selectedLibraryItem]);
+  
+  const handleSidePanelClose = () => {
+    if (sidePanel?.type === 'assignedQueryPreview' && sidePanel.data) {
+        const assignedQuery = sidePanel.data as AssignedQuery;
+        const notif = notifications.find(n => n.queryId === assignedQuery.queryId && n.insightTypeId === 'QUERY_ASSIGNED');
+        if (notif && !notif.isRead) {
+            handleMarkNotificationAsRead(notif.id);
+        }
+    }
+    setSidePanel(null);
+  };
 
   return (
     <>
@@ -825,43 +846,43 @@ const App: React.FC = () => {
 
       <SidePanel
         isOpen={sidePanel?.type === 'addAccount'}
-        onClose={() => setSidePanel(null)}
+        onClose={handleSidePanelClose}
         title="Add Snowflake Account"
       >
-        <AddAccountFlow onCancel={() => setSidePanel(null)} onAddAccount={handleAddAccount} />
+        <AddAccountFlow onCancel={handleSidePanelClose} onAddAccount={handleAddAccount} />
       </SidePanel>
       
       <SidePanel
         isOpen={sidePanel?.type === 'saveQuery'}
-        onClose={() => setSidePanel(null)}
+        onClose={handleSidePanelClose}
         title="Save Query Version"
       >
-        <SaveQueryFlow files={sqlFiles} onCancel={() => setSidePanel(null)} onSave={handleSaveQuery} />
+        <SaveQueryFlow files={sqlFiles} onCancel={handleSidePanelClose} onSave={handleSaveQuery} />
       </SidePanel>
       
       <SidePanel
         isOpen={sidePanel?.type === 'editUser'}
-        onClose={() => setSidePanel(null)}
+        onClose={handleSidePanelClose}
         title="Edit User Role"
       >
         {sidePanel?.type === 'editUser' && sidePanel.data && (
-            <EditUserRoleFlow user={sidePanel.data} onCancel={() => setSidePanel(null)} onSave={handleEditUserRole} />
+            <EditUserRoleFlow user={sidePanel.data} onCancel={handleSidePanelClose} onSave={handleEditUserRole} />
         )}
       </SidePanel>
 
        <SidePanel
             isOpen={sidePanel?.type === 'assignQuery'}
-            onClose={() => setSidePanel(null)}
+            onClose={handleSidePanelClose}
             title="Assign query"
         >
             {sidePanel?.type === 'assignQuery' && sidePanel.data && (
-                <AssignQueryFlow query={sidePanel.data} users={users} onCancel={() => setSidePanel(null)} onAssign={handleAssignQuery} />
+                <AssignQueryFlow query={sidePanel.data} users={users} onCancel={handleSidePanelClose} onAssign={handleAssignQuery} />
             )}
        </SidePanel>
 
        <SidePanel
             isOpen={sidePanel?.type === 'queryPreview'}
-            onClose={() => setSidePanel(null)}
+            onClose={handleSidePanelClose}
             title="Query Preview"
         >
             {sidePanel?.type === 'queryPreview' && sidePanel.data && (
@@ -873,6 +894,34 @@ const App: React.FC = () => {
                 />
             )}
        </SidePanel>
+
+        <SidePanel
+            isOpen={sidePanel?.type === 'assignedQueryPreview'}
+            onClose={handleSidePanelClose}
+            title="Assigned Query for Review"
+        >
+            {sidePanel?.type === 'assignedQueryPreview' && sidePanel.data && (
+                <AssignedQueryModalContent
+                    assignedQuery={sidePanel.data}
+                    onGoToQueryDetails={() => {
+                        const assignedQuery = sidePanel.data as AssignedQuery;
+
+                        const notif = notifications.find(n => n.queryId === assignedQuery.queryId && n.insightTypeId === 'QUERY_ASSIGNED');
+                        if (notif && !notif.isRead) {
+                            handleMarkNotificationAsRead(notif.id);
+                        }
+
+                        const queryItem = queryListData.find(q => q.id === assignedQuery.queryId);
+                        const account = accounts.find(acc => acc.name.toLowerCase().includes('prod'));
+
+                        if (queryItem && account) {
+                            handleNavigateToQuery(account, queryItem);
+                        }
+                        setSidePanel(null);
+                    }}
+                />
+            )}
+        </SidePanel>
 
       <Modal
         isOpen={modal?.type === 'addUser'}

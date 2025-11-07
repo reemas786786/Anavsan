@@ -1,7 +1,9 @@
 
 
+
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Notification, ActivityLog, User, NotificationType, NotificationSeverity, ActivityLogStatus, Account, Warehouse, QueryListItem } from '../types';
+import { Notification, ActivityLog, User, NotificationType, NotificationSeverity, ActivityLogStatus, Account, Warehouse, QueryListItem, AssignedQuery } from '../types';
 import { queryListData, warehousesData } from '../data/dummyData';
 import { IconBell, IconFileText, IconDelete, IconBolt, IconClock, IconExclamationTriangle, IconList, IconChevronDown, IconChevronLeft, IconChevronRight, IconSearch, IconArrowUp, IconArrowDown, IconInfo, IconWand } from '../constants';
 import DateRangeDropdown from '../components/DateRangeDropdown';
@@ -74,26 +76,17 @@ const ActivityStatusBadge: React.FC<{ status: ActivityLogStatus }> = ({ status }
 
 // --- INSIGHT DETAIL PANEL ---
 
-interface InsightDetailPanelProps {
+interface InsightDetailPanelContentProps {
     insight: Notification;
     accounts: Account[];
     onClose: () => void;
     onNavigateToWarehouse: (account: Account, warehouse: Warehouse) => void;
     onNavigateToQuery: (account: Account, query: QueryListItem) => void;
-    onMarkAsRead: (id: string) => void;
 }
 
-const InsightDetailPanel: React.FC<InsightDetailPanelProps> = ({ insight, accounts, onClose, onNavigateToWarehouse, onNavigateToQuery, onMarkAsRead }) => {
-    
-    useEffect(() => {
-        if (!insight.isRead) {
-            onMarkAsRead(insight.id);
-        }
-    }, [insight, onMarkAsRead]);
-
+const InsightDetailPanelContent: React.FC<InsightDetailPanelContentProps> = ({ insight, accounts, onClose, onNavigateToWarehouse, onNavigateToQuery }) => {
     const warehouse = useMemo(() => warehousesData.find(w => w.name === insight.warehouseName), [insight.warehouseName]);
     const query = useMemo(() => queryListData.find(q => q.id === insight.queryId), [insight.queryId]);
-    // For now, assume all notifications belong to the first account for navigation purposes.
     const account = accounts.length > 0 ? accounts[0] : null;
 
     const handleWarehouseClick = () => {
@@ -114,9 +107,29 @@ const InsightDetailPanel: React.FC<InsightDetailPanelProps> = ({ insight, accoun
         month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
     });
 
+    const formatBytes = (bytes: number) => {
+        if (!bytes || bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    };
+
+    const DetailItem: React.FC<{ label: string, value: React.ReactNode }> = ({ label, value }) => (
+        <div>
+            <p className="text-xs text-text-secondary uppercase tracking-wider">{label}</p>
+            <div className="text-lg font-semibold text-text-primary mt-1">{value}</div>
+        </div>
+    );
+    
+    const isCostSpike = insight.insightTopic === 'COST_SPIKE';
+    const showFooter = (query && !isCostSpike) || (isCostSpike && warehouse);
+
+
     return (
         <div className="flex flex-col h-full">
-            <div className="p-6 space-y-4 flex-grow">
+            <div className="p-6 space-y-6 flex-grow overflow-y-auto">
+                {/* Title Block */}
                 <div className="pb-4 border-b border-border-color">
                     <h3 className="text-lg font-bold text-text-strong">{insight.insightTopic.replace(/_/g, ' ')} Detected</h3>
                     <div className="flex items-center gap-4 text-sm text-text-secondary mt-1">
@@ -125,6 +138,19 @@ const InsightDetailPanel: React.FC<InsightDetailPanelProps> = ({ insight, accoun
                     </div>
                 </div>
 
+                {/* KPM Card */}
+                {query && (
+                    <div>
+                        <h4 className="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-2">Key Performance Metrics</h4>
+                        <div className="grid grid-cols-3 gap-4 bg-surface-nested p-4 rounded-xl">
+                            <DetailItem label="Cost" value={`${query.costCredits.toFixed(3)} credits`} />
+                            <DetailItem label="Duration" value={query.duration} />
+                            <DetailItem label="Data Scanned" value={formatBytes(query.bytesScanned)} />
+                        </div>
+                    </div>
+                )}
+
+                {/* Contextual Details */}
                 <div className="space-y-4 text-sm">
                     {warehouse && (
                         <div>
@@ -142,16 +168,34 @@ const InsightDetailPanel: React.FC<InsightDetailPanelProps> = ({ insight, accoun
                         <label className="font-semibold text-text-secondary">Message</label>
                         <p className="text-text-primary mt-1">{insight.message}</p>
                     </div>
-                     <div>
-                        <label className="font-semibold text-text-secondary">Suggestion</label>
-                        <p className="text-text-primary mt-1">{insight.suggestions}</p>
+                </div>
+
+                {/* Recommendation Block */}
+                <div>
+                    <h4 className="flex items-center gap-2 text-base font-semibold text-text-strong">
+                        <span role="img" aria-label="lightbulb">💡</span>
+                        Recommendation
+                    </h4>
+                    <div className="mt-2 bg-primary/5 border border-primary/20 p-4 rounded-lg">
+                        <p className="text-text-primary text-sm">{insight.suggestions}</p>
                     </div>
                 </div>
             </div>
 
-            <div className="p-6 bg-background flex justify-end items-center gap-3 flex-shrink-0">
-                <button onClick={() => onMarkAsRead(insight.id)} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-gray-50">Mark as Read</button>
-            </div>
+            {/* Action Footer */}
+            {showFooter && (
+                <div className="p-6 bg-background mt-auto flex justify-end items-center flex-shrink-0 border-t border-border-color">
+                    {isCostSpike ? (
+                        <button onClick={handleWarehouseClick} className="bg-primary text-white font-semibold px-6 py-2.5 rounded-full hover:bg-primary-hover transition-colors shadow-sm">
+                            Investigate Warehouse Activity
+                        </button>
+                    ) : (
+                        <button onClick={handleQueryClick} className="bg-primary text-white font-semibold px-6 py-2.5 rounded-full hover:bg-primary-hover transition-colors shadow-sm">
+                            View Query Details
+                        </button>
+                    )}
+                </div>
+            )}
         </div>
     );
 };
@@ -161,6 +205,7 @@ const InsightDetailPanel: React.FC<InsightDetailPanelProps> = ({ insight, accoun
 
 interface AlertsViewProps {
     notifications: Notification[];
+    assignedQueries: AssignedQuery[];
     onMarkAllAsRead: () => void;
     onClearNotification: (id: string) => void;
     // Props for side panel navigation
@@ -168,10 +213,11 @@ interface AlertsViewProps {
     onNavigateToWarehouse: (account: Account, warehouse: Warehouse) => void;
     onNavigateToQuery: (account: Account, query: QueryListItem) => void;
     onMarkNotificationAsRead: (id: string) => void;
+    onOpenAssignedQueryPreview: (assignedQuery: AssignedQuery) => void;
 }
 
 const AlertsView: React.FC<AlertsViewProps> = (props) => {
-    const { notifications } = props;
+    const { notifications, assignedQueries, onOpenAssignedQueryPreview } = props;
     const [search, setSearch] = useState('');
     const [dateFilter, setDateFilter] = useState<string | { start: string; end: string }>('All');
     const [typeFilter, setTypeFilter] = useState<string[]>([]);
@@ -234,6 +280,14 @@ const AlertsView: React.FC<AlertsViewProps> = (props) => {
             month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
         });
     };
+    
+    const handleCloseInsightPanel = () => {
+        if (selectedInsight && !selectedInsight.isRead) {
+            props.onMarkNotificationAsRead(selectedInsight.id);
+        }
+        setSelectedInsight(null);
+    };
+
 
     return (
         <div className="space-y-4">
@@ -248,11 +302,11 @@ const AlertsView: React.FC<AlertsViewProps> = (props) => {
                     <DateRangeDropdown selectedValue={dateFilter} onChange={setDateFilter} />
                     <MultiSelectDropdown label="Insight Type" options={filterOptions.types} selectedOptions={typeFilter} onChange={setTypeFilter} selectionMode="single" />
                     <MultiSelectDropdown label="Status" options={['Unread', 'Read']} selectedOptions={readStatusFilter} onChange={setReadStatusFilter} selectionMode="single" />
-                    <div className="relative flex-grow ml-auto">
+                    <div className="relative ml-auto" style={{width: '350px'}}>
                         <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
                         <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search messages or warehouse/query..." className="w-full pl-10 pr-4 py-2 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary" />
                     </div>
-                    <button onClick={props.onMarkAllAsRead} className="ml-4 text-sm font-semibold px-4 py-2 rounded-full border border-border-color bg-surface hover:bg-surface-hover text-link whitespace-nowrap">
+                    <button onClick={props.onMarkAllAsRead} className="ml-4 text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-surface-hover text-primary whitespace-nowrap">
                         Mark all as read
                     </button>
                 </div>
@@ -268,19 +322,27 @@ const AlertsView: React.FC<AlertsViewProps> = (props) => {
                         </thead>
                         <tbody className="text-text-secondary bg-surface">
                              {paginatedNotifications.map(n => (
-                                <tr key={n.id} className="border-b border-border-light last:border-b-0 hover:bg-surface-hover">
+                                <tr key={n.id} className={`border-b border-border-light last:border-b-0 hover:bg-surface-hover ${!n.isRead ? 'bg-gray-100 dark:bg-gray-800/50' : 'bg-surface'}`}>
                                     <td className="px-6 py-3">
                                         <div className="flex items-center gap-2">
-                                            {!n.isRead && <div className="w-2 h-2 bg-primary rounded-full"></div>}
-                                            <span className={`capitalize font-medium ${!n.isRead ? 'text-text-primary' : ''}`}>{n.insightTopic.replace(/_/g, ' ').toLowerCase()}</span>
+                                            <span className={`capitalize ${!n.isRead ? 'font-bold text-text-strong' : 'font-medium'}`}>{n.insightTypeId === 'QUERY_ASSIGNED' ? 'Query Assignment' : n.insightTopic.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, s => s.toUpperCase())}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-3">
-                                        <div className={`${!n.isRead ? 'text-text-primary' : ''}`}>{n.message}</div>
+                                        <div className={`${!n.isRead ? 'font-bold text-text-strong' : ''}`}>{n.message}</div>
                                     </td>
                                     <td className="px-6 py-3 whitespace-nowrap">{formatTimestamp(n.timestamp)}</td>
                                     <td className="px-6 py-3 text-right">
-                                        <button onClick={() => setSelectedInsight(n)} className="p-2 -m-2 text-text-secondary hover:text-primary rounded-full hover:bg-primary/10" title="View Details">
+                                        <button onClick={() => {
+                                            if (n.insightTypeId === 'QUERY_ASSIGNED') {
+                                                const assignedQuery = assignedQueries.find(aq => aq.queryId === n.queryId);
+                                                if (assignedQuery) {
+                                                    onOpenAssignedQueryPreview(assignedQuery);
+                                                }
+                                            } else {
+                                                setSelectedInsight(n);
+                                            }
+                                        }} className="p-2 -m-2 text-text-secondary hover:text-primary rounded-full hover:bg-primary/10" title="View Details">
                                             <IconInfo className="h-5 w-5" />
                                         </button>
                                     </td>
@@ -303,14 +365,13 @@ const AlertsView: React.FC<AlertsViewProps> = (props) => {
                 )}
             </div>
             {selectedInsight && (
-                <SidePanel isOpen={!!selectedInsight} onClose={() => setSelectedInsight(null)} title="Insight Details">
-                    <InsightDetailPanel 
+                <SidePanel isOpen={!!selectedInsight} onClose={handleCloseInsightPanel} title="Insight Details">
+                    <InsightDetailPanelContent 
                         insight={selectedInsight}
-                        onClose={() => setSelectedInsight(null)}
+                        onClose={handleCloseInsightPanel}
                         accounts={props.accounts}
                         onNavigateToWarehouse={props.onNavigateToWarehouse}
                         onNavigateToQuery={props.onNavigateToQuery}
-                        onMarkAsRead={props.onMarkNotificationAsRead}
                     />
                 </SidePanel>
             )}
@@ -455,6 +516,7 @@ const ActivityLogsView: React.FC<ActivityLogsViewProps> = ({ activityLogs, users
 interface NotificationsPageProps {
     notifications: Notification[];
     activityLogs: ActivityLog[];
+    assignedQueries: AssignedQuery[];
     onMarkAllAsRead: () => void;
     onClearNotification: (id: string) => void;
     users: User[];
@@ -463,6 +525,7 @@ interface NotificationsPageProps {
     onNavigateToWarehouse: (account: Account, warehouse: Warehouse) => void;
     onNavigateToQuery: (account: Account, query: QueryListItem) => void;
     onMarkNotificationAsRead: (id: string) => void;
+    onOpenAssignedQueryPreview: (assignedQuery: AssignedQuery) => void;
 }
 
 const MobileNav: React.FC<{ activeTab: string; onTabChange: (tab: any) => void; navItems: any[]; }> = ({ activeTab, onTabChange, navItems }) => {

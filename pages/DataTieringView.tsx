@@ -54,7 +54,6 @@ const StorageByTierWidget: React.FC = () => {
                     <ResponsiveContainer width="100%" height={200}>
                         <PieChart>
                             <Pie
-                                // FIX: Mapped data to resolve TypeScript error regarding index signatures in recharts.
                                 data={storageByTierData.current.map(i => ({...i}))}
                                 dataKey="value"
                                 nameKey="name"
@@ -76,7 +75,6 @@ const StorageByTierWidget: React.FC = () => {
                     <ResponsiveContainer width="100%" height={200}>
                         <PieChart>
                             <Pie
-                                // FIX: Mapped data to resolve TypeScript error regarding index signatures in recharts.
                                 data={storageByTierData.recommended.map(i => ({...i}))}
                                 dataKey="value"
                                 nameKey="name"

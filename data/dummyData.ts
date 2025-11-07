@@ -209,11 +209,8 @@ export const sqlFilesData: SQLFile[] = [
         accountName: 'Snowflake Prod',
         createdDate: '2023-10-28',
         versions: [
-            // FIX: Added 'user' property to conform to SQLVersion type.
             { id: 'v1-3', version: 3, date: '2023-11-18', tag: 'Optimized', description: 'Refactored joins and pushed down filters.', sql: longOptimizedQuery, user: 'Priya Patel' },
-            // FIX: Added 'user' property to conform to SQLVersion type.
             { id: 'v1-2', version: 2, date: '2023-11-15', tag: 'Analyzed', description: 'Initial analysis before optimization.', sql: longOriginalQuery, user: 'Priya Patel' },
-            // FIX: Added 'user' property to conform to SQLVersion type.
             { id: 'v1-1', version: 1, date: '2023-11-12', description: 'Initial version, full table scans.', sql: longOriginalQuery, user: 'Arjun Singh' },
         ]
     },
@@ -224,9 +221,7 @@ export const sqlFilesData: SQLFile[] = [
         accountName: 'Marketing Dev',
         createdDate: '2023-11-05',
         versions: [
-            // FIX: Added 'user' property to conform to SQLVersion type.
             { id: 'v2-2', version: 2, date: '2023-11-20', tag: 'Simulated', description: 'Tested with new clustering algorithm.', user: 'Alice Johnson' },
-            // FIX: Added 'user' property to conform to SQLVersion type.
             { id: 'v2-1', version: 1, date: '2023-11-10', description: 'First draft of segmentation logic.', user: 'Alice Johnson' },
         ]
     },
@@ -237,7 +232,6 @@ export const sqlFilesData: SQLFile[] = [
         accountName: 'Snowflake Prod',
         createdDate: '2023-09-15',
         versions: [
-             // FIX: Added 'user' property to conform to SQLVersion type.
              { id: 'v3-1', version: 1, date: '2023-09-15', description: 'Initial commit for ROI calculation.', user: 'Bob Williams' },
         ]
     }
@@ -569,9 +563,35 @@ export const assignedQueriesData: AssignedQuery[] = [
         credits: queryListData[10].costCredits,
         warehouse: queryListData[10].warehouse,
     },
+    {
+        id: 'aq-4',
+        queryId: queryListData[15].id,
+        queryText: queryListData[15].queryText,
+        assignedBy: 'Alice Johnson',
+        assignedTo: 'Bob Williams',
+        priority: 'High',
+        status: 'Pending',
+        message: 'Bob, this query is showing high disk spilling. Can you take a look and see if we can optimize the join logic before the end of the week? The BI dashboard depends on it.',
+        assignedOn: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        cost: queryListData[15].costUSD,
+        credits: queryListData[15].costCredits,
+        warehouse: queryListData[15].warehouse,
+    },
 ];
 
 export const notificationsData: Notification[] = [
+    {
+        id: 'insight-13',
+        insightTypeId: 'QUERY_ASSIGNED',
+        insightTopic: 'query',
+        message: 'Alice Johnson assigned a query to you for review.',
+        suggestions: 'Review the details and take action.',
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        warehouseName: 'TRANSFORM_WH',
+        queryId: queryListData[15].id,
+        isRead: false,
+        severity: 'Info',
+    },
     {
         id: 'insight-1',
         insightTypeId: 'NO_FILTER_ON_TOP_OF_TABLE_SCAN',
