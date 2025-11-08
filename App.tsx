@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -259,7 +260,7 @@ const App: React.FC = () => {
                 // No breadcrumbs for these pages per user request
                 break;
             case 'Settings':
-                items = [overviewItem, { label: 'Settings' }, { label: activeSubPage || 'User Management' }];
+                items = [{ label: 'Connection(s)', onClick: () => handleSetActivePage('Snowflake Accounts') }, { label: 'Settings', onClick: () => { setActivePage('Settings'); setActiveSubPage('User Management'); } }, { label: activeSubPage || 'User Management' }];
                 break;
             case 'Profile Settings':
                  items = [overviewItem, { label: 'Profile Settings' }];
@@ -412,6 +413,19 @@ const App: React.FC = () => {
   const handleOpenAssignedQueryPreview = (assignedQuery: AssignedQuery) => {
     setSidePanel({ type: 'assignedQueryPreview', data: assignedQuery });
   };
+  
+  const handleDisconnectGitHub = (onConfirmDisconnect: () => void) => {
+    setConfirmation({
+        title: 'Disconnect GitHub',
+        message: 'Are you sure you want to disconnect your GitHub integration? This will remove the link to your repository.',
+        onConfirm: () => {
+            onConfirmDisconnect();
+            showToast('GitHub integration disconnected.');
+        },
+        confirmVariant: 'danger',
+        confirmText: 'Disconnect',
+    });
+};
 
   const renderPage = () => {
     if (selectedLibraryItem) {
@@ -544,6 +558,7 @@ const App: React.FC = () => {
                 onSuspendUserClick={(user) => setConfirmation({ title: 'Suspend User', message: `Are you sure you want to suspend ${user.name}?`, confirmVariant: 'warning', confirmText: 'Suspend', onConfirm: () => {setUsers(us => us.map(u => u.id === user.id ? {...u, status: 'Suspended'} : u)); showToast('User suspended.')} })}
                 onActivateUserClick={(user) => {setUsers(us => us.map(u => u.id === user.id ? {...u, status: 'Active'} : u)); showToast('User activated.')}}
                 onRemoveUserClick={(user) => setConfirmation({ title: 'Remove User', message: `Are you sure you want to remove ${user.name}? This action cannot be undone.`, confirmVariant: 'danger', confirmText: 'Remove', onConfirm: () => {setUsers(us => us.filter(u => u.id !== user.id)); showToast('User removed.')} })}
+                onDisconnectGitHub={handleDisconnectGitHub}
             />;
         case 'Support':
             return <Support />;
@@ -691,7 +706,7 @@ const App: React.FC = () => {
     if (selectedLibraryItem) {
         return false;
     }
-    return activePage === 'AI Agent' || activePage === 'Query Library' || (!selectedAccount && activePage !== 'Notifications' && activePage !== 'Profile Settings');
+    return activePage === 'AI Agent' || activePage === 'Query Library' || (!selectedAccount && activePage !== 'Notifications' && activePage !== 'Profile Settings' && activePage !== 'Settings');
   }, [activePage, selectedAccount, selectedLibraryItem]);
   
   const mainContentPadding = useMemo(() => {

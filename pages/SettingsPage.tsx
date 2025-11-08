@@ -1,9 +1,9 @@
 
 
-
 import React, { useState, useRef, useEffect } from 'react';
-import { IconChevronLeft, IconChevronRight, IconUser, IconBell, IconChevronDown } from '../constants';
+import { IconChevronLeft, IconChevronRight, IconUser, IconBell, IconChevronDown, IconTrendingUp } from '../constants';
 import UserManagement from './settings/UserManagement';
+import IntegrationsPage from './settings/IntegrationsPage';
 import { User } from '../types';
 
 interface SettingsPageProps {
@@ -16,11 +16,13 @@ interface SettingsPageProps {
     onSuspendUserClick: (user: User) => void;
     onActivateUserClick: (user: User) => void;
     onRemoveUserClick: (user: User) => void;
+    onDisconnectGitHub: (onConfirm: () => void) => void;
 }
 
 const settingsNavItems = [
     { name: 'User Management', icon: IconUser },
     { name: 'Budgets and Alerts', icon: IconBell },
+    { name: 'Integrations', icon: IconTrendingUp },
 ];
 
 const MobileNav: React.FC<{
@@ -73,7 +75,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     onEditUserRoleClick,
     onSuspendUserClick,
     onActivateUserClick,
-    onRemoveUserClick 
+    onRemoveUserClick,
+    onDisconnectGitHub
 }) => {
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 
@@ -97,6 +100,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                         <p className="mt-2 text-text-secondary">Set spending budgets and configure alert notifications.</p>
                     </div>
                 );
+            case 'Integrations':
+                return <IntegrationsPage onDisconnect={onDisconnectGitHub} />;
             default:
                 return null;
         }
