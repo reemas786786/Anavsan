@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { QueryListItem } from '../types';
 // FIX: Replaced non-existent IconFilter with IconAdjustments.
 import { IconChevronLeft, IconSave, IconClipboardCopy, IconRefresh, IconKey, IconSearch, IconDatabase, IconCheck, IconAdjustments, IconLayers, IconBeaker, IconTrendingUp, IconWand } from '../constants';
@@ -140,7 +140,10 @@ const QueryAnalyzerView: React.FC<{
     onSaveClick: (tag: string) => void;
     onBrowseQueries: () => void;
     onOptimizeQuery: (query: QueryListItem) => void;
-}> = ({ query, onBack, onSaveClick, onBrowseQueries, onOptimizeQuery }) => {
+    autoRun?: boolean;
+    onAutoRunComplete?: () => void;
+    navigationSource?: string | null;
+}> = ({ query, onBack, onSaveClick, onBrowseQueries, onOptimizeQuery, autoRun = false, onAutoRunComplete, navigationSource }) => {
     const originalQuery = query ? realWorldQuery : '';
     const [editedQuery, setEditedQuery] = useState(originalQuery);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -149,19 +152,26 @@ const QueryAnalyzerView: React.FC<{
     
     const isDirty = editedQuery !== originalQuery;
 
-    useEffect(() => {
-        setEditedQuery(query ? realWorldQuery : '');
-        setAnalysisResults([]);
-    }, [query]);
-
-    const handleAnalyze = () => {
+    const handleAnalyze = useCallback(() => {
         setIsAnalyzing(true);
         setAnalysisResults([]);
         setTimeout(() => {
             setAnalysisResults(mockAnalysisResults);
             setIsAnalyzing(false);
         }, 2500);
-    };
+    }, []);
+
+    useEffect(() => {
+        if (autoRun && query) {
+            handleAnalyze();
+            onAutoRunComplete?.();
+        }
+    }, [autoRun, query, handleAnalyze, onAutoRunComplete]);
+
+    useEffect(() => {
+        setEditedQuery(query ? realWorldQuery : '');
+        setAnalysisResults([]);
+    }, [query]);
 
     const handleCopy = () => {
         navigator.clipboard.writeText(editedQuery);
@@ -185,17 +195,19 @@ const QueryAnalyzerView: React.FC<{
             <p className="text-text-secondary mt-1 max-w-md">Select a query from the "All Queries" list to begin analysis, or paste your query directly into the editor to get started.</p>
         </div>
     );
+    
+    const tooltipText = navigationSource?.toLowerCase().includes('queries') ? 'Back to All Queries screen' : 'Back';
 
     return (
         <div className="p-4 space-y-4 h-full flex flex-col">
-            <header className="flex-shrink-0">
-                {query && (
-                    <button onClick={onBack} className="flex items-center gap-1 text-sm font-semibold text-link hover:underline mb-2">
-                        <IconChevronLeft className="h-4 w-4" /> Back to All Queries
-                    </button>
-                )}
-                <h1 className="text-2xl font-bold text-text-primary">Query Analyzer</h1>
-                <p className="mt-1 text-text-secondary">Get detailed performance insights and recommendations for a specific query.</p>
+            <header className="flex-shrink-0 p-4 rounded-2xl flex items-center gap-4 bg-surface-nested">
+                <button onClick={onBack} title={tooltipText} className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full bg-background text-primary hover:bg-surface-hover transition-colors">
+                    <IconChevronLeft className="h-6 w-6" />
+                </button>
+                <div>
+                    <h1 className="text-xl font-bold text-text-primary">Query analyzer</h1>
+                    <p className="text-sm text-text-secondary">Get detailed performance insights and recommendations for a specific query.</p>
+                </div>
             </header>
 
             <main className="flex-grow flex flex-col md:flex-row gap-4 overflow-hidden">

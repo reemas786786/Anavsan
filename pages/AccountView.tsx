@@ -1,6 +1,5 @@
 
 
-
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Account, SQLFile, BigScreenWidget, QueryListItem, PullRequest, User, QueryListFilters, SlowQueryFilters, BreadcrumbItem, Warehouse } from '../types';
 import AccountOverviewDashboard from './AccountOverviewDashboard';
@@ -12,6 +11,7 @@ import {
     IconChevronLeft, 
     IconChevronRight,
     IconCheck,
+    IconRefresh,
 } from '../constants';
 import QueryListView from './QueryListView';
 import StorageSummaryView from './StorageSummaryView';
@@ -56,6 +56,9 @@ interface AccountViewProps {
     selectedWarehouse: Warehouse | null;
     setSelectedWarehouse: (warehouse: Warehouse | null) => void;
     warehouses: Warehouse[];
+    onInitiateSync: (account: Account) => void;
+    autoRunAction: boolean;
+    onAutoRunComplete: () => void;
 }
 
 const ChevronUpIcon = ({ className }: { className?: string }) => <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 10L8 6L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
@@ -257,7 +260,7 @@ const ContextualNavItem: React.FC<{
 };
 
 
-const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAccount, onBackToAccounts, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, onPreviewQuery, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, users, navigationSource, selectedWarehouse, setSelectedWarehouse, warehouses }) => {
+const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAccount, onBackToAccounts, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, onPreviewQuery, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, users, navigationSource, selectedWarehouse, setSelectedWarehouse, warehouses, onInitiateSync, autoRunAction, onAutoRunComplete }) => {
     const [selectedDatabaseId, setSelectedDatabaseId] = useState<string | null>(null);
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
     const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
@@ -370,7 +373,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
 
         switch (activePage) {
             case 'Account overview':
-                return <AccountOverviewDashboard account={account} />;
+                return <AccountOverviewDashboard account={account} onInitiateSync={onInitiateSync} />;
             case 'Overview':
                 return <WarehouseOverview warehouses={warehouses} onSelectWarehouse={setSelectedWarehouse} />;
             case 'All Warehouses':
@@ -386,6 +389,9 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     onSaveClick={onSaveQueryClick}
                     onBrowseQueries={() => onPageChange('All queries')}
                     onOptimizeQuery={(q) => onOptimizeQuery(q, 'Query analyzer')}
+                    autoRun={autoRunAction}
+                    onAutoRunComplete={onAutoRunComplete}
+                    navigationSource={navigationSource}
                 />;
             case 'Query optimizer':
                 return <QueryOptimizerView
@@ -393,12 +399,18 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     onBack={handleBackFromTool}
                     onSaveClick={onSaveQueryClick}
                     onSimulateQuery={(q) => onSimulateQuery(q, 'Query optimizer')}
+                    autoRun={autoRunAction}
+                    onAutoRunComplete={onAutoRunComplete}
+                    navigationSource={navigationSource}
                 />;
             case 'Query simulator':
                  return <QuerySimulatorView
                     query={analyzingQuery}
                     onBack={handleBackFromTool}
                     onSaveClick={onSaveQueryClick}
+                    autoRun={autoRunAction}
+                    onAutoRunComplete={onAutoRunComplete}
+                    navigationSource={navigationSource}
                 />;
             case 'Pull Requests':
                 return <PullRequestsView pullRequests={pullRequests} onSelectPullRequest={setSelectedPullRequest} />;
@@ -467,6 +479,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                             </button>
                             {isAccountSwitcherOpen && (
                                 <div className={`absolute z-20 mt-2 rounded-lg bg-surface shadow-lg p-2 border border-border-color ${isSidebarExpanded ? 'w-full' : 'w-64 left-full ml-2 -top-2'}`}>
+                                    <div className="text-xs font-semibold text-text-muted px-2 py-1 mb-1">Switch Account</div>
                                     <ul className="max-h-60 overflow-y-auto">
                                         {accounts.map(acc => {
                                             const isActive = acc.id === account.id;
@@ -537,7 +550,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                             <MobileNav activePage={activePage} onPageChange={onPageChange} accountNavItems={accountNavItems} />
                         </div>
                     )}
-                    <div className={`h-full ${isDatabaseDetailView || selectedQuery || selectedPullRequest || selectedWarehouse || isListView ? "" : "p-4"}`}>
+                    <div className={`h-full ${isDatabaseDetailView || selectedQuery || selectedPullRequest || selectedWarehouse || isListView ? "" : ""}`}>
                         {renderContent()}
                     </div>
                 </div>

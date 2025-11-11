@@ -1,3 +1,5 @@
+
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, TopQuery, Warehouse } from '../types';
 import { accountSpend, topQueriesData, accountCostBreakdown, warehousesData, queryListData, spendTrendsData } from '../data/dummyData';
@@ -83,6 +85,7 @@ const SpendTrendsCustomTooltip = ({ active, payload, label }: any) => {
 
 interface AccountOverviewDashboardProps {
     account: Account;
+    onInitiateSync: (account: Account) => void;
 }
 
 type WidgetConfig = {
@@ -91,7 +94,7 @@ type WidgetConfig = {
 
 const kpiWidgetIds: WidgetConfig['id'][] = ['spend'];
 
-const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ account }) => {
+const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ account, onInitiateSync }) => {
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const [tableViewData, setTableViewData] = useState<{
@@ -486,18 +489,34 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
     const currentWidgets = isEditMode ? tempWidgets : widgets;
 
     return (
-        <div className="space-y-4 pb-16">
-            <div className="flex justify-between items-center">
+        <div className="p-4 space-y-4 pb-16">
+            <div className="flex justify-between items-start">
                 <div>
                     <h1 className="text-2xl font-bold text-text-primary">{account.name}</h1>
-                    <p className="text-text-secondary mt-1">Account Overview</p>
+                    <p className="text-sm text-text-secondary mt-1">Last synced: {account.lastSynced}</p>
                 </div>
-                <div className="flex items-center gap-4">
-                     {!isEditMode && (
-                        <button onClick={handleEditDashboard} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-text-primary bg-white rounded-full shadow-sm hover:bg-gray-50">
-                            <IconEdit className="h-4 w-4" />
-                            Edit Dashboard
-                        </button>
+                <div className="flex items-center gap-2">
+                    {!isEditMode && (
+                        <>
+                            <button onClick={handleEditDashboard} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-text-primary bg-white rounded-full shadow-sm hover:bg-gray-50 border border-border-color">
+                                <IconEdit className="h-4 w-4" />
+                                Edit Dashboard
+                            </button>
+                             <button
+                                onClick={() => onInitiateSync(account)}
+                                disabled={account.status === 'Syncing'}
+                                className="bg-primary text-white font-semibold px-4 py-2 rounded-full flex items-center justify-center gap-2 hover:bg-primary-hover transition-colors whitespace-nowrap shadow-sm disabled:bg-primary/70 disabled:cursor-wait"
+                            >
+                                {account.status === 'Syncing' ? (
+                                    <>
+                                        <span className="opacity-75">Sync Data</span>
+                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    </>
+                                ) : (
+                                    'Sync Data'
+                                )}
+                            </button>
+                        </>
                     )}
                 </div>
             </div>

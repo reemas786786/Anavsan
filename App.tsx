@@ -22,7 +22,7 @@ import Toast from './components/Toast';
 import BigScreenView from './components/BigScreenView';
 import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem, BigScreenWidget, QueryListItem, AssignedQuery, AssignmentPriority, AssignmentStatus, PullRequest, Notification, ActivityLog, BreadcrumbItem, Warehouse, SQLVersion } from './types';
 import { connectionsData, sqlFilesData as initialSqlFiles, usersData, dashboardsData as initialDashboardsData, assignedQueriesData, pullRequestsData, notificationsData as initialNotificationsData, activityLogsData, warehousesData, queryListData } from './data/dummyData';
-import { accountNavItems } from './constants';
+import { accountNavItems, IconCheck, IconRefresh } from './constants';
 import SettingsPage from './pages/SettingsPage';
 import Dashboards from './pages/Dashboards';
 import DashboardEditor from './pages/DashboardEditor';
@@ -51,6 +51,7 @@ type ModalType = 'addUser';
 type Theme = 'light' | 'dark' | 'gray10' | 'black' | 'system';
 type AuthScreen = 'login' | 'signup' | 'submitted' | 'forgotPassword' | 'checkEmail' | 'createNewPassword' | 'passwordResetSuccess';
 export type DisplayMode = 'cost' | 'credits';
+type ToastType = { message: string; type: 'success' | 'error' };
 
 const SplashScreen: React.FC = () => (
     <div id="splash-loader" style={{ opacity: 1 }}>
@@ -89,6 +90,7 @@ const App: React.FC = () => {
   const [sidePanel, setSidePanel] = useState<{ type: SidePanelType; data?: any } | null>(null);
   const [modal, setModal] = useState<{ type: ModalType; data?: any } | null>(null);
   const [confirmation, setConfirmation] = useState<{ title: string; message: React.ReactNode; onConfirm: () => void; confirmText?: string; confirmVariant?: 'danger' | 'warning' | 'primary' } | null>(null);
+  const [syncConfirmation, setSyncConfirmation] = useState<{ account: Account } | null>(null);
   
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
@@ -100,6 +102,7 @@ const App: React.FC = () => {
   const [selectedQuery, setSelectedQuery] = useState<QueryListItem | null>(null);
   const [analyzingQuery, setAnalyzingQuery] = useState<QueryListItem | null>(null);
   const [navigationSource, setNavigationSource] = useState<string | null>(null);
+  const [autoRunAction, setAutoRunAction] = useState(false);
   const [selectedLibraryItem, setSelectedLibraryItem] = useState<{ file: SQLFile; version: SQLVersion; } | null>(null);
 
   const [selectedPullRequest, setSelectedPullRequest] = useState<PullRequest | null>(null);
@@ -108,7 +111,7 @@ const App: React.FC = () => {
   const [theme, setTheme] = useState<Theme>('system');
   const [displayMode, setDisplayMode] = useState<DisplayMode>('cost');
 
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toast, setToast] = useState<ToastType | null>(null);
   const [bigScreenWidget, setBigScreenWidget] = useState<BigScreenWidget | null>(null);
 
   const [accountViewPage, setAccountViewPage] = useState('Account overview');
@@ -297,30 +300,67 @@ const App: React.FC = () => {
     setAuthScreen('login');
   };
 
-  const showToast = (message: string) => {
-    setToastMessage(message);
-    setTimeout(() => setToastMessage(null), 3000);
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleInitiateSync = (account: Account) => {
+    setSyncConfirmation({ account });
+  };
+
+  const handleConfirmSync = () => {
+    if (!syncConfirmation) return;
+    const accountId = syncConfirmation.account.id;
+    const accountName = syncConfirmation.account.name;
+    setSyncConfirmation(null);
+    setAccounts(prev => prev.map(acc => acc.id === accountId ? { ...acc, status: 'Syncing' } : acc));
+    showToast(`Sync initiated for "${accountName}". Data will update shortly.`, 'success');
+
+    setTimeout(() => {
+        const syncSucceeded = Math.random() > 0.2; // 80% success rate for demo
+
+        if (syncSucceeded) {
+            setAccounts(prev => prev.map(acc =>
+                acc.id === accountId
+                    ? {
+                        ...acc,
+                        status: 'Connected',
+                        lastSynced: 'Just now',
+                        cost: acc.cost * (1 + (Math.random() - 0.4) * 0.05),
+                        credits: acc.credits * (1 + (Math.random() - 0.4) * 0.05)
+                      }
+                    : acc
+            ));
+            showToast(`Sync for "${accountName}" completed successfully.`, 'success');
+        } else {
+             // Revert status to Connected on failure so button is re-enabled.
+            setAccounts(prev => prev.map(acc => 
+                acc.id === accountId ? { ...acc, status: 'Connected' } : acc
+            ));
+            showToast(`Sync for "${accountName}" failed. Please check connection or try again.`, 'error');
+        }
+    }, 5000);
   };
   
   const handleMarkAllNotificationsAsRead = () => {
     setNotifications(notifications.map(n => ({...n, isRead: true})));
-    showToast("All notifications marked as read.");
+    showToast("All notifications marked as read.", 'success');
   };
 
   const handleClearAllNotifications = () => {
     setNotifications([]);
-    showToast("All notifications cleared.");
+    showToast("All notifications cleared.", 'success');
   };
 
   const handleMarkNotificationAsRead = (notificationId: string) => {
       setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
       // Do not show toast for implicit "mark as read"
-      // showToast("Insight marked as read.");
   };
 
   const handleClearNotification = (id: string) => {
     setNotifications(notifications.filter(n => n.id !== id));
-    showToast("Notification cleared.");
+    showToast("Notification cleared.", 'success');
   };
 
   const handleNavigateToWarehouse = (account: Account, warehouse: Warehouse) => {
@@ -349,7 +389,7 @@ const App: React.FC = () => {
       });
       setEditingDashboard(null);
       setIsViewingDashboard(false);
-      showToast(`Dashboard "${d.title}" saved.`);
+      showToast(`Dashboard "${d.title}" saved.`, 'success');
   };
 
   const handleUpdateAssignedQueryStatus = (id: string, status: AssignmentStatus) => {
@@ -386,7 +426,7 @@ const App: React.FC = () => {
             setNotifications(prev => [newNotification, ...prev]);
         }
     }
-    showToast('Query status updated.');
+    showToast('Query status updated.', 'success');
 };
 
  const handlePreviewAssignedQuery = (assignedQuery: AssignedQuery) => {
@@ -420,12 +460,16 @@ const App: React.FC = () => {
         message: 'Are you sure you want to disconnect your GitHub integration? This will remove the link to your repository.',
         onConfirm: () => {
             onConfirmDisconnect();
-            showToast('GitHub integration disconnected.');
+            showToast('GitHub integration disconnected.', 'success');
         },
         confirmVariant: 'danger',
         confirmText: 'Disconnect',
     });
 };
+
+  const onAutoRunComplete = useCallback(() => {
+    setAutoRunAction(false);
+  }, []);
 
   const renderPage = () => {
     if (selectedLibraryItem) {
@@ -461,9 +505,42 @@ const App: React.FC = () => {
         selectedQuery={selectedQuery} 
         setSelectedQuery={setSelectedQuery} 
         analyzingQuery={analyzingQuery} 
-        onAnalyzeQuery={(q, source) => { setAnalyzingQuery(q); setNavigationSource(source); setAccountViewPage('Query analyzer'); }} 
-        onOptimizeQuery={(q, source) => { setAnalyzingQuery(q); setNavigationSource(source); setAccountViewPage('Query optimizer'); }} 
-        onSimulateQuery={(q, source) => { setAnalyzingQuery(q); setNavigationSource(source); setAccountViewPage('Query simulator'); }} 
+        onAnalyzeQuery={(q, source) => {
+            if (q) {
+                setAnalyzingQuery(q);
+                setNavigationSource(source);
+                setAutoRunAction(source === 'Query detail');
+                setAccountViewPage('Query analyzer');
+                setSelectedQuery(null);
+            } else {
+                setAnalyzingQuery(null);
+                setNavigationSource('');
+            }
+        }}
+        onOptimizeQuery={(q, source) => {
+            if (q) {
+                setAnalyzingQuery(q);
+                setNavigationSource(source);
+                setAutoRunAction(source === 'Query detail');
+                setAccountViewPage('Query optimizer');
+                setSelectedQuery(null);
+            } else {
+                setAnalyzingQuery(null);
+                setNavigationSource('');
+            }
+        }}
+        onSimulateQuery={(q, source) => {
+            if (q) {
+                setAnalyzingQuery(q);
+                setNavigationSource(source);
+                setAutoRunAction(source === 'Query detail');
+                setAccountViewPage('Query simulator');
+                setSelectedQuery(null);
+            } else {
+                setAnalyzingQuery(null);
+                setNavigationSource('');
+            }
+        }}
         pullRequests={pullRequests} 
         selectedPullRequest={selectedPullRequest} 
         setSelectedPullRequest={setSelectedPullRequest} 
@@ -472,6 +549,9 @@ const App: React.FC = () => {
         selectedWarehouse={selectedWarehouse}
         setSelectedWarehouse={setSelectedWarehouse}
         warehouses={warehousesData}
+        onInitiateSync={handleInitiateSync}
+        autoRunAction={autoRunAction}
+        onAutoRunComplete={onAutoRunComplete}
       />;
     }
     if (selectedUser) {
@@ -481,7 +561,7 @@ const App: React.FC = () => {
       return <DashboardEditor dashboard={editingDashboard} accounts={accounts} onSave={handleSaveDashboard} onCancel={() => { setEditingDashboard(null); setIsViewingDashboard(false); }} />;
     }
     if(isViewingDashboard && selectedDashboard){
-        const handleSwitchDashboard = (dashboard: DashboardItem) => {
+       const handleSwitchDashboard = (dashboard: DashboardItem) => {
            setSelectedDashboard(dashboard);
        };
        const handleEditDashboard = () => {
@@ -497,7 +577,7 @@ const App: React.FC = () => {
                         setDashboards(prev => prev.filter(d => d.id !== selectedDashboard.id));
                         setSelectedDashboard(null);
                         setIsViewingDashboard(false);
-                        showToast('Dashboard deleted.');
+                        showToast('Dashboard deleted.', 'success');
                     },
                     confirmVariant: 'danger',
                     confirmText: 'Delete'
@@ -521,7 +601,7 @@ const App: React.FC = () => {
         case 'Data Cloud Overview':
             return <Overview onSelectAccount={setSelectedAccount} onSelectUser={setSelectedUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} currentUser={currentUser} />;
         case 'Snowflake Accounts':
-            return <Connections accounts={accounts} onSelectAccount={setSelectedAccount} onAddAccountClick={() => setSidePanel({ type: 'addAccount' })} onDeleteAccount={(id) => { setConfirmation({ title: 'Delete Account', message: 'Are you sure?', onConfirm: () => {setAccounts(accs => accs.filter(a => a.id !== id)); showToast('Account deleted.'); }, confirmText: 'Delete', confirmVariant: 'danger'}) }} />;
+            return <Connections accounts={accounts} onSelectAccount={setSelectedAccount} onAddAccountClick={() => setSidePanel({ type: 'addAccount' })} onDeleteAccount={(id) => { setConfirmation({ title: 'Remove Account', message: 'Are you sure?', onConfirm: () => {setAccounts(accs => accs.filter(a => a.id !== id)); showToast('Account removed.', 'success'); }, confirmText: 'Remove', confirmVariant: 'danger'}) }} onInitiateSync={handleInitiateSync} />;
         case 'Reports':
             return <Reports />;
         case 'AI Agent':
@@ -555,9 +635,9 @@ const App: React.FC = () => {
                 onAddUserClick={() => setModal({ type: 'addUser' })}
                 users={users}
                 onEditUserRoleClick={(user) => setSidePanel({ type: 'editUser', data: user })}
-                onSuspendUserClick={(user) => setConfirmation({ title: 'Suspend User', message: `Are you sure you want to suspend ${user.name}?`, confirmVariant: 'warning', confirmText: 'Suspend', onConfirm: () => {setUsers(us => us.map(u => u.id === user.id ? {...u, status: 'Suspended'} : u)); showToast('User suspended.')} })}
-                onActivateUserClick={(user) => {setUsers(us => us.map(u => u.id === user.id ? {...u, status: 'Active'} : u)); showToast('User activated.')}}
-                onRemoveUserClick={(user) => setConfirmation({ title: 'Remove User', message: `Are you sure you want to remove ${user.name}? This action cannot be undone.`, confirmVariant: 'danger', confirmText: 'Remove', onConfirm: () => {setUsers(us => us.filter(u => u.id !== user.id)); showToast('User removed.')} })}
+                onSuspendUserClick={(user) => setConfirmation({ title: 'Suspend User', message: `Are you sure you want to suspend ${user.name}?`, confirmVariant: 'warning', confirmText: 'Suspend', onConfirm: () => {setUsers(us => us.map(u => u.id === user.id ? {...u, status: 'Suspended'} : u)); showToast('User suspended.', 'success')} })}
+                onActivateUserClick={(user) => {setUsers(us => us.map(u => u.id === user.id ? {...u, status: 'Active'} : u)); showToast('User activated.', 'success')}}
+                onRemoveUserClick={(user) => setConfirmation({ title: 'Remove User', message: `Are you sure you want to remove ${user.name}? This action cannot be undone.`, confirmVariant: 'danger', confirmText: 'Remove', onConfirm: () => {setUsers(us => us.filter(u => u.id !== user.id)); showToast('User removed.', 'success')} })}
                 onDisconnectGitHub={handleDisconnectGitHub}
             />;
         case 'Support':
@@ -565,7 +645,7 @@ const App: React.FC = () => {
         case 'Dashboards':
             return <Dashboards
                 dashboards={dashboards}
-                onDeleteDashboardClick={(d) => setConfirmation({ title: 'Delete Dashboard', message: `Are you sure you want to delete "${d.title}"?`, onConfirm: () => {setDashboards(ds => ds.filter(db => db.id !== d.id)); showToast('Dashboard deleted.')}, confirmText: 'Delete', confirmVariant: 'danger' })}
+                onDeleteDashboardClick={(d) => setConfirmation({ title: 'Delete Dashboard', message: `Are you sure you want to delete "${d.title}"?`, onConfirm: () => {setDashboards(ds => ds.filter(db => db.id !== d.id)); showToast('Dashboard deleted.', 'success')}, confirmText: 'Delete', confirmVariant: 'danger' })}
                 onAddDashboardClick={() => setEditingDashboard({ id: `temp-${Date.now()}`, title: '', createdOn: new Date().toISOString(), widgets: [], dataSourceContext: { type: 'overall' } })}
                 onEditDashboardClick={setEditingDashboard}
                 onViewDashboardClick={(d) => { setSelectedDashboard(d); setIsViewingDashboard(true); }}
@@ -596,11 +676,11 @@ const App: React.FC = () => {
     const newAccount: Account = { id: `acc-${Date.now()}`, name: data.name, identifier: 'new.snowflake.account', role: 'SYSADMIN', status: 'Syncing', lastSynced: 'Just now', cost: 0, credits: 0 };
     setAccounts(prev => [...prev, newAccount]);
     setSidePanel(null);
-    showToast(`Account "${data.name}" added successfully.`);
+    showToast(`Account "${data.name}" added successfully.`, 'success');
   };
 
   const handleSaveQuery = (data: any) => {
-    showToast(`Query version saved to "${data.fileName}".`);
+    showToast(`Query version saved to "${data.fileName}".`, 'success');
     setSidePanel(null);
   }
 
@@ -608,19 +688,19 @@ const App: React.FC = () => {
       const newUser: User = { id: `user-${Date.now()}`, name: 'Invited User', email: data.email, role: 'Viewer', status: 'Invited', dateAdded: new Date().toISOString().split('T')[0], cost: 0, credits: 0, message: 'Invitation pending' };
       setUsers(prev => [newUser, ...prev]);
       setModal(null);
-      showToast(`Invitation sent to ${data.email}.`);
+      showToast(`Invitation sent to ${data.email}.`, 'success');
   };
   
   const handleEditUserRole = (userId: string, newRole: UserRole) => {
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
       setSidePanel(null);
-      showToast(`User role updated successfully.`);
+      showToast(`User role updated successfully.`, 'success');
   };
 
   const handleAssignQuery = (details: { assignee: string; priority: AssignmentPriority; message: string; }) => {
     if (!sidePanel || sidePanel.type !== 'assignQuery' || !sidePanel.data) return;
     const queryToAssign = sidePanel.data as QueryListItem;
-    if (!currentUser) { showToast("Error: Current user not found."); return; }
+    if (!currentUser) { showToast("Error: Current user not found.", 'error'); return; }
 
     let assigneeUser: User | undefined;
     let assigneeName: string;
@@ -649,7 +729,7 @@ const App: React.FC = () => {
         setUsers(prev => [newUser, ...prev]);
         assigneeName = newUser.name;
         // Simulate sending email.
-        showToast(`An invitation email has been sent to ${newEmail}.`);
+        showToast(`An invitation email has been sent to ${newEmail}.`, 'success');
     }
 
     const newAssignment: AssignedQuery = {
@@ -669,7 +749,7 @@ const App: React.FC = () => {
     setAssignedQueries(prev => [newAssignment, ...prev]);
 
     if (!assigneeIsNew) {
-        showToast(`Query assigned to ${assigneeName}.`);
+        showToast(`Query assigned to ${assigneeName}.`, 'success');
     } else {
         // Add a notification for the admin about the assignment
         const newNotification: Notification = {
@@ -791,7 +871,7 @@ const App: React.FC = () => {
           }}
       />
 
-      <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
+      <Toast toast={toast} onClose={() => setToast(null)} />
 
       {confirmation && (
         <ConfirmationModal
@@ -802,6 +882,18 @@ const App: React.FC = () => {
             message={confirmation.message}
             confirmText={confirmation.confirmText}
             confirmVariant={confirmation.confirmVariant}
+        />
+      )}
+
+      {syncConfirmation && (
+        <ConfirmationModal
+            isOpen={!!syncConfirmation}
+            onClose={() => setSyncConfirmation(null)}
+            onConfirm={handleConfirmSync}
+            title={`Confirm Data Sync for "${syncConfirmation.account.name}"`}
+            message="This action will fetch the latest metrics from your Snowflake account. The process cannot be cancelled once initiated and may take several minutes to complete, depending on data volume."
+            confirmText="Sync now"
+            confirmVariant="primary"
         />
       )}
 

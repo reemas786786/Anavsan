@@ -216,7 +216,6 @@ LIMIT 500;
 -- ...
 -- ...
 -- ...
--- ...
 -- End of demonstrative query.
 `;
 
@@ -239,9 +238,9 @@ LIMIT 500;
                     </div>
                 </div>
                 <div className="flex items-center justify-end gap-3 flex-shrink-0">
-                    <button onClick={() => onAnalyzeQuery(query, sourcePage)} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-surface-hover">Analyze</button>
-                    <button onClick={() => onOptimizeQuery(query, sourcePage)} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-surface-hover">Optimize</button>
-                    <button onClick={() => onSimulateQuery(query, sourcePage)} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full">Simulate</button>
+                    <button onClick={() => onAnalyzeQuery(query, 'Query detail')} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-surface-hover">Analyze</button>
+                    <button onClick={() => onOptimizeQuery(query, 'Query detail')} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-surface-hover">Optimize</button>
+                    <button onClick={() => onSimulateQuery(query, 'Query detail')} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full">Simulate</button>
                 </div>
             </div>
             

@@ -1,37 +1,42 @@
 import React, { useEffect, useState } from 'react';
-import { IconCheckCircle, IconClose } from '../constants';
+import { IconCheckCircle, IconClose, IconExclamationTriangle } from '../constants';
 
 interface ToastProps {
-  message: string | null;
+  toast: { message: string, type: 'success' | 'error' } | null;
   onClose: () => void;
 }
 
-const Toast: React.FC<ToastProps> = ({ message, onClose }) => {
+const Toast: React.FC<ToastProps> = ({ toast, onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    if (message) {
+    if (toast) {
       setIsVisible(true);
-    } else {
-      // Allow fade-out animation before removing from DOM
-      const timer = setTimeout(() => setIsVisible(false), 2800);
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+      }, 2800); // Start fade out before onClose is called
       return () => clearTimeout(timer);
     }
-  }, [message]);
+  }, [toast]);
 
-  if (!message && !isVisible) return null;
+  if (!toast) return null;
+
+  const isError = toast.type === 'error';
+  const bgColor = isError ? 'bg-status-error' : 'bg-status-success';
+  const iconColor = isError ? 'text-status-error' : 'text-status-success';
+  const Icon = isError ? IconExclamationTriangle : IconCheckCircle;
 
   return (
     <div
       className={`fixed top-5 right-5 z-50 transform transition-all duration-300 ease-in-out ${
-        isVisible && message ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'
       }`}
     >
-      <div className="bg-status-success text-white rounded-full shadow-lg flex items-center p-1 pr-3">
+      <div className={`${bgColor} text-white rounded-full shadow-lg flex items-center p-1 pr-3`}>
         <div className="bg-white rounded-full p-1 mr-2 flex-shrink-0">
-            <IconCheckCircle className="h-5 w-5 text-status-success" />
+            <Icon className={`h-5 w-5 ${iconColor}`} />
         </div>
-        <p className="text-sm font-medium">{message}</p>
+        <p className="text-sm font-medium">{toast.message}</p>
         <button onClick={onClose} className="ml-4 p-1 rounded-full text-white/70 hover:text-white hover:bg-white/20">
           <IconClose className="h-4 w-4" />
         </button>

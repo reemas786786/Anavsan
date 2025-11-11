@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { QueryListItem } from '../types';
 import { IconChevronLeft, IconSave, IconClipboardCopy, IconRefresh, IconExclamationTriangle, IconClipboardList, IconWand, IconInfo } from '../constants';
 
@@ -128,7 +128,10 @@ const QueryOptimizerView: React.FC<{
     onBack: () => void;
     onSaveClick: (tag: string) => void;
     onSimulateQuery: (query: QueryListItem | null) => void;
-}> = ({ query, onBack, onSaveClick, onSimulateQuery }) => {
+    autoRun?: boolean;
+    onAutoRunComplete?: () => void;
+    navigationSource?: string | null;
+}> = ({ query, onBack, onSaveClick, onSimulateQuery, autoRun = false, onAutoRunComplete, navigationSource }) => {
     const originalQuery = query ? realWorldQuery : '';
     const [editedQuery, setEditedQuery] = useState(originalQuery);
     const [optimizedQuery, setOptimizedQuery] = useState<string | null>(null);
@@ -146,7 +149,7 @@ const QueryOptimizerView: React.FC<{
         setHasPlaceholders(false);
     }, [query]);
 
-    const runOptimization = () => {
+    const runOptimization = useCallback(() => {
         setIsLoading(true);
         setOptimizedQuery(null);
         setAnalysisChanges([]);
@@ -158,23 +161,30 @@ const QueryOptimizerView: React.FC<{
             setHasPlaceholders(true);
             setIsLoading(false);
         }, 2000);
-    };
+    }, []);
+
+    useEffect(() => {
+        if (autoRun && query) {
+            runOptimization();
+            onAutoRunComplete?.();
+        }
+    }, [autoRun, query, runOptimization, onAutoRunComplete]);
     
     const handleReset = () => {
         setEditedQuery(originalQuery);
     };
     
+    const tooltipText = navigationSource?.toLowerCase().includes('queries') ? 'Back to All Queries screen' : 'Back';
+
     return (
         <div className="p-4 space-y-4 h-full flex flex-col">
-             <header className="flex-shrink-0">
-                {query && (
-                    <button onClick={onBack} className="flex items-center gap-1 text-sm font-semibold text-link hover:underline mb-2">
-                        <IconChevronLeft className="h-4 w-4" /> Back to All Queries
-                    </button>
-                )}
+             <header className="flex-shrink-0 bg-surface-nested p-4 rounded-2xl flex items-center gap-4">
+                <button onClick={onBack} title={tooltipText} className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full bg-background text-primary hover:bg-surface-hover transition-colors">
+                    <IconChevronLeft className="h-6 w-6" />
+                </button>
                 <div>
-                    <h1 className="text-2xl font-bold text-text-primary">Query Optimizer</h1>
-                    <p className="mt-1 text-text-secondary">Use AI to automatically rewrite your query for better performance and cost-efficiency.</p>
+                    <h1 className="text-xl font-bold text-text-primary">Query Optimizer</h1>
+                    <p className="text-sm text-text-secondary">Use AI to automatically rewrite your query for better performance and cost-efficiency.</p>
                 </div>
             </header>
 

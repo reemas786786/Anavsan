@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, ConnectionStatus } from '../types';
-import { IconDotsVertical, IconSearch, IconView, IconEdit, IconDelete, IconAdd, IconArrowUp, IconArrowDown } from '../constants';
+import { IconDotsVertical, IconSearch, IconView, IconEdit, IconDelete, IconAdd, IconArrowUp, IconArrowDown, IconRefresh } from '../constants';
 import Pagination from '../components/Pagination';
 
 const StatusBadge: React.FC<{ status: ConnectionStatus }> = ({ status }) => {
@@ -11,7 +12,7 @@ const StatusBadge: React.FC<{ status: ConnectionStatus }> = ({ status }) => {
         Connected: 'bg-status-success-light text-status-success-dark',
     };
     const dotClasses: Record<ConnectionStatus, string> = {
-        Syncing: 'bg-status-info',
+        Syncing: 'bg-status-info animate-pulse',
         Error: 'bg-status-error',
         Disconnected: 'bg-gray-400',
         Connected: 'bg-status-success',
@@ -29,9 +30,10 @@ interface ConnectionsProps {
   onSelectAccount: (account: Account) => void;
   onAddAccountClick: () => void;
   onDeleteAccount: (accountId: string) => void;
+  onInitiateSync: (account: Account) => void;
 }
 
-const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, onAddAccountClick, onDeleteAccount }) => {
+const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, onAddAccountClick, onDeleteAccount, onInitiateSync }) => {
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const [sortConfig, setSortConfig] = useState<{ key: keyof Account; direction: 'ascending' | 'descending' } | null>({ key: 'name', direction: 'ascending' });
@@ -167,26 +169,31 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
                                     <td className="px-6 py-3"><StatusBadge status={account.status} /></td>
                                     <td className="px-6 py-3">{account.lastSynced}</td>
                                     <td className="px-6 py-3 text-right">
-                                      <div className="relative inline-block text-left" ref={openMenuId === account.id ? menuRef : null}>
-                                        <button onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === account.id ? null : account.id); }} title="Actions" className="p-2 text-text-secondary hover:text-primary rounded-full hover:bg-primary/10 transition-colors">
-                                          <IconDotsVertical className="h-5 w-5"/>
-                                        </button>
-                                        {openMenuId === account.id && (
-                                            <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg bg-surface shadow-lg z-20 border border-border-color">
-                                                <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
-                                                    <a href="#" onClick={(e) => { e.preventDefault(); onSelectAccount(account); setOpenMenuId(null); }} className="flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                                        <IconView className="h-4 w-4"/> View
-                                                    </a>
-                                                    <a href="#" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} className="flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
-                                                        <IconEdit className="h-4 w-4"/> Edit
-                                                    </a>
-                                                    <a href="#" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDeleteAccount(account.id); setOpenMenuId(null); }} className="flex items-center gap-3 px-4 py-2 text-sm text-status-error hover:bg-status-error/10" role="menuitem">
-                                                        <IconDelete className="h-4 w-4"/> Delete
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        )}
-                                      </div>
+                                        <div className="relative inline-block text-left" ref={openMenuId === account.id ? menuRef : null}>
+                                          <button onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === account.id ? null : account.id); }} title="Actions" className="p-2 text-text-secondary hover:text-primary rounded-full hover:bg-primary/10 transition-colors">
+                                            <IconDotsVertical className="h-5 w-5"/>
+                                          </button>
+                                          {openMenuId === account.id && (
+                                              <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-lg bg-surface shadow-lg z-20 border border-border-color">
+                                                  <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                                                      <button onClick={(e) => { e.preventDefault(); onSelectAccount(account); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary" role="menuitem">
+                                                          <IconView className="h-4 w-4"/> View
+                                                      </button>
+                                                      <button 
+                                                        onClick={(e) => { e.stopPropagation(); onInitiateSync(account); setOpenMenuId(null); }}
+                                                        disabled={account.status === 'Syncing'}
+                                                        className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary disabled:opacity-50 disabled:cursor-not-allowed" 
+                                                        role="menuitem"
+                                                      >
+                                                        <IconRefresh className="h-4 w-4"/> {account.status === 'Syncing' ? 'Syncing...' : 'Sync'}
+                                                      </button>
+                                                      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDeleteAccount(account.id); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-status-error hover:bg-status-error/10" role="menuitem">
+                                                          <IconDelete className="h-4 w-4"/> Remove
+                                                      </button>
+                                                  </div>
+                                              </div>
+                                          )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

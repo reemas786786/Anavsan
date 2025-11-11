@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { QueryListItem } from '../types';
 import { IconChevronLeft, IconSave, IconClipboardCopy, IconRefresh, IconExclamationTriangle, IconWand, IconChevronDown } from '../constants';
 
@@ -46,7 +46,10 @@ const QuerySimulatorView: React.FC<{
     query: QueryListItem | null;
     onBack: () => void;
     onSaveClick: (tag: string) => void;
-}> = ({ query, onBack, onSaveClick }) => {
+    autoRun?: boolean;
+    onAutoRunComplete?: () => void;
+    navigationSource?: string | null;
+}> = ({ query, onBack, onSaveClick, autoRun = false, onAutoRunComplete, navigationSource }) => {
     const originalQuery = query ? queryWithPlaceholder : '';
     
     // State for parameters
@@ -66,8 +69,8 @@ const QuerySimulatorView: React.FC<{
         setEditedQuery(query ? queryWithPlaceholder : '');
         setSimulationResult(null);
     }, [query]);
-
-    const handleRunSimulation = () => {
+    
+    const handleRunSimulation = useCallback(() => {
         setIsSimulating(true);
         setSimulationResult(null);
 
@@ -88,17 +91,31 @@ const QuerySimulatorView: React.FC<{
             });
             setIsSimulating(false);
         }, 1500);
-    };
+    }, [dataSize, dataUnit, warehouseSize]);
+
+    useEffect(() => {
+        if (autoRun && query) {
+            handleRunSimulation();
+            onAutoRunComplete?.();
+        }
+    }, [autoRun, query, handleRunSimulation, onAutoRunComplete]);
     
     const handleReset = () => {
         setEditedQuery(originalQuery);
     };
 
+    const tooltipText = navigationSource?.toLowerCase().includes('queries') ? 'Back to All Queries screen' : 'Back';
+
     return (
         <div className="p-4 space-y-4 h-full flex flex-col">
-            <header className="flex-shrink-0">
-                <h1 className="text-2xl font-bold text-text-primary">Query Simulator</h1>
-                <p className="text-text-secondary mt-1">Simulate your query with different parameters to estimate performance and cost.</p>
+            <header className="flex-shrink-0 bg-surface-nested p-4 rounded-2xl flex items-center gap-4">
+                <button onClick={onBack} title={tooltipText} className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full bg-background text-primary hover:bg-surface-hover transition-colors">
+                    <IconChevronLeft className="h-6 w-6" />
+                </button>
+                <div>
+                    <h1 className="text-xl font-bold text-text-primary">Query Simulator</h1>
+                    <p className="text-sm text-text-secondary">Simulate your query with different parameters to estimate performance and cost.</p>
+                </div>
             </header>
 
             <main className="flex-grow flex flex-col lg:flex-row gap-4 overflow-hidden">
