@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { IconChevronDown, IconSearch, IconClose } from '../constants';
 
@@ -52,7 +53,7 @@ const githubFileTree: { [key: string]: any } = {
   },
 };
 
-const getFilesForPath = (repo: string, path: string[]) => {
+const getFilesForPath = (repo: string, path: string[]): { name: string; type: 'file' | 'dir' }[] => {
     if (!githubFileTree[repo]) return [];
     
     let currentLevel = githubFileTree[repo];

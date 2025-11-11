@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { PullRequest, Reviewer, User } from '../types';
 import { IconGitBranch, IconPullRequest, IconCheckCircle } from '../constants';
@@ -66,7 +67,15 @@ const PullRequestDetailView: React.FC<PullRequestDetailViewProps> = ({ pullReque
                      <div className="bg-surface rounded-2xl border border-border-color">
                         <h3 className="text-base font-semibold text-text-strong p-4 border-b border-border-color">SQL Diff</h3>
                         <div className="p-4">
-                           <CodeDiffViewer oldCode={pullRequest.oldCode} newCode={pullRequest.newCode} />
+                           {/* FIX: Added missing required props to CodeDiffViewer */}
+                           <CodeDiffViewer 
+                                oldCode={pullRequest.oldCode} 
+                                newCode={pullRequest.newCode}
+                                originalTitle="Original Query"
+                                optimizedTitle="Optimized Query"
+                                originalTooltip="The query before changes were applied."
+                                optimizedTooltip="The query with the proposed changes."
+                            />
                         </div>
                     </div>
                 </div>

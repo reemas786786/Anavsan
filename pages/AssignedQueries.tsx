@@ -145,7 +145,7 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUp
         <div className="space-y-4">
             <div>
                 <h1 className="text-2xl font-bold text-text-primary">Assigned Queries</h1>
-                <p className="mt-1 text-text-secondary">Track queries that have been assigned to you or by you for optimization.</p>
+                <p className="mt-2 text-text-secondary">Track queries that have been assigned to you or by you for optimization.</p>
             </div>
 
             <div className="bg-surface rounded-xl flex flex-col min-h-0">
@@ -207,7 +207,7 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUp
                                     {currentUser?.role !== 'Admin' && (
                                         <td className="px-6 py-4 text-right">
                                             <div className="relative inline-block text-left" ref={openMenuId === query.id ? menuRef : null}>
-                                                <button onClick={() => setOpenMenuId(openMenuId === query.id ? null : query.id)} title="Actions" className="p-2 text-text-secondary hover:text-primary rounded-full hover:bg-primary/10 transition-colors">
+                                                <button onClick={() => setOpenMenuId(openMenuId === query.id ? null : query.id)} title="Actions" className="p-2 -m-2 text-text-secondary hover:text-primary rounded-full hover:bg-primary/10 transition-colors">
                                                     <IconDotsVertical className="h-5 w-5" />
                                                 </button>
                                                 {openMenuId === query.id && (
@@ -215,9 +215,7 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUp
                                                         <div className="py-1" role="menu">
                                                             <button onClick={() => { onPreviewQuery(query); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Query Preview</button>
                                                             <button onClick={() => { onUpdateStatus(query.id, 'Optimized'); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Mark as Optimized</button>
-                                                            {currentUser?.role !== 'Admin' && (
-                                                                <button onClick={() => { onUpdateStatus(query.id, 'Needs Info'); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Needs More Info</button>
-                                                            )}
+                                                            <button onClick={() => { onUpdateStatus(query.id, 'Needs Info'); setOpenMenuId(null); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Needs More Info</button>
                                                             <button className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Open in Analyzer</button>
                                                         </div>
                                                     </div>

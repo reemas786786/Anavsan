@@ -1,10 +1,9 @@
 
 
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { queryListData as initialData, warehousesData, usersData as allUsersData } from '../data/dummyData';
 import { QueryListItem, QueryType, QueryListFilters } from '../types';
-import { IconSearch, IconDotsVertical, IconView, IconBeaker, IconWand, IconShare, IconAdjustments, IconArrowUp, IconArrowDown, IconClipboardCopy, IconCheck } from '../constants';
+import { IconSearch, IconDotsVertical, IconView, IconBeaker, IconWand, IconShare, IconAdjustments, IconArrowUp, IconArrowDown, IconClipboardCopy, IconCheck, IconClose } from '../constants';
 import MultiSelectDropdown from '../components/MultiSelectDropdown';
 import DateRangeDropdown from '../components/DateRangeDropdown';
 import Pagination from '../components/Pagination';
@@ -75,6 +74,95 @@ interface QueryListViewProps {
     setFilters: React.Dispatch<React.SetStateAction<QueryListFilters>>;
 }
 
+const FilterPopover: React.FC<{
+    filters: QueryListFilters;
+    setFilters: React.Dispatch<React.SetStateAction<QueryListFilters>>;
+    onClose: () => void;
+}> = ({ filters, setFilters, onClose }) => {
+    const [tempFilters, setTempFilters] = useState(filters);
+    const popoverRef = useRef<HTMLDivElement>(null);
+    // FIX: Define presetOptions to resolve reference error in date range filter.
+    const presetOptions = [
+        { value: '7d', label: 'Last 7 days' },
+        { value: '1d', label: 'Last 24 hours' },
+        { value: '30d', label: 'Last 30 days' },
+        { value: 'All', label: 'All Time' }
+    ];
+    const datePresets = ['Last 7 days', 'Last 24 hours', 'Last 30 days', 'All Time'];
+    const users = [...new Set(initialData.map(q => q.user))];
+    const statuses = ['Success', 'Failed'];
+    const warehouses = warehousesData.map(w => w.name);
+    const qTypes = queryTypes;
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
+                onClose();
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [onClose]);
+
+    const handleApply = () => {
+        setFilters(tempFilters);
+        onClose();
+    };
+
+    const handleReset = () => {
+        const resetFilters: QueryListFilters = {
+            ...filters,
+            dateFilter: 'All',
+            userFilter: [],
+            statusFilter: [],
+            warehouseFilter: [],
+            queryTypeFilter: [],
+        };
+        setFilters(resetFilters);
+        onClose();
+    };
+
+    const renderRadioGroup = (label: string, options: string[], value: string, onChange: (value: string) => void) => (
+        <fieldset>
+            <legend className="block text-sm font-medium text-text-secondary mb-2">{label}</legend>
+            <div className="space-y-2">
+                {['All', ...options].map(option => (
+                    <div key={option} className="flex items-center">
+                        <input
+                            id={`${label}-${option}`}
+                            name={label}
+                            type="radio"
+                            checked={value === option || (value === 'All' && option === 'All')}
+                            onChange={() => onChange(option)}
+                            className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
+                        />
+                        <label htmlFor={`${label}-${option}`} className="ml-2 block text-sm text-text-primary">{option}</label>
+                    </div>
+                ))}
+            </div>
+        </fieldset>
+    );
+
+    return (
+        <div ref={popoverRef} className="absolute top-full mt-2 right-0 lg:right-auto lg:left-0 w-80 bg-surface rounded-lg shadow-lg border border-border-color z-20 flex flex-col">
+            <div className="p-4 overflow-y-auto max-h-96 space-y-4">
+                {renderRadioGroup('Date range', datePresets, typeof tempFilters.dateFilter === 'string' ? presetOptions.find(p => p.value === tempFilters.dateFilter)?.label ?? 'All Time' : 'Custom', (val) => setTempFilters(p => ({...p, dateFilter: presetOptions.find(o => o.label === val)?.value || 'All'})))}
+                {renderRadioGroup('User', users, tempFilters.userFilter[0] || 'All', (val) => setTempFilters(p => ({...p, userFilter: val === 'All' ? [] : [val]})))}
+                {renderRadioGroup('Status', statuses, tempFilters.statusFilter[0] || 'All', (val) => setTempFilters(p => ({...p, statusFilter: val === 'All' ? [] : [val]})))}
+                {renderRadioGroup('Warehouse', warehouses, tempFilters.warehouseFilter[0] || 'All', (val) => setTempFilters(p => ({...p, warehouseFilter: val === 'All' ? [] : [val]})))}
+                {renderRadioGroup('Query Type', qTypes, tempFilters.queryTypeFilter[0] || 'All', (val) => setTempFilters(p => ({...p, queryTypeFilter: val === 'All' ? [] : [val]})))}
+            </div>
+            <div className="p-4 flex justify-between items-center flex-shrink-0 border-t border-border-color bg-surface-nested rounded-b-lg">
+                <button onClick={handleReset} className="text-sm font-semibold text-text-secondary hover:text-text-primary">Reset</button>
+                <div className="flex items-center gap-2">
+                    <button onClick={onClose} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-surface-hover">Cancel</button>
+                    <button onClick={handleApply} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const QueryListView: React.FC<QueryListViewProps> = ({
     onShareQueryClick,
     onSelectQuery,
@@ -87,11 +175,17 @@ const QueryListView: React.FC<QueryListViewProps> = ({
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'ascending' | 'descending' } | null>({ key: 'timestamp', direction: 'descending' });
+    const [isFilterPopoverOpen, setIsFilterPopoverOpen] = useState(false);
+    const filterButtonRef = useRef<HTMLDivElement>(null);
+
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
                 setOpenMenuId(null);
+            }
+             if (filterButtonRef.current && !filterButtonRef.current.contains(event.target as Node)) {
+                setIsFilterPopoverOpen(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -102,23 +196,81 @@ const QueryListView: React.FC<QueryListViewProps> = ({
         setFilters(prev => ({ ...prev, [key]: value, currentPage: 1 }));
     };
 
-    const filteredAndSortedData = useMemo(() => {
-        // This would typically be a server-side operation, but we'll filter client-side for this example.
-        let data = [...initialData];
+    const queryStats = useMemo(() => {
+        const total = initialData.length;
+        const failed = initialData.filter(q => q.status === 'Failed').length;
+        return {
+            total,
+            success: total - failed,
+            failed,
+        }
+    }, []);
+    
+    const activeFilterCount = useMemo(() => {
+        let count = 0;
+        if (filters.dateFilter !== 'All' && filters.dateFilter !== '7d' && filters.dateFilter !== '') count++;
+        if (filters.userFilter.length > 0) count++;
+        if (filters.statusFilter.length > 0) count++;
+        if (filters.warehouseFilter.length > 0) count++;
+        if (filters.queryTypeFilter.length > 0) count++;
+        return count;
+    }, [filters]);
 
-        // Filtering logic here...
+    const filteredAndSortedData = useMemo(() => {
+        let data = [...initialData].filter(q => {
+            if (filters.search && !(
+                q.queryText.toLowerCase().includes(filters.search.toLowerCase()) ||
+                q.id.toLowerCase().includes(filters.search.toLowerCase())
+            )) return false;
+
+            if (filters.userFilter.length > 0 && !filters.userFilter.includes(q.user)) return false;
+            
+            if (filters.statusFilter.length > 0 && !filters.statusFilter.includes(q.status)) return false;
+            
+            if (filters.warehouseFilter.length > 0 && !filters.warehouseFilter.includes(q.warehouse)) return false;
+
+            if (filters.queryTypeFilter.length > 0 && !filters.queryTypeFilter.some(t => q.type.includes(t as QueryType))) return false;
+
+            if (typeof filters.dateFilter === 'object') {
+                const queryDate = new Date(q.timestamp);
+                const startDate = new Date(filters.dateFilter.start);
+                const endDate = new Date(filters.dateFilter.end);
+                endDate.setDate(endDate.getDate() + 1);
+                if (queryDate < startDate || queryDate >= endDate) return false;
+            } else if (filters.dateFilter && filters.dateFilter !== 'All') {
+                const queryDate = new Date(q.timestamp);
+                const now = new Date();
+                let days = 0;
+                if (filters.dateFilter === '7d') days = 7;
+                if (filters.dateFilter === '1d') days = 1;
+                if (filters.dateFilter === '30d') days = 30;
+                if (days > 0 && now.getTime() - queryDate.getTime() > days * 24 * 60 * 60 * 1000) return false;
+            }
+
+            return true;
+        });
 
         if (sortConfig) {
             data.sort((a, b) => {
-                const key = sortConfig.key as keyof QueryListItem;
-                if (a[key] < b[key]) return sortConfig.direction === 'ascending' ? -1 : 1;
-                if (a[key] > b[key]) return sortConfig.direction === 'ascending' ? 1 : -1;
+                const key = sortConfig.key;
+                let valA, valB;
+
+                if (key === 'cost') {
+                    valA = a.costUSD;
+                    valB = b.costUSD;
+                } else {
+                    valA = a[key as keyof QueryListItem];
+                    valB = b[key as keyof QueryListItem];
+                }
+
+                if (valA < valB) return sortConfig.direction === 'ascending' ? -1 : 1;
+                if (valA > valB) return sortConfig.direction === 'ascending' ? 1 : -1;
                 return 0;
             });
         }
         
         return data;
-    }, [initialData, filters, sortConfig]);
+    }, [filters, sortConfig]);
 
     const paginatedData = useMemo(() => {
         return filteredAndSortedData.slice((filters.currentPage - 1) * filters.itemsPerPage, filters.currentPage * filters.itemsPerPage);
@@ -144,16 +296,55 @@ const QueryListView: React.FC<QueryListViewProps> = ({
             <div className="flex-shrink-0">
                 <h1 className="text-2xl font-bold text-text-primary">All Queries</h1>
                 <p className="mt-1 text-text-secondary">View and analyze all queries executed in this account.</p>
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm'}>Total Queries: <span className="font-bold text-text-strong">{queryStats.total.toLocaleString()}</span></div>
+                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm'}>Success: <span className="font-bold text-status-success-dark">{queryStats.success.toLocaleString()}</span></div>
+                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm'}>Failed: <span className="font-bold text-status-error-dark">{queryStats.failed.toLocaleString()}</span></div>
+                </div>
             </div>
             
             <div className="bg-surface rounded-xl flex flex-col flex-grow min-h-0">
-                <div className="p-2 mb-2 flex-shrink-0 flex items-center gap-x-2 border-b border-border-color">
-                    {/* Filter components would go here */}
-                    <div className="relative flex-grow">
-                        <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
-                        <input type="search" placeholder="Search queries..." className="w-full pl-10 pr-4 py-2 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary" />
+                <div className="p-4 flex-shrink-0 flex items-center justify-between gap-x-4 border-b border-border-color">
+                    <div className="flex items-center gap-x-2">
+                        <DateRangeDropdown selectedValue={filters.dateFilter} onChange={(value) => handleFilterChange('dateFilter', value)} />
+                        <MultiSelectDropdown label="User" options={[...new Set(initialData.map(q => q.user))]} selectedOptions={filters.userFilter} onChange={(value) => handleFilterChange('userFilter', value)} selectionMode="single" />
+                        <MultiSelectDropdown label="Status" options={['Success', 'Failed']} selectedOptions={filters.statusFilter} onChange={(value) => handleFilterChange('statusFilter', value)} selectionMode="single" />
+
+                        <div ref={filterButtonRef} className="relative">
+                            <button onClick={() => setIsFilterPopoverOpen(p => !p)} className="flex items-center gap-2 px-4 py-2 rounded-full border border-border-color bg-surface hover:bg-surface-hover text-sm font-semibold text-text-primary">
+                                <IconAdjustments className="h-4 w-4" />
+                                Filter
+                                {activeFilterCount > 0 && (
+                                    <span className="bg-primary text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">{activeFilterCount}</span>
+                                )}
+                            </button>
+                            {isFilterPopoverOpen && (
+                                <FilterPopover
+                                    filters={filters}
+                                    setFilters={setFilters}
+                                    onClose={() => setIsFilterPopoverOpen(false)}
+                                />
+                            )}
+                        </div>
                     </div>
-                    <ColumnSelector columns={allColumns} visibleColumns={filters.visibleColumns} onVisibleColumnsChange={(cols) => handleFilterChange('visibleColumns', cols)} defaultColumns={['queryId', 'actions']} />
+                    <div className="flex items-center gap-x-2">
+                        <ColumnSelector 
+                            columns={allColumns} 
+                            visibleColumns={filters.visibleColumns} 
+                            onVisibleColumnsChange={(cols) => handleFilterChange('visibleColumns', cols)} 
+                            defaultColumns={['queryId', 'actions']} 
+                        />
+                        <div className="relative w-64">
+                            <IconSearch className="h-5 w-5 text-text-muted absolute left-4 top-1/2 -translate-y-1/2" />
+                            <input 
+                                type="search" 
+                                placeholder="Search queries..." 
+                                value={filters.search}
+                                onChange={(e) => handleFilterChange('search', e.target.value)}
+                                className="w-full pl-11 pr-4 py-2.5 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary" 
+                            />
+                        </div>
+                    </div>
                 </div>
                 <div className="overflow-y-auto flex-grow min-h-0">
                     <table className="w-full text-sm">

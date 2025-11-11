@@ -48,7 +48,8 @@ import AssignedQueryModalContent from './components/AssignedQueryModalContent';
 
 type SidePanelType = 'addAccount' | 'saveQuery' | 'editUser' | 'assignQuery' | 'queryPreview' | 'assignedQueryPreview';
 type ModalType = 'addUser';
-type Theme = 'light' | 'dark' | 'gray10' | 'black' | 'system';
+// FIX: Export Theme type to be used in other components
+export type Theme = 'light' | 'dark' | 'gray10' | 'black' | 'system';
 type AuthScreen = 'login' | 'signup' | 'submitted' | 'forgotPassword' | 'checkEmail' | 'createNewPassword' | 'passwordResetSuccess';
 export type DisplayMode = 'cost' | 'credits';
 type ToastType = { message: string; type: 'success' | 'error' };

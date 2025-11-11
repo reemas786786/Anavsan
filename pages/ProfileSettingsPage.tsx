@@ -1,6 +1,8 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
+// FIX: Import Theme type from App.tsx
 import { User } from '../types';
 import { IconUser, IconLockClosed, IconBell, IconPhoto, IconEdit, IconChevronLeft, IconChevronRight, IconAdjustments } from '../constants';
+import { Theme } from '../App';
 
 const IconEye: React.FC<{className?: string}> = ({className}) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className || "h-5 w-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -314,7 +316,7 @@ const NotificationPreferenceSection: React.FC = () => {
 };
 
 
-const ChangeThemeSection: React.FC<{ theme: string; onThemeChange: (theme: string) => void }> = ({ theme, onThemeChange }) => {
+const ChangeThemeSection: React.FC<{ theme: Theme; onThemeChange: (theme: Theme) => void }> = ({ theme, onThemeChange }) => {
     const themes = [
         { id: 'system', label: 'System default', description: 'Follows your operating system setting.', bg: 'bg-gradient-to-br from-white to-gray-900', border: 'border-gray-500' },
         { id: 'light', label: 'White theme', description: 'Clean and bright with brand accents.', bg: 'bg-white', border: 'border-gray-300' },
@@ -341,7 +343,7 @@ const ChangeThemeSection: React.FC<{ theme: string; onThemeChange: (theme: strin
                                 name="theme"
                                 value={t.id}
                                 checked={theme === t.id}
-                                onChange={() => onThemeChange(t.id)}
+                                onChange={() => onThemeChange(t.id as Theme)}
                                 className="h-5 w-5 text-primary focus:ring-primary border-gray-300 ml-4 flex-shrink-0"
                             />
                         </label>
@@ -453,8 +455,8 @@ const BrandSettingsSection: React.FC = () => {
 interface ProfileSettingsPageProps {
     user: User;
     onBack: () => void;
-    theme: string;
-    onThemeChange: (theme: string) => void;
+    theme: Theme;
+    onThemeChange: (theme: Theme) => void;
 }
 
 
