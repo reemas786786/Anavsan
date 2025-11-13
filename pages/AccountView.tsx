@@ -13,7 +13,7 @@ import {
     IconCheck,
     IconRefresh,
 } from '../constants';
-import QueryListView from './QueryListView';
+import { QueryListView } from './QueryListView';
 import StorageSummaryView from './StorageSummaryView';
 import DatabasesView from './DatabasesView';
 import QueryDetailView from './QueryDetailView';
@@ -37,6 +37,7 @@ interface AccountViewProps {
     onBackToAccounts: () => void;
     sqlFiles: SQLFile[];
     onSaveQueryClick: (tag: string) => void;
+    onSaveToGitHubClick: (queryText: string) => void;
     onSetBigScreenWidget: (widget: BigScreenWidget) => void;
     activePage: string;
     onPageChange: (page: string) => void;
@@ -260,7 +261,7 @@ const ContextualNavItem: React.FC<{
 };
 
 
-const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAccount, onBackToAccounts, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, onPreviewQuery, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, users, navigationSource, selectedWarehouse, setSelectedWarehouse, warehouses, onInitiateSync, autoRunAction, onAutoRunComplete }) => {
+const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAccount, onBackToAccounts, sqlFiles, onSaveQueryClick, onSaveToGitHubClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, onPreviewQuery, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, users, navigationSource, selectedWarehouse, setSelectedWarehouse, warehouses, onInitiateSync, autoRunAction, onAutoRunComplete }) => {
     const [selectedDatabaseId, setSelectedDatabaseId] = useState<string | null>(null);
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
     const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
@@ -387,6 +388,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     query={analyzingQuery}
                     onBack={handleBackFromTool}
                     onSaveClick={onSaveQueryClick}
+                    onSaveToGitHub={onSaveToGitHubClick}
                     onBrowseQueries={() => onPageChange('All queries')}
                     onOptimizeQuery={(q) => onOptimizeQuery(q, 'Query analyzer')}
                     autoRun={autoRunAction}
@@ -398,6 +400,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     query={analyzingQuery}
                     onBack={handleBackFromTool}
                     onSaveClick={onSaveQueryClick}
+                    onSaveToGitHub={onSaveToGitHubClick}
                     onSimulateQuery={(q) => onSimulateQuery(q, 'Query optimizer')}
                     autoRun={autoRunAction}
                     onAutoRunComplete={onAutoRunComplete}
@@ -408,6 +411,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     query={analyzingQuery}
                     onBack={handleBackFromTool}
                     onSaveClick={onSaveQueryClick}
+                    onSaveToGitHub={onSaveToGitHubClick}
                     autoRun={autoRunAction}
                     onAutoRunComplete={onAutoRunComplete}
                     navigationSource={navigationSource}

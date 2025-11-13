@@ -1,7 +1,6 @@
 
 
 
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Notification, ActivityLog, User, NotificationType, NotificationSeverity, ActivityLogStatus, Account, Warehouse, QueryListItem, AssignedQuery } from '../types';
 import { queryListData, warehousesData } from '../data/dummyData';
@@ -227,8 +226,9 @@ const AlertsView: React.FC<AlertsViewProps> = (props) => {
     const [selectedInsight, setSelectedInsight] = useState<Notification | null>(null);
 
     const filterOptions = useMemo(() => {
-        // FIX: Explicitly typed the 't' parameter as a string to resolve an inference issue.
-        const types = [...new Set(notifications.map(n => n.insightTopic))].map((t: string) => t.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, s => s.toUpperCase()));
+        // FIX: The type of `t` was inferred as `unknown` causing a type error.
+        // Casting to String() ensures that we can safely call string methods on it.
+        const types = [...new Set(notifications.map(n => n.insightTopic))].map(t => String(t).replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, s => s.toUpperCase()));
         return { types };
     }, [notifications]);
 
@@ -245,7 +245,9 @@ const AlertsView: React.FC<AlertsViewProps> = (props) => {
                 n.queryId?.toLowerCase().includes(search.toLowerCase())
             )) return false;
             
-            if (typeFilter.length > 0 && !typeFilter.includes(n.insightTopic.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, s => s.toUpperCase()))) return false;
+            // FIX: The type of `n.insightTopic` was inferred as `unknown` causing a type error.
+            // Casting to String() ensures that we can safely call string methods on it.
+            if (typeFilter.length > 0 && !typeFilter.includes(String(n.insightTopic).replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, s => s.toUpperCase()))) return false;
             
             if (typeof dateFilter === 'string') {
                 if (dateFilter !== 'All') {
@@ -325,7 +327,8 @@ const AlertsView: React.FC<AlertsViewProps> = (props) => {
                                 <tr key={n.id} className={`border-b border-border-light last:border-b-0 hover:bg-surface-hover ${!n.isRead ? 'bg-gray-100 dark:bg-gray-800/50' : 'bg-surface'}`}>
                                     <td className="px-6 py-3">
                                         <div className="flex items-center gap-2">
-                                            <span className={`capitalize ${!n.isRead ? 'font-bold text-text-strong' : 'font-medium'}`}>{n.insightTypeId === 'QUERY_ASSIGNED' ? 'Query Assignment' : n.insightTopic.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, s => s.toUpperCase())}</span>
+                                            {/* FIX: The type of `n.insightTopic` was inferred as `unknown` causing a type error. Casting to String() ensures that we can safely call string methods on it. */}
+                                            <span className={`capitalize ${!n.isRead ? 'font-bold text-text-strong' : 'font-medium'}`}>{n.insightTypeId === 'QUERY_ASSIGNED' ? 'Query Assignment' : String(n.insightTopic).replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, s => s.toUpperCase())}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-3">

@@ -67,7 +67,6 @@ const PullRequestDetailView: React.FC<PullRequestDetailViewProps> = ({ pullReque
                      <div className="bg-surface rounded-2xl border border-border-color">
                         <h3 className="text-base font-semibold text-text-strong p-4 border-b border-border-color">SQL Diff</h3>
                         <div className="p-4">
-                           {/* FIX: Added missing required props to CodeDiffViewer */}
                            <CodeDiffViewer 
                                 oldCode={pullRequest.oldCode} 
                                 newCode={pullRequest.newCode}

@@ -403,3 +403,4 @@ export interface ActivityLog {
   module?: string;
   status?: ActivityLogStatus;
 }
+export type Theme = 'system' | 'light' | 'dark' | 'gray10' | 'black';

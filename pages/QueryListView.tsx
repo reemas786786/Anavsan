@@ -81,18 +81,9 @@ const FilterPopover: React.FC<{
 }> = ({ filters, setFilters, onClose }) => {
     const [tempFilters, setTempFilters] = useState(filters);
     const popoverRef = useRef<HTMLDivElement>(null);
-    // FIX: Define presetOptions to resolve reference error in date range filter.
-    const presetOptions = [
-        { value: '7d', label: 'Last 7 days' },
-        { value: '1d', label: 'Last 24 hours' },
-        { value: '30d', label: 'Last 30 days' },
-        { value: 'All', label: 'All Time' }
-    ];
-    const datePresets = ['Last 7 days', 'Last 24 hours', 'Last 30 days', 'All Time'];
-    const users = [...new Set(initialData.map(q => q.user))];
-    const statuses = ['Success', 'Failed'];
-    const warehouses = warehousesData.map(w => w.name);
-    const qTypes = queryTypes;
+    
+    const warehouses = useMemo(() => warehousesData.map(w => w.name), []);
+    const qTypes = useMemo(() => queryTypes, []);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -112,45 +103,17 @@ const FilterPopover: React.FC<{
     const handleReset = () => {
         const resetFilters: QueryListFilters = {
             ...filters,
-            dateFilter: 'All',
-            userFilter: [],
-            statusFilter: [],
             warehouseFilter: [],
             queryTypeFilter: [],
         };
-        setFilters(resetFilters);
-        onClose();
+        setTempFilters(resetFilters);
     };
 
-    const renderRadioGroup = (label: string, options: string[], value: string, onChange: (value: string) => void) => (
-        <fieldset>
-            <legend className="block text-sm font-medium text-text-secondary mb-2">{label}</legend>
-            <div className="space-y-2">
-                {['All', ...options].map(option => (
-                    <div key={option} className="flex items-center">
-                        <input
-                            id={`${label}-${option}`}
-                            name={label}
-                            type="radio"
-                            checked={value === option || (value === 'All' && option === 'All')}
-                            onChange={() => onChange(option)}
-                            className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
-                        />
-                        <label htmlFor={`${label}-${option}`} className="ml-2 block text-sm text-text-primary">{option}</label>
-                    </div>
-                ))}
-            </div>
-        </fieldset>
-    );
-
     return (
-        <div ref={popoverRef} className="absolute top-full mt-2 right-0 lg:right-auto lg:left-0 w-80 bg-surface rounded-lg shadow-lg border border-border-color z-20 flex flex-col">
-            <div className="p-4 overflow-y-auto max-h-96 space-y-4">
-                {renderRadioGroup('Date range', datePresets, typeof tempFilters.dateFilter === 'string' ? presetOptions.find(p => p.value === tempFilters.dateFilter)?.label ?? 'All Time' : 'Custom', (val) => setTempFilters(p => ({...p, dateFilter: presetOptions.find(o => o.label === val)?.value || 'All'})))}
-                {renderRadioGroup('User', users, tempFilters.userFilter[0] || 'All', (val) => setTempFilters(p => ({...p, userFilter: val === 'All' ? [] : [val]})))}
-                {renderRadioGroup('Status', statuses, tempFilters.statusFilter[0] || 'All', (val) => setTempFilters(p => ({...p, statusFilter: val === 'All' ? [] : [val]})))}
-                {renderRadioGroup('Warehouse', warehouses, tempFilters.warehouseFilter[0] || 'All', (val) => setTempFilters(p => ({...p, warehouseFilter: val === 'All' ? [] : [val]})))}
-                {renderRadioGroup('Query Type', qTypes, tempFilters.queryTypeFilter[0] || 'All', (val) => setTempFilters(p => ({...p, queryTypeFilter: val === 'All' ? [] : [val]})))}
+        <div ref={popoverRef} className="absolute top-full mt-2 left-0 w-80 bg-surface rounded-lg shadow-lg border border-border-color z-20 flex flex-col">
+            <div className="p-4 overflow-y-auto max-h-[60vh] space-y-4">
+                <MultiSelectDropdown label="Warehouse" options={warehouses} selectedOptions={tempFilters.warehouseFilter} onChange={(val) => setTempFilters(p => ({...p, warehouseFilter: val}))} selectionMode="single" layout="stacked" />
+                <MultiSelectDropdown label="Query Type" options={qTypes} selectedOptions={tempFilters.queryTypeFilter} onChange={(val) => setTempFilters(p => ({...p, queryTypeFilter: val}))} selectionMode="multiple" layout="stacked" />
             </div>
             <div className="p-4 flex justify-between items-center flex-shrink-0 border-t border-border-color bg-surface-nested rounded-b-lg">
                 <button onClick={handleReset} className="text-sm font-semibold text-text-secondary hover:text-text-primary">Reset</button>
@@ -163,7 +126,7 @@ const FilterPopover: React.FC<{
     );
 };
 
-const QueryListView: React.FC<QueryListViewProps> = ({
+export const QueryListView: React.FC<QueryListViewProps> = ({
     onShareQueryClick,
     onSelectQuery,
     onAnalyzeQuery,
@@ -206,15 +169,12 @@ const QueryListView: React.FC<QueryListViewProps> = ({
         }
     }, []);
     
-    const activeFilterCount = useMemo(() => {
+    const additionalFilterCount = useMemo(() => {
         let count = 0;
-        if (filters.dateFilter !== 'All' && filters.dateFilter !== '7d' && filters.dateFilter !== '') count++;
-        if (filters.userFilter.length > 0) count++;
-        if (filters.statusFilter.length > 0) count++;
         if (filters.warehouseFilter.length > 0) count++;
         if (filters.queryTypeFilter.length > 0) count++;
         return count;
-    }, [filters]);
+    }, [filters.warehouseFilter, filters.queryTypeFilter]);
 
     const filteredAndSortedData = useMemo(() => {
         let data = [...initialData].filter(q => {
@@ -305,43 +265,40 @@ const QueryListView: React.FC<QueryListViewProps> = ({
             
             <div className="bg-surface rounded-xl flex flex-col flex-grow min-h-0">
                 <div className="p-4 flex-shrink-0 flex items-center justify-between gap-x-4 border-b border-border-color">
-                    <div className="flex items-center gap-x-2">
+                     <div className="flex items-center gap-x-2">
                         <DateRangeDropdown selectedValue={filters.dateFilter} onChange={(value) => handleFilterChange('dateFilter', value)} />
+                        <div className="h-4 w-px bg-border-color"></div>
                         <MultiSelectDropdown label="User" options={[...new Set(initialData.map(q => q.user))]} selectedOptions={filters.userFilter} onChange={(value) => handleFilterChange('userFilter', value)} selectionMode="single" />
+                        <div className="h-4 w-px bg-border-color"></div>
                         <MultiSelectDropdown label="Status" options={['Success', 'Failed']} selectedOptions={filters.statusFilter} onChange={(value) => handleFilterChange('statusFilter', value)} selectionMode="single" />
 
                         <div ref={filterButtonRef} className="relative">
-                            <button onClick={() => setIsFilterPopoverOpen(p => !p)} className="flex items-center gap-2 px-4 py-2 rounded-full border border-border-color bg-surface hover:bg-surface-hover text-sm font-semibold text-text-primary">
-                                <IconAdjustments className="h-4 w-4" />
-                                Filter
-                                {activeFilterCount > 0 && (
-                                    <span className="bg-primary text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">{activeFilterCount}</span>
+                            <button
+                                onClick={() => setIsFilterPopoverOpen(prev => !prev)}
+                                className="flex items-center gap-2 px-4 py-2 rounded-full border border-border-color bg-surface hover:bg-surface-hover text-sm font-medium text-text-primary"
+                                title="Additional Filters"
+                            >
+                                <IconAdjustments className="h-5 w-5 text-text-secondary" />
+                                <span>Filter</span>
+                                {additionalFilterCount > 0 && (
+                                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white text-xs font-bold">{additionalFilterCount}</span>
                                 )}
                             </button>
-                            {isFilterPopoverOpen && (
-                                <FilterPopover
-                                    filters={filters}
-                                    setFilters={setFilters}
-                                    onClose={() => setIsFilterPopoverOpen(false)}
-                                />
-                            )}
+                            {isFilterPopoverOpen && <FilterPopover filters={filters} setFilters={setFilters} onClose={() => setIsFilterPopoverOpen(false)} />}
                         </div>
                     </div>
                     <div className="flex items-center gap-x-2">
-                        <ColumnSelector 
-                            columns={allColumns} 
-                            visibleColumns={filters.visibleColumns} 
-                            onVisibleColumnsChange={(cols) => handleFilterChange('visibleColumns', cols)} 
-                            defaultColumns={['queryId', 'actions']} 
-                        />
-                        <div className="relative w-64">
-                            <IconSearch className="h-5 w-5 text-text-muted absolute left-4 top-1/2 -translate-y-1/2" />
-                            <input 
-                                type="search" 
-                                placeholder="Search queries..." 
+                        <ColumnSelector columns={allColumns} visibleColumns={filters.visibleColumns} onVisibleColumnsChange={(v) => handleFilterChange('visibleColumns', v)} defaultColumns={['queryId', 'actions']} />
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <IconSearch className="h-5 w-5 text-text-muted" />
+                            </div>
+                            <input
+                                type="search"
                                 value={filters.search}
                                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                                className="w-full pl-11 pr-4 py-2.5 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary" 
+                                placeholder="Search query text or ID..."
+                                className="w-full md:w-80 pl-10 pr-4 py-2 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary"
                             />
                         </div>
                     </div>
@@ -350,48 +307,58 @@ const QueryListView: React.FC<QueryListViewProps> = ({
                     <table className="w-full text-sm">
                         <thead className="text-sm text-text-primary sticky top-0 z-10 bg-table-header-bg">
                             <tr>
-                                {allColumns.filter(c => filters.visibleColumns.includes(c.key)).map(col => (
-                                    <th key={col.key} scope="col" className="px-6 py-4 font-semibold text-left">
-                                        <button onClick={() => requestSort(col.key)} className="group flex items-center">{col.label} <SortIcon columnKey={col.key} /></button>
+                                {filters.visibleColumns.map(colKey => (
+                                    <th key={colKey} scope="col" className={`px-6 py-4 font-semibold text-left ${colKey === 'actions' ? 'text-right' : ''}`}>
+                                        {colKey !== 'actions' ? (
+                                             <button onClick={() => requestSort(colKey)} className="group flex items-center">
+                                                {allColumns.find(c => c.key === colKey)?.label} <SortIcon columnKey={colKey} />
+                                            </button>
+                                        ) : (
+                                            allColumns.find(c => c.key === colKey)?.label
+                                        )}
                                     </th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="text-text-secondary bg-surface">
+                        <tbody className="text-text-secondary">
                             {paginatedData.map(query => (
-                                <tr key={query.id} onClick={() => onSelectQuery(query)} className="border-b border-border-light last:border-b-0 hover:bg-surface-hover cursor-pointer">
-                                    {filters.visibleColumns.includes('queryId') && <td className="px-6 py-3"><QueryIdCell query={query} onSelectQuery={onSelectQuery} /></td>}
-                                    {filters.visibleColumns.includes('user') && <td className="px-6 py-3 text-text-primary">{query.user}</td>}
-                                    {filters.visibleColumns.includes('warehouse') && <td className="px-6 py-3">{query.warehouse}</td>}
-                                    {filters.visibleColumns.includes('duration') && <td className="px-6 py-3">{query.duration}</td>}
-                                    {filters.visibleColumns.includes('bytesScanned') && <td className="px-6 py-3">{formatBytes(query.bytesScanned)}</td>}
-                                    {filters.visibleColumns.includes('cost') && <td className="px-6 py-3">${query.costUSD.toFixed(2)}</td>}
-                                    {filters.visibleColumns.includes('startTime') && <td className="px-6 py-3">{formatTimestamp(query.timestamp)}</td>}
-                                    {filters.visibleColumns.includes('actions') && (
-                                        <td className="px-6 py-3 text-right">
-                                            <div className="relative inline-block text-left" ref={openMenuId === query.id ? menuRef : null}>
-                                                <button onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === query.id ? null : query.id); }} title="Actions" className="p-2 text-text-secondary hover:text-primary rounded-full hover:bg-primary/10 transition-colors">
-                                                    <IconDotsVertical className="h-5 w-5"/>
-                                                </button>
-                                                {openMenuId === query.id && (
-                                                    <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg bg-surface shadow-lg z-20 border border-border-color">
-                                                        <div className="py-1" role="menu">
-                                                            <button onClick={() => { onAnalyzeQuery(query); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem"><IconSearch className="h-4 w-4"/> Analyze</button>
-                                                            <button onClick={() => { onOptimizeQuery(query); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem"><IconWand className="h-4 w-4"/> Optimize</button>
-                                                            <button onClick={() => { onSimulateQuery(query); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem"><IconBeaker className="h-4 w-4"/> Simulate</button>
-                                                            <div className="my-1 border-t border-border-color"></div>
-                                                            <button onClick={() => { onShareQueryClick(query); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem"><IconShare className="h-4 w-4"/> Assign / Share</button>
+                                <tr key={query.id} className="border-b border-border-light last:border-b-0 hover:bg-surface-nested" data-row-hover>
+                                    {filters.visibleColumns.map(colKey => (
+                                        <td key={colKey} className={`px-6 py-3 ${colKey === 'actions' ? 'text-right' : ''}`}>
+                                            {colKey === 'queryId' && <QueryIdCell query={query} onSelectQuery={onSelectQuery} />}
+                                            {colKey === 'user' && <span className="font-medium text-text-primary">{query.user}</span>}
+                                            {colKey === 'warehouse' && query.warehouse}
+                                            {colKey === 'duration' && query.duration}
+                                            {colKey === 'bytesScanned' && formatBytes(query.bytesScanned)}
+                                            {colKey === 'cost' && <span className="font-semibold text-text-primary">${query.costUSD.toFixed(2)}</span>}
+                                            {colKey === 'startTime' && formatTimestamp(query.timestamp)}
+                                            {colKey === 'actions' && (
+                                                 <div className="relative inline-block text-left" ref={openMenuId === query.id ? menuRef : null}>
+                                                    <button onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === query.id ? null : query.id); }} title="Actions" className="p-2 -m-2 text-text-secondary hover:text-primary rounded-full hover:bg-primary/10 transition-colors">
+                                                        <IconDotsVertical className="h-5 w-5"/>
+                                                    </button>
+                                                    {openMenuId === query.id && (
+                                                        <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-lg bg-surface shadow-lg z-20 border border-border-color">
+                                                            <div className="py-1" role="menu">
+                                                                <button onClick={() => { onSelectQuery(query); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem"><IconView className="h-4 w-4"/> View Details</button>
+                                                                <button onClick={() => { onAnalyzeQuery(query); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem"><IconSearch className="h-4 w-4"/> Analyze</button>
+                                                                <button onClick={() => { onOptimizeQuery(query); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem"><IconWand className="h-4 w-4"/> Optimize</button>
+                                                                <button onClick={() => { onSimulateQuery(query); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem"><IconBeaker className="h-4 w-4"/> Simulate</button>
+                                                                <div className="my-1 border-t border-border-color"></div>
+                                                                <button onClick={() => { onShareQueryClick(query); setOpenMenuId(null); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem"><IconShare className="h-4 w-4"/> Assign Query</button>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                )}
-                                            </div>
+                                                    )}
+                                                </div>
+                                            )}
                                         </td>
-                                    )}
+                                    ))}
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
+                 {/* FIX: `itemsPerPage` is a property of `filters`, not a standalone variable. */}
                  {filteredAndSortedData.length > filters.itemsPerPage && (
                      <div className="flex-shrink-0">
                         <Pagination
@@ -408,5 +375,3 @@ const QueryListView: React.FC<QueryListViewProps> = ({
         </div>
     );
 };
-
-export default QueryListView;

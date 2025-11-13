@@ -1,3 +1,5 @@
+
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { Warehouse } from '../types';
 import { IconArrowUp, IconArrowDown, IconSearch } from '../constants';
@@ -44,6 +46,13 @@ const AllWarehouses: React.FC<AllWarehousesProps> = ({ warehouses, onSelectWareh
 
     const warehouseSizes = ['X-Small', 'Small', 'Medium', 'Large', 'X-Large'];
     const warehouseStatuses: Warehouse['status'][] = ['Running', 'Active', 'Suspended', 'Idle'];
+
+    const summaryStats = useMemo(() => ({
+        total: warehouses.length,
+        running: warehouses.filter(w => w.status === 'Running' || w.status === 'Active').length,
+        suspended: warehouses.filter(w => w.status === 'Suspended').length,
+        idle: warehouses.filter(w => w.status === 'Idle').length,
+    }), [warehouses]);
 
     useEffect(() => {
         setCurrentPage(1);
@@ -100,21 +109,39 @@ const AllWarehouses: React.FC<AllWarehousesProps> = ({ warehouses, onSelectWareh
                 <h1 className="text-2xl font-bold text-text-primary">All Warehouses</h1>
                 <p className="mt-1 text-text-secondary">A list of all warehouses in this account.</p>
             </div>
+            
+            <div className="flex flex-wrap items-center gap-2">
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                    Total: <span className="font-bold text-text-strong">{summaryStats.total}</span>
+                </div>
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                    Running: <span className="font-bold text-status-success-dark">{summaryStats.running}</span>
+                </div>
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                    Suspended: <span className="font-bold text-text-secondary">{summaryStats.suspended}</span>
+                </div>
+                 <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                    Idle: <span className="font-bold text-status-info-dark">{summaryStats.idle}</span>
+                </div>
+            </div>
+
             <div className="bg-surface rounded-xl flex flex-col">
-                <div className="p-2 mb-2 flex-shrink-0 flex items-center gap-x-2 border-b border-border-color">
-                    <DateRangeDropdown selectedValue={dateFilter} onChange={setDateFilter} />
-                    <div className="h-4 w-px bg-border-color"></div>
-                    <MultiSelectDropdown label="Size" options={warehouseSizes} selectedOptions={sizeFilter} onChange={setSizeFilter} selectionMode="single" />
-                    <div className="h-4 w-px bg-border-color"></div>
-                    <MultiSelectDropdown label="Status" options={warehouseStatuses} selectedOptions={statusFilter} onChange={setStatusFilter} selectionMode="single" />
-                    <div className="relative flex-grow ml-auto">
-                        <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                <div className="p-4 flex justify-between items-center flex-shrink-0 border-b border-border-color">
+                    <div className="flex items-center gap-x-2">
+                        <DateRangeDropdown selectedValue={dateFilter} onChange={setDateFilter} />
+                        <div className="h-4 w-px bg-border-color"></div>
+                        <MultiSelectDropdown label="Size" options={warehouseSizes} selectedOptions={sizeFilter} onChange={setSizeFilter} selectionMode="single" />
+                        <div className="h-4 w-px bg-border-color"></div>
+                        <MultiSelectDropdown label="Status" options={warehouseStatuses} selectedOptions={statusFilter} onChange={setStatusFilter} selectionMode="single" />
+                    </div>
+                    <div className="relative">
+                        <IconSearch className="h-5 w-5 text-text-muted absolute left-4 top-1/2 -translate-y-1/2" />
                         <input
                             type="search"
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             placeholder="Search warehouses..."
-                            className="w-full pl-10 pr-4 py-2 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary"
+                            className="w-full md:w-80 pl-11 pr-4 py-2.5 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary"
                         />
                     </div>
                 </div>

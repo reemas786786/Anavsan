@@ -135,7 +135,7 @@ const NavItem: React.FC<{
 
             {hasSubItems && (
                 <div 
-                    className={`absolute left-full top-0 w-60 bg-surface rounded-lg shadow-lg p-2 z-31 transition-all duration-200 ease-in-out ${isSubMenuOpen ? 'opacity-100 translate-x-0 visible' : 'opacity-0 -translate-x-4 invisible'}`}
+                    className={`absolute left-full top-0 w-60 bg-surface rounded-lg shadow-lg p-2 z-30 transition-all duration-200 ease-in-out ${isSubMenuOpen ? 'opacity-100 translate-x-0 visible' : 'opacity-0 -translate-x-4 invisible'}`}
                     onMouseEnter={showSubMenu}
                     onMouseLeave={hideSubMenu}
                     aria-hidden={!isSubMenuOpen}
@@ -259,7 +259,7 @@ const CompactNavItem: React.FC<{
 
             {hasSubItems && isSubMenuOpen && (
                 <div
-                    className={`absolute left-full ml-2 w-60 bg-surface rounded-lg shadow-lg p-2 z-31 ${flyoutPosition === 'top' ? 'top-0' : 'bottom-0'}`}
+                    className={`absolute left-full ml-2 w-60 bg-surface rounded-lg shadow-lg p-2 z-30 ${flyoutPosition === 'top' ? 'top-0' : 'bottom-0'}`}
                     aria-hidden={!isSubMenuOpen}
                     onMouseEnter={handleMouseEnterContainer}
                     onMouseLeave={hideSubMenu}

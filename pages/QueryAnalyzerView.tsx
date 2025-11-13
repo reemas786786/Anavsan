@@ -1,7 +1,7 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { QueryListItem } from '../types';
-// FIX: Replaced non-existent IconFilter with IconAdjustments.
-import { IconChevronLeft, IconSave, IconClipboardCopy, IconRefresh, IconKey, IconSearch, IconDatabase, IconCheck, IconAdjustments, IconLayers, IconBeaker, IconTrendingUp, IconWand } from '../constants';
+import { IconChevronLeft, IconSave, IconClipboardCopy, IconRefresh, IconKey, IconSearch, IconDatabase, IconCheck, IconAdjustments, IconLayers, IconBeaker, IconTrendingUp, IconWand, IconGithub } from '../constants';
 
 interface AnalysisResult {
     id: string;
@@ -78,7 +78,6 @@ const mockAnalysisResults: AnalysisResult[] = [
         id: 'rec1',
         title: 'Filter Pushdown Opportunity',
         description: "The filter `region = 'North America'` is applied in the final SELECT. Pushing this filter into the `regional_analysis` CTE would significantly reduce data processed by subsequent joins.",
-        // FIX: Replaced non-existent IconFilter with IconAdjustments.
         icon: IconAdjustments,
         category: 'core',
     },
@@ -138,12 +137,13 @@ const QueryAnalyzerView: React.FC<{
     query: QueryListItem | null;
     onBack: () => void;
     onSaveClick: (tag: string) => void;
+    onSaveToGitHub: (queryText: string) => void;
     onBrowseQueries: () => void;
     onOptimizeQuery: (query: QueryListItem) => void;
     autoRun?: boolean;
     onAutoRunComplete?: () => void;
     navigationSource?: string | null;
-}> = ({ query, onBack, onSaveClick, onBrowseQueries, onOptimizeQuery, autoRun = false, onAutoRunComplete, navigationSource }) => {
+}> = ({ query, onBack, onSaveClick, onSaveToGitHub, onBrowseQueries, onOptimizeQuery, autoRun = false, onAutoRunComplete, navigationSource }) => {
     const originalQuery = query ? realWorldQuery : '';
     const [editedQuery, setEditedQuery] = useState(originalQuery);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -200,8 +200,8 @@ const QueryAnalyzerView: React.FC<{
 
     return (
         <div className="p-4 space-y-4 h-full flex flex-col">
-            <header className="flex-shrink-0 p-4 rounded-2xl flex items-center gap-4 bg-surface-nested">
-                <button onClick={onBack} title={tooltipText} className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full bg-background text-primary hover:bg-surface-hover transition-colors">
+            <header className="flex-shrink-0 px-4 pt-4 flex items-center gap-4">
+                <button onClick={onBack} title={tooltipText} className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full bg-surface text-primary hover:bg-surface-hover transition-colors">
                     <IconChevronLeft className="h-6 w-6" />
                 </button>
                 <div>
@@ -259,6 +259,15 @@ const QueryAnalyzerView: React.FC<{
                                     Reset
                                 </button>
                             )}
+                             <button
+                                onClick={() => onSaveToGitHub(editedQuery)}
+                                disabled={!editedQuery.trim()}
+                                title="Save to GitHub"
+                                className="w-10 h-10 flex items-center justify-center rounded-full border border-border-color bg-surface hover:bg-surface-hover text-text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                aria-label="Save to GitHub"
+                            >
+                                <IconGithub className="h-5 w-5" />
+                            </button>
                         </div>
                     </div>
                 </div>

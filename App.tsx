@@ -20,7 +20,7 @@ import ConfirmationModal from './components/ConfirmationModal';
 import Modal from './components/Modal';
 import Toast from './components/Toast';
 import BigScreenView from './components/BigScreenView';
-import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem, BigScreenWidget, QueryListItem, AssignedQuery, AssignmentPriority, AssignmentStatus, PullRequest, Notification, ActivityLog, BreadcrumbItem, Warehouse, SQLVersion } from './types';
+import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem, BigScreenWidget, QueryListItem, AssignedQuery, AssignmentPriority, AssignmentStatus, PullRequest, Notification, ActivityLog, BreadcrumbItem, Warehouse, SQLVersion, Theme } from './types';
 import { connectionsData, sqlFilesData as initialSqlFiles, usersData, dashboardsData as initialDashboardsData, assignedQueriesData, pullRequestsData, notificationsData as initialNotificationsData, activityLogsData, warehousesData, queryListData } from './data/dummyData';
 import { accountNavItems, IconCheck, IconRefresh } from './constants';
 import SettingsPage from './pages/SettingsPage';
@@ -44,12 +44,11 @@ import AIAgent from './pages/AIAgent';
 import { QueryLibrary } from './pages/QueryLibrary';
 import QueryLibraryDetailView from './pages/QueryLibraryDetailView';
 import AssignedQueryModalContent from './components/AssignedQueryModalContent';
+import SaveToGitHubFlow from './components/SaveToGitHubFlow';
 
 
-type SidePanelType = 'addAccount' | 'saveQuery' | 'editUser' | 'assignQuery' | 'queryPreview' | 'assignedQueryPreview';
+type SidePanelType = 'addAccount' | 'saveQuery' | 'editUser' | 'assignQuery' | 'queryPreview' | 'assignedQueryPreview' | 'saveToGitHub';
 type ModalType = 'addUser';
-// FIX: Export Theme type to be used in other components
-export type Theme = 'light' | 'dark' | 'gray10' | 'black' | 'system';
 type AuthScreen = 'login' | 'signup' | 'submitted' | 'forgotPassword' | 'checkEmail' | 'createNewPassword' | 'passwordResetSuccess';
 export type DisplayMode = 'cost' | 'credits';
 type ToastType = { message: string; type: 'success' | 'error' };
@@ -472,6 +471,73 @@ const App: React.FC = () => {
     setAutoRunAction(false);
   }, []);
 
+  // FIX: Define handlers for query analysis, optimization, and simulation.
+  // These can be called from different parts of the app, like the query preview panel,
+  // and will handle navigation to the appropriate AccountView page if needed.
+  const handleAnalyzeQuery = (q: QueryListItem | null, source: string) => {
+      if (q) {
+          // If no account is selected (e.g., coming from Assigned Queries page),
+          // we need to select one to show the AccountView with the analyzer.
+          if (!selectedAccount) {
+              // This is a workaround for inconsistent demo data where warehouse name doesn't map to account name.
+              // We'll default to the first account. A real implementation would have a proper mapping.
+              const accountToSelect = accounts[0];
+              if (accountToSelect) {
+                  setSelectedAccount(accountToSelect);
+                  setActivePage('Snowflake Accounts');
+              }
+          }
+          setAnalyzingQuery(q);
+          setNavigationSource(source);
+          setAutoRunAction(source === 'Query detail' || source === 'Query Preview');
+          setAccountViewPage('Query analyzer');
+          setSelectedQuery(null);
+      } else {
+          setAnalyzingQuery(null);
+          setNavigationSource('');
+      }
+  };
+
+  const handleOptimizeQuery = (q: QueryListItem | null, source: string) => {
+      if (q) {
+          if (!selectedAccount) {
+              const accountToSelect = accounts[0];
+              if (accountToSelect) {
+                  setSelectedAccount(accountToSelect);
+                  setActivePage('Snowflake Accounts');
+              }
+          }
+          setAnalyzingQuery(q);
+          setNavigationSource(source);
+          setAutoRunAction(source === 'Query detail' || source === 'Query Preview');
+          setAccountViewPage('Query optimizer');
+          setSelectedQuery(null);
+      } else {
+          setAnalyzingQuery(null);
+          setNavigationSource('');
+      }
+  };
+
+  const handleSimulateQuery = (q: QueryListItem | null, source: string) => {
+      if (q) {
+          if (!selectedAccount) {
+              const accountToSelect = accounts[0];
+              if (accountToSelect) {
+                  setSelectedAccount(accountToSelect);
+                  setActivePage('Snowflake Accounts');
+              }
+          }
+          setAnalyzingQuery(q);
+          setNavigationSource(source);
+          setAutoRunAction(source === 'Query detail' || source === 'Query Preview');
+          setAccountViewPage('Query simulator');
+          setSelectedQuery(null);
+      } else {
+          setAnalyzingQuery(null);
+          setNavigationSource('');
+      }
+  };
+
   const renderPage = () => {
     if (selectedLibraryItem) {
         return <QueryLibraryDetailView 
@@ -497,7 +563,8 @@ const App: React.FC = () => {
             handleSetActivePage('Snowflake Accounts');
         }}
         sqlFiles={sqlFiles} 
-        onSaveQueryClick={() => setSidePanel({type: 'saveQuery'})} 
+        onSaveQueryClick={() => setSidePanel({type: 'saveQuery'})}
+        onSaveToGitHubClick={(queryText) => setSidePanel({ type: 'saveToGitHub', data: queryText })}
         onSetBigScreenWidget={setBigScreenWidget} 
         activePage={accountViewPage} 
         onPageChange={setAccountViewPage} 
@@ -506,42 +573,9 @@ const App: React.FC = () => {
         selectedQuery={selectedQuery} 
         setSelectedQuery={setSelectedQuery} 
         analyzingQuery={analyzingQuery} 
-        onAnalyzeQuery={(q, source) => {
-            if (q) {
-                setAnalyzingQuery(q);
-                setNavigationSource(source);
-                setAutoRunAction(source === 'Query detail');
-                setAccountViewPage('Query analyzer');
-                setSelectedQuery(null);
-            } else {
-                setAnalyzingQuery(null);
-                setNavigationSource('');
-            }
-        }}
-        onOptimizeQuery={(q, source) => {
-            if (q) {
-                setAnalyzingQuery(q);
-                setNavigationSource(source);
-                setAutoRunAction(source === 'Query detail');
-                setAccountViewPage('Query optimizer');
-                setSelectedQuery(null);
-            } else {
-                setAnalyzingQuery(null);
-                setNavigationSource('');
-            }
-        }}
-        onSimulateQuery={(q, source) => {
-            if (q) {
-                setAnalyzingQuery(q);
-                setNavigationSource(source);
-                setAutoRunAction(source === 'Query detail');
-                setAccountViewPage('Query simulator');
-                setSelectedQuery(null);
-            } else {
-                setAnalyzingQuery(null);
-                setNavigationSource('');
-            }
-        }}
+        onAnalyzeQuery={handleAnalyzeQuery}
+        onOptimizeQuery={handleOptimizeQuery}
+        onSimulateQuery={handleSimulateQuery}
         pullRequests={pullRequests} 
         selectedPullRequest={selectedPullRequest} 
         setSelectedPullRequest={setSelectedPullRequest} 
@@ -684,6 +718,11 @@ const App: React.FC = () => {
     showToast(`Query version saved to "${data.fileName}".`, 'success');
     setSidePanel(null);
   }
+
+  const handleSaveToGitHub = (data: { repo: string, branch: string, filePath: string, commitMessage: string }) => {
+    showToast(`Query saved to ${data.repo} on branch ${data.branch}`, 'success');
+    setSidePanel(null);
+  };
 
   const handleAddUser = (data: { email: string; }) => {
       const newUser: User = { id: `user-${Date.now()}`, name: 'Invited User', email: data.email, role: 'Viewer', status: 'Invited', dateAdded: new Date().toISOString().split('T')[0], cost: 0, credits: 0, message: 'Invitation pending' };
@@ -838,164 +877,75 @@ const App: React.FC = () => {
             />
 
             {breadcrumbItems.length > 0 && (
-              <div className="bg-surface shadow-sm flex-shrink-0 z-10 border-b border-border-light">
-                <div className="h-[42px] px-4 flex items-center">
-                  <Breadcrumb items={breadcrumbItems} />
+                <div className="flex-shrink-0 px-4 py-2 border-b border-border-color bg-surface-nested">
+                    <Breadcrumb items={breadcrumbItems} />
                 </div>
-              </div>
             )}
-            
+          
             <div className="flex flex-1 overflow-hidden">
-                {activePage !== 'Profile Settings' && <Sidebar
-                    activePage={activePage}
-                    setActivePage={handleSetActivePage}
-                    isOpen={isSidebarOpen}
+                <Sidebar 
+                    activePage={activePage} 
+                    setActivePage={handleSetActivePage} 
+                    isOpen={isSidebarOpen} 
                     onClose={() => setSidebarOpen(false)}
                     activeSubPage={activeSubPage}
                     showCompact={showCompactLayout}
-                />}
-                <main className={`flex-1 ${managesOwnScroll ? 'overflow-hidden' : 'overflow-y-auto'}`}>
-                    <div className={mainContentPadding}>
+                />
+                <div className={`flex-1 flex flex-col ${managesOwnScroll ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+                    <div className={`flex-grow ${mainContentPadding}`}>
                         {renderPage()}
                     </div>
-                </main>
+                </div>
             </div>
+
+            <SidePanel
+                isOpen={!!sidePanel}
+                onClose={handleSidePanelClose}
+                title={
+                    sidePanel?.type === 'addAccount' ? 'Add new connection' :
+                    sidePanel?.type === 'saveQuery' ? 'Save query version' :
+                    sidePanel?.type === 'editUser' ? `Edit role for ${sidePanel.data?.name}` :
+                    sidePanel?.type === 'assignQuery' ? 'Assign query' :
+                    sidePanel?.type === 'queryPreview' ? `Query ${sidePanel.data?.id?.substring(7, 13).toUpperCase()}` :
+                    sidePanel?.type === 'assignedQueryPreview' ? `Assigned Query ${sidePanel.data?.queryId?.substring(7, 13).toUpperCase()}` :
+                    sidePanel?.type === 'saveToGitHub' ? 'Save Query to GitHub' :
+                    ''
+                }
+            >
+                {sidePanel?.type === 'addAccount' && <AddAccountFlow onCancel={() => setSidePanel(null)} onAddAccount={handleAddAccount} />}
+                {sidePanel?.type === 'saveQuery' && <SaveQueryFlow files={sqlFiles} onCancel={() => setSidePanel(null)} onSave={handleSaveQuery} contextualTag='General' />}
+                {sidePanel?.type === 'editUser' && sidePanel.data && <EditUserRoleFlow user={sidePanel.data} onCancel={() => setSidePanel(null)} onSave={handleEditUserRole} />}
+                {sidePanel?.type === 'assignQuery' && sidePanel.data && <AssignQueryFlow query={sidePanel.data} users={users} onCancel={() => setSidePanel(null)} onAssign={handleAssignQuery} />}
+                {sidePanel?.type === 'queryPreview' && sidePanel.data && <QueryPreviewContent query={sidePanel.data} onAnalyze={(q) => { handleAnalyzeQuery(q, 'Query Preview'); setSidePanel(null); }} onOptimize={(q) => { handleOptimizeQuery(q, 'Query Preview'); setSidePanel(null); }} onSimulate={(q) => { handleSimulateQuery(q, 'Query Preview'); setSidePanel(null); }} />}
+                {sidePanel?.type === 'assignedQueryPreview' && sidePanel.data && <AssignedQueryModalContent assignedQuery={sidePanel.data} onGoToQueryDetails={() => { const q = queryListData.find(ql => ql.id === sidePanel.data.queryId); if(q) { handleNavigateToQuery(accounts.find(acc => acc.name === sidePanel.data.warehouse) || accounts[0], q); } setSidePanel(null); }} />}
+                {sidePanel?.type === 'saveToGitHub' && sidePanel.data && currentUser && <SaveToGitHubFlow queryText={sidePanel.data} onCancel={() => setSidePanel(null)} onSave={handleSaveToGitHub} currentUser={currentUser} />}
+            </SidePanel>
+            
+            <AIQuickAskPanel isOpen={isQuickAskOpen} onClose={() => setIsQuickAskOpen(false)} onOpenAgent={() => { handleSetActivePage('AI Agent'); setIsQuickAskOpen(false); }} />
+
+            <Modal isOpen={!!modal} onClose={() => setModal(null)} title={ modal?.type === 'addUser' ? 'Invite a new user' : '' }>
+                {modal?.type === 'addUser' && <InviteUserFlow onCancel={() => setModal(null)} onAddUser={handleAddUser} />}
+            </Modal>
+            
+            {confirmation && <ConfirmationModal isOpen={!!confirmation} onClose={() => setConfirmation(null)} {...confirmation} />}
+            
+            {syncConfirmation && (
+                <ConfirmationModal 
+                    isOpen={!!syncConfirmation} 
+                    onClose={() => setSyncConfirmation(null)}
+                    title={`Confirm Data Sync`}
+                    message={`This will sync the latest data for "${syncConfirmation.account.name}". This may consume credits. Do you want to continue?`}
+                    onConfirm={handleConfirmSync}
+                    confirmText='Start Sync'
+                />
+            )}
+            
+            {toast && <Toast toast={toast} onClose={() => setToast(null)} />}
+            
+            {bigScreenWidget && <BigScreenView widget={bigScreenWidget} accounts={accounts} users={users} onClose={() => setBigScreenWidget(null)} onSelectAccount={(acc) => { setBigScreenWidget(null); setSelectedAccount(acc); }} onSelectUser={(user) => { setBigScreenWidget(null); setSelectedUser(user); }} displayMode={displayMode} />}
+
         </div>
       )}
-
-      <AIQuickAskPanel
-          isOpen={isQuickAskOpen}
-          onClose={() => setIsQuickAskOpen(false)}
-          onOpenAgent={() => {
-              setIsQuickAskOpen(false);
-              handleSetActivePage('AI Agent');
-          }}
-      />
-
-      <Toast toast={toast} onClose={() => setToast(null)} />
-
-      {confirmation && (
-        <ConfirmationModal
-            isOpen={!!confirmation}
-            onClose={() => setConfirmation(null)}
-            onConfirm={() => { confirmation.onConfirm(); setConfirmation(null); }}
-            title={confirmation.title}
-            message={confirmation.message}
-            confirmText={confirmation.confirmText}
-            confirmVariant={confirmation.confirmVariant}
-        />
-      )}
-
-      {syncConfirmation && (
-        <ConfirmationModal
-            isOpen={!!syncConfirmation}
-            onClose={() => setSyncConfirmation(null)}
-            onConfirm={handleConfirmSync}
-            title={`Confirm Data Sync for "${syncConfirmation.account.name}"`}
-            message="This action will fetch the latest metrics from your Snowflake account. The process cannot be cancelled once initiated and may take several minutes to complete, depending on data volume."
-            confirmText="Sync now"
-            confirmVariant="primary"
-        />
-      )}
-
-      {bigScreenWidget && (
-        <BigScreenView
-            widget={bigScreenWidget}
-            accounts={accounts}
-            users={users}
-            onClose={() => setBigScreenWidget(null)}
-            onSelectAccount={(acc) => { setBigScreenWidget(null); setSelectedAccount(acc); }}
-            onSelectUser={(user) => { setBigScreenWidget(null); setSelectedUser(user); }}
-            displayMode={displayMode}
-        />
-      )}
-
-      <SidePanel
-        isOpen={sidePanel?.type === 'addAccount'}
-        onClose={handleSidePanelClose}
-        title="Add Snowflake Account"
-      >
-        <AddAccountFlow onCancel={handleSidePanelClose} onAddAccount={handleAddAccount} />
-      </SidePanel>
-      
-      <SidePanel
-        isOpen={sidePanel?.type === 'saveQuery'}
-        onClose={handleSidePanelClose}
-        title="Save Query Version"
-      >
-        <SaveQueryFlow files={sqlFiles} onCancel={handleSidePanelClose} onSave={handleSaveQuery} />
-      </SidePanel>
-      
-      <SidePanel
-        isOpen={sidePanel?.type === 'editUser'}
-        onClose={handleSidePanelClose}
-        title="Edit User Role"
-      >
-        {sidePanel?.type === 'editUser' && sidePanel.data && (
-            <EditUserRoleFlow user={sidePanel.data} onCancel={handleSidePanelClose} onSave={handleEditUserRole} />
-        )}
-      </SidePanel>
-
-       <SidePanel
-            isOpen={sidePanel?.type === 'assignQuery'}
-            onClose={handleSidePanelClose}
-            title="Assign query"
-        >
-            {sidePanel?.type === 'assignQuery' && sidePanel.data && (
-                <AssignQueryFlow query={sidePanel.data} users={users} onCancel={handleSidePanelClose} onAssign={handleAssignQuery} />
-            )}
-       </SidePanel>
-
-       <SidePanel
-            isOpen={sidePanel?.type === 'queryPreview'}
-            onClose={handleSidePanelClose}
-            title="Query Preview"
-        >
-            {sidePanel?.type === 'queryPreview' && sidePanel.data && (
-                <QueryPreviewContent
-                    query={sidePanel.data}
-                    onAnalyze={(q) => { setSidePanel(null); setAnalyzingQuery(q); setNavigationSource('Slow queries'); setAccountViewPage('Query analyzer'); }}
-                    onOptimize={(q) => { setSidePanel(null); setAnalyzingQuery(q); setNavigationSource('Slow queries'); setAccountViewPage('Query optimizer'); }}
-                    onSimulate={(q) => { setSidePanel(null); setAnalyzingQuery(q); setNavigationSource('Slow queries'); setAccountViewPage('Query simulator'); }}
-                />
-            )}
-       </SidePanel>
-
-        <SidePanel
-            isOpen={sidePanel?.type === 'assignedQueryPreview'}
-            onClose={handleSidePanelClose}
-            title="Assigned Query for Review"
-        >
-            {sidePanel?.type === 'assignedQueryPreview' && sidePanel.data && (
-                <AssignedQueryModalContent
-                    assignedQuery={sidePanel.data}
-                    onGoToQueryDetails={() => {
-                        const assignedQuery = sidePanel.data as AssignedQuery;
-
-                        const notif = notifications.find(n => n.queryId === assignedQuery.queryId && n.insightTypeId === 'QUERY_ASSIGNED');
-                        if (notif && !notif.isRead) {
-                            handleMarkNotificationAsRead(notif.id);
-                        }
-
-                        const queryItem = queryListData.find(q => q.id === assignedQuery.queryId);
-                        const account = accounts.find(acc => acc.name.toLowerCase().includes('prod'));
-
-                        if (queryItem && account) {
-                            handleNavigateToQuery(account, queryItem);
-                        }
-                        setSidePanel(null);
-                    }}
-                />
-            )}
-        </SidePanel>
-
-      <Modal
-        isOpen={modal?.type === 'addUser'}
-        onClose={() => setModal(null)}
-        title="Add a New User"
-      >
-        <InviteUserFlow onCancel={() => setModal(null)} onAddUser={handleAddUser} />
-      </Modal>
     </>
   );
 };

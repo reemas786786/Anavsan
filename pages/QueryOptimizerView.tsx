@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { QueryListItem } from '../types';
-import { IconChevronLeft, IconSave, IconClipboardCopy, IconRefresh, IconExclamationTriangle, IconClipboardList, IconWand, IconInfo } from '../constants';
+import { IconChevronLeft, IconSave, IconClipboardCopy, IconRefresh, IconExclamationTriangle, IconClipboardList, IconWand, IconInfo, IconGithub } from '../constants';
 
 const realWorldQuery = `
 WITH
@@ -127,11 +128,12 @@ const QueryOptimizerView: React.FC<{
     query: QueryListItem | null;
     onBack: () => void;
     onSaveClick: (tag: string) => void;
+    onSaveToGitHub: (queryText: string) => void;
     onSimulateQuery: (query: QueryListItem | null) => void;
     autoRun?: boolean;
     onAutoRunComplete?: () => void;
     navigationSource?: string | null;
-}> = ({ query, onBack, onSaveClick, onSimulateQuery, autoRun = false, onAutoRunComplete, navigationSource }) => {
+}> = ({ query, onBack, onSaveClick, onSaveToGitHub, onSimulateQuery, autoRun = false, onAutoRunComplete, navigationSource }) => {
     const originalQuery = query ? realWorldQuery : '';
     const [editedQuery, setEditedQuery] = useState(originalQuery);
     const [optimizedQuery, setOptimizedQuery] = useState<string | null>(null);
@@ -178,8 +180,8 @@ const QueryOptimizerView: React.FC<{
 
     return (
         <div className="p-4 space-y-4 h-full flex flex-col">
-             <header className="flex-shrink-0 bg-surface-nested p-4 rounded-2xl flex items-center gap-4">
-                <button onClick={onBack} title={tooltipText} className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full bg-background text-primary hover:bg-surface-hover transition-colors">
+             <header className="flex-shrink-0 px-4 pt-4 flex items-center gap-4">
+                <button onClick={onBack} title={tooltipText} className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full bg-surface text-primary hover:bg-surface-hover transition-colors">
                     <IconChevronLeft className="h-6 w-6" />
                 </button>
                 <div>
@@ -243,6 +245,15 @@ const QueryOptimizerView: React.FC<{
                                 <button onClick={() => onSimulateQuery(query)} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full">Simulate</button>
                                 <button onClick={() => onSaveClick('Optimized')} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color bg-surface hover:bg-surface-hover text-text-primary">Save</button>
                                 <button className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color bg-surface hover:bg-surface-hover text-text-primary">Copy</button>
+                                <button
+                                    onClick={() => onSaveToGitHub(optimizedQuery || '')}
+                                    disabled={!optimizedQuery}
+                                    title="Save to GitHub"
+                                    className="w-10 h-10 flex items-center justify-center rounded-full border border-border-color bg-surface hover:bg-surface-hover text-text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    aria-label="Save to GitHub"
+                                >
+                                    <IconGithub className="h-5 w-5" />
+                                </button>
                             </div>
                         </div>
                     ) : (

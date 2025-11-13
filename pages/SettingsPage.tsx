@@ -1,5 +1,7 @@
 
 
+
+
 import React, { useState, useRef, useEffect } from 'react';
 import { IconChevronLeft, IconChevronRight, IconUser, IconBell, IconChevronDown, IconTrendingUp } from '../constants';
 import UserManagement from './settings/UserManagement';
@@ -21,7 +23,6 @@ interface SettingsPageProps {
 
 const settingsNavItems = [
     { name: 'User Management', icon: IconUser },
-    { name: 'Budgets and Alerts', icon: IconBell },
     { name: 'Integrations', icon: IconTrendingUp },
 ];
 
@@ -92,13 +93,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                         onActivateUserClick={onActivateUserClick}
                         onRemoveUserClick={onRemoveUserClick}
                     />
-                );
-            case 'Budgets and Alerts':
-                 return (
-                    <div className="p-4 bg-surface rounded-lg border border-border-color">
-                        <h2 className="text-xl font-semibold text-text-primary">Budgets and Alerts</h2>
-                        <p className="mt-2 text-text-secondary">Set spending budgets and configure alert notifications.</p>
-                    </div>
                 );
             case 'Integrations':
                 return <IntegrationsPage onDisconnect={onDisconnectGitHub} />;

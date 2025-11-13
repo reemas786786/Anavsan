@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, ConnectionStatus } from '../types';
 import { IconDotsVertical, IconSearch, IconView, IconEdit, IconDelete, IconAdd, IconArrowUp, IconArrowDown, IconRefresh } from '../constants';
@@ -60,6 +61,13 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
         }
         return filteredAccounts;
     }, [accounts, sortConfig, searchTerm]);
+    
+    const summaryStats = useMemo(() => ({
+        total: accounts.length,
+        connected: accounts.filter(a => a.status === 'Connected').length,
+        syncing: accounts.filter(a => a.status === 'Syncing').length,
+        error: accounts.filter(a => a.status === 'Error').length,
+    }), [accounts]);
 
     const totalPages = Math.ceil(sortedAndFilteredAccounts.length / itemsPerPage);
     const paginatedData = useMemo(() => sortedAndFilteredAccounts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage), [sortedAndFilteredAccounts, currentPage, itemsPerPage]);
@@ -110,22 +118,40 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
                 <p className="mt-1 text-text-secondary">Manage and monitor all your connected Snowflake data warehouses.</p>
             </div>
 
+            <div className="flex flex-wrap items-center gap-2">
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                    Total Accounts: <span className="font-bold text-text-strong">{summaryStats.total}</span>
+                </div>
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                    Connected: <span className="font-bold text-status-success-dark">{summaryStats.connected}</span>
+                </div>
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                    Syncing: <span className="font-bold text-status-info-dark">{summaryStats.syncing}</span>
+                </div>
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                    Error: <span className="font-bold text-status-error-dark">{summaryStats.error}</span>
+                </div>
+            </div>
+
             <div className="bg-surface rounded-xl flex flex-col">
                 <div className="p-4 flex justify-between items-center flex-shrink-0">
-                    <div className="relative">
-                        <IconSearch className="h-5 w-5 text-text-muted absolute left-4 top-1/2 -translate-y-1/2" />
-                        <input 
-                            type="search" 
-                            value={searchTerm} 
-                            onChange={e => setSearchTerm(e.target.value)} 
-                            placeholder="Search accounts..." 
-                            className="w-full md:w-80 pl-11 pr-4 py-2.5 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary" 
-                        />
+                    <div>{/* Left align placeholder */}</div>
+                    <div className="flex items-center gap-4">
+                        <button onClick={onAddAccountClick} className="bg-primary text-white font-semibold px-4 py-2 rounded-full flex items-center gap-2 hover:bg-primary-hover transition-colors whitespace-nowrap shadow-sm">
+                            <span>Add Account</span>
+                            <IconAdd className="h-5 w-5" />
+                        </button>
+                        <div className="relative">
+                            <IconSearch className="h-5 w-5 text-text-muted absolute left-4 top-1/2 -translate-y-1/2" />
+                            <input 
+                                type="search" 
+                                value={searchTerm} 
+                                onChange={e => setSearchTerm(e.target.value)} 
+                                placeholder="Search accounts..." 
+                                className="w-full md:w-80 pl-11 pr-4 py-2.5 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary" 
+                            />
+                        </div>
                     </div>
-                    <button onClick={onAddAccountClick} className="bg-primary text-white font-semibold px-4 py-2 rounded-full flex items-center gap-2 hover:bg-primary-hover transition-colors whitespace-nowrap shadow-sm">
-                        <span>Add Account</span>
-                        <IconAdd className="h-5 w-5" />
-                    </button>
                 </div>
 
                 <div className="overflow-x-auto">

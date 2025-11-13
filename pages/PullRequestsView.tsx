@@ -1,6 +1,8 @@
-import React from 'react';
+
+
+import React, { useMemo } from 'react';
 import { PullRequest, PullRequestStatus } from '../types';
-import { IconPullRequest, IconCheckCircle } from '../constants';
+import { IconPullRequest, IconCheckCircle, IconSearch } from '../constants';
 
 interface PullRequestsViewProps {
     pullRequests: PullRequest[];
@@ -41,13 +43,48 @@ const PullRequestsView: React.FC<PullRequestsViewProps> = ({ pullRequests, onSel
         });
     };
 
+    const summaryStats = useMemo(() => ({
+        total: pullRequests.length,
+        open: pullRequests.filter(pr => pr.status === 'Open').length,
+        merged: pullRequests.filter(pr => pr.status === 'Merged').length,
+        closed: pullRequests.filter(pr => pr.status === 'Closed').length,
+    }), [pullRequests]);
+
     return (
         <div className="p-4 space-y-4">
             <div>
                 <h1 className="text-2xl font-bold text-text-primary">Pull Requests</h1>
                 <p className="mt-1 text-text-secondary">Review and manage proposed query changes before merging them.</p>
             </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                    Total: <span className="font-bold text-text-strong">{summaryStats.total}</span>
+                </div>
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                    Open: <span className="font-bold text-status-success-dark">{summaryStats.open}</span>
+                </div>
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                    Merged: <span className="font-bold text-primary">{summaryStats.merged}</span>
+                </div>
+                 <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                    Closed: <span className="font-bold text-status-error-dark">{summaryStats.closed}</span>
+                </div>
+            </div>
+
             <div className="bg-surface rounded-xl border border-border-color">
+                <div className="p-4 flex justify-between items-center">
+                    <div>{/* Left align placeholder */}</div>
+                    <div className="relative">
+                        <IconSearch className="h-5 w-5 text-text-muted absolute left-4 top-1/2 -translate-y-1/2" />
+                        <input 
+                            type="search" 
+                            placeholder="Search pull requests..." 
+                            className="w-full md:w-80 pl-11 pr-4 py-2.5 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary" 
+                        />
+                    </div>
+                </div>
+
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead className="text-sm text-text-primary bg-table-header-bg">

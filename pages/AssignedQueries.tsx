@@ -1,6 +1,8 @@
+
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { AssignedQuery, AssignmentStatus, AssignmentPriority, User } from '../types';
-import { IconDotsVertical, IconArrowUp, IconArrowDown, IconSearch } from '../constants';
+import { IconDotsVertical, IconArrowUp, IconArrowDown, IconSearch, IconAdjustments } from '../constants';
 import Pagination from '../components/Pagination';
 import DateRangeDropdown from '../components/DateRangeDropdown';
 import MultiSelectDropdown from '../components/MultiSelectDropdown';
@@ -31,18 +33,76 @@ interface AssignedQueriesProps {
     onPreviewQuery: (query: AssignedQuery) => void;
 }
 
+const FilterPopover: React.FC<{
+    filters: any; // Simplified for this context
+    setFilters: (filters: any) => void;
+    filterOptions: any;
+    onClose: () => void;
+    isAdmin: boolean;
+}> = ({ filters, setFilters, filterOptions, onClose, isAdmin }) => {
+    const [tempFilters, setTempFilters] = useState(filters);
+    const popoverRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
+                onClose();
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [onClose]);
+
+    const handleApply = () => {
+        setFilters(tempFilters);
+        onClose();
+    };
+
+    const handleReset = () => {
+        setTempFilters({
+            ...tempFilters,
+            assigneeFilter: [],
+        });
+    };
+
+    return (
+        <div ref={popoverRef} className="absolute top-full mt-2 left-0 w-80 bg-surface rounded-lg shadow-lg border border-border-color z-20 flex flex-col">
+            <div className="p-4 overflow-y-auto max-h-[60vh] space-y-4">
+                {isAdmin && (
+                    <MultiSelectDropdown label="Assignee" options={filterOptions.assignees} selectedOptions={tempFilters.assigneeFilter} onChange={(val) => setTempFilters((p:any) => ({...p, assigneeFilter: val}))} layout="stacked" />
+                )}
+            </div>
+            <div className="p-4 flex justify-between items-center flex-shrink-0 border-t border-border-color bg-surface-nested rounded-b-lg">
+                <button onClick={handleReset} className="text-sm font-semibold text-text-secondary hover:text-text-primary">Reset</button>
+                <div className="flex items-center gap-2">
+                    <button onClick={onClose} className="text-sm font-semibold px-4 py-2 rounded-full border border-border-color hover:bg-surface-hover">Cancel</button>
+                    <button onClick={handleApply} className="text-sm font-semibold text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-full">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUpdateStatus, currentUser, onPreviewQuery }) => {
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const [sortConfig, setSortConfig] = useState<{ key: keyof AssignedQuery; direction: 'ascending' | 'descending' } | null>({ key: 'priority', direction: 'descending' });
     
-    const [search, setSearch] = useState('');
-    const [dateFilter, setDateFilter] = useState<string | { start: string; end: string }>('All');
-    const [priorityFilter, setPriorityFilter] = useState<string[]>([]);
-    const [statusFilter, setStatusFilter] = useState<string[]>([]);
-    const [assigneeFilter, setAssigneeFilter] = useState<string[]>([]);
+    const [filters, setFilters] = useState({
+        search: '',
+        dateFilter: 'All' as string | { start: string; end: string },
+        priorityFilter: [] as string[],
+        statusFilter: [] as string[],
+        assigneeFilter: [] as string[],
+    });
+    const [isFilterPopoverOpen, setIsFilterPopoverOpen] = useState(false);
+    const filterButtonRef = useRef<HTMLDivElement>(null);
+
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
+    
+    const isAdmin = currentUser?.role === 'Admin';
 
     const filterOptions = useMemo(() => ({
         priorities: ['Low', 'Medium', 'High'] as AssignmentPriority[],
@@ -50,10 +110,26 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUp
         assignees: [...new Set(assignedQueries.map(q => q.assignedTo))],
     }), [assignedQueries]);
 
+    const summaryStats = useMemo(() => ({
+        total: assignedQueries.length,
+        pending: assignedQueries.filter(q => q.status === 'Pending').length,
+        inProgress: assignedQueries.filter(q => q.status === 'In Progress').length,
+        optimized: assignedQueries.filter(q => q.status === 'Optimized').length,
+    }), [assignedQueries]);
+
+    const additionalFilterCount = useMemo(() => {
+        let count = 0;
+        if (filters.assigneeFilter.length > 0) count++;
+        return count;
+    }, [filters.assigneeFilter]);
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
                 setOpenMenuId(null);
+            }
+            if (filterButtonRef.current && !filterButtonRef.current.contains(event.target as Node)) {
+                setIsFilterPopoverOpen(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -62,33 +138,33 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUp
     
     useEffect(() => {
         setCurrentPage(1);
-    }, [search, dateFilter, priorityFilter, statusFilter, assigneeFilter, itemsPerPage]);
+    }, [filters, itemsPerPage]);
 
     const filteredAndSortedQueries = useMemo(() => {
         let filtered = assignedQueries.filter(q => {
-            if (search && !(
-                q.queryId.toLowerCase().includes(search.toLowerCase()) ||
-                q.message.toLowerCase().includes(search.toLowerCase())
+            if (filters.search && !(
+                q.queryId.toLowerCase().includes(filters.search.toLowerCase()) ||
+                q.message.toLowerCase().includes(filters.search.toLowerCase())
             )) return false;
 
-            if (priorityFilter.length > 0 && !priorityFilter.includes(q.priority)) return false;
-            if (statusFilter.length > 0 && !statusFilter.includes(q.status)) return false;
-            if (assigneeFilter.length > 0 && !assigneeFilter.includes(q.assignedTo)) return false;
+            if (filters.priorityFilter.length > 0 && !filters.priorityFilter.includes(q.priority)) return false;
+            if (filters.statusFilter.length > 0 && !filters.statusFilter.includes(q.status)) return false;
+            if (filters.assigneeFilter.length > 0 && !filters.assigneeFilter.includes(q.assignedTo)) return false;
 
-            if (typeof dateFilter === 'string') {
-                if (dateFilter !== 'All') {
+            if (typeof filters.dateFilter === 'string') {
+                if (filters.dateFilter !== 'All') {
                     const queryDate = new Date(q.assignedOn);
                     const now = new Date();
                     let days = 0;
-                    if (dateFilter === '7d') days = 7;
-                    if (dateFilter === '1d') days = 1;
-                    if (dateFilter === '30d') days = 30;
+                    if (filters.dateFilter === '7d') days = 7;
+                    if (filters.dateFilter === '1d') days = 1;
+                    if (filters.dateFilter === '30d') days = 30;
                     if (days > 0 && now.getTime() - queryDate.getTime() > days * 24 * 60 * 60 * 1000) return false;
                 }
             } else {
                 const queryDate = new Date(q.assignedOn);
-                const startDate = new Date(dateFilter.start);
-                const endDate = new Date(dateFilter.end);
+                const startDate = new Date(filters.dateFilter.start);
+                const endDate = new Date(filters.dateFilter.end);
                 endDate.setDate(endDate.getDate() + 1);
                 if (queryDate < startDate || queryDate >= endDate) return false;
             }
@@ -117,7 +193,7 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUp
             });
         }
         return filtered;
-    }, [assignedQueries, sortConfig, search, dateFilter, priorityFilter, statusFilter, assigneeFilter]);
+    }, [assignedQueries, sortConfig, filters]);
 
     const totalPages = Math.ceil(filteredAndSortedQueries.length / itemsPerPage);
     const paginatedData = useMemo(() => filteredAndSortedQueries.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage), [filteredAndSortedQueries, currentPage, itemsPerPage]);
@@ -147,23 +223,58 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUp
                 <h1 className="text-2xl font-bold text-text-primary">Assigned Queries</h1>
                 <p className="mt-2 text-text-secondary">Track queries that have been assigned to you or by you for optimization.</p>
             </div>
+            
+            <div className="flex flex-wrap items-center gap-2">
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                    Total: <span className="font-bold text-text-strong">{summaryStats.total}</span>
+                </div>
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                    Pending: <span className="font-bold text-gray-800">{summaryStats.pending}</span>
+                </div>
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                    In Progress: <span className="font-bold text-status-paused-dark">{summaryStats.inProgress}</span>
+                </div>
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                    Optimized: <span className="font-bold text-status-success-dark">{summaryStats.optimized}</span>
+                </div>
+            </div>
 
             <div className="bg-surface rounded-xl flex flex-col min-h-0">
-                <div className="p-2 mb-2 flex-shrink-0 flex items-center gap-x-4 border-b border-border-color">
-                    <DateRangeDropdown selectedValue={dateFilter} onChange={setDateFilter} />
-                    <div className="h-4 w-px bg-border-color"></div>
-                    <MultiSelectDropdown label="Priority" options={filterOptions.priorities} selectedOptions={priorityFilter} onChange={setPriorityFilter} />
-                    <div className="h-4 w-px bg-border-color"></div>
-                    <MultiSelectDropdown label="Status" options={filterOptions.statuses} selectedOptions={statusFilter} onChange={setStatusFilter} />
-                    {currentUser?.role === 'Admin' && (
-                        <>
-                            <div className="h-4 w-px bg-border-color"></div>
-                            <MultiSelectDropdown label="Assignee" options={filterOptions.assignees} selectedOptions={assigneeFilter} onChange={setAssigneeFilter} />
-                        </>
-                    )}
-                    <div className="relative flex-grow ml-auto">
-                        <IconSearch className="h-5 w-5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
-                        <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search query or message..." className="w-full pl-10 pr-4 py-2 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary" />
+                <div className="p-4 flex-shrink-0 flex items-center justify-between gap-x-4 border-b border-border-color">
+                    <div className="flex items-center gap-x-2">
+                        <DateRangeDropdown selectedValue={filters.dateFilter} onChange={(val) => setFilters(p => ({...p, dateFilter: val}))} />
+                        <div className="h-4 w-px bg-border-color"></div>
+                        <MultiSelectDropdown label="Priority" options={filterOptions.priorities} selectedOptions={filters.priorityFilter} onChange={(val) => setFilters(p => ({...p, priorityFilter: val}))} />
+                        <div className="h-4 w-px bg-border-color"></div>
+                        <MultiSelectDropdown label="Status" options={filterOptions.statuses} selectedOptions={filters.statusFilter} onChange={(val) => setFilters(p => ({...p, statusFilter: val}))} />
+                        
+                        {isAdmin && (
+                            <div ref={filterButtonRef} className="relative">
+                                <button
+                                    onClick={() => setIsFilterPopoverOpen(prev => !prev)}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-full border border-border-color bg-surface hover:bg-surface-hover text-sm font-medium text-text-primary"
+                                >
+                                    <IconAdjustments className="h-5 w-5 text-text-secondary" />
+                                    <span>Filter</span>
+                                    {additionalFilterCount > 0 && (
+                                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white text-xs font-bold">{additionalFilterCount}</span>
+                                    )}
+                                </button>
+                                {isFilterPopoverOpen && (
+                                    <FilterPopover
+                                        filters={filters}
+                                        setFilters={setFilters}
+                                        filterOptions={filterOptions}
+                                        onClose={() => setIsFilterPopoverOpen(false)}
+                                        isAdmin={isAdmin}
+                                    />
+                                )}
+                            </div>
+                        )}
+                    </div>
+                    <div className="relative flex-grow max-w-xs">
+                        <IconSearch className="h-5 w-5 text-text-muted absolute left-4 top-1/2 -translate-y-1/2" />
+                        <input type="search" value={filters.search} onChange={e => setFilters(p => ({...p, search: e.target.value}))} placeholder="Search query or message..." className="w-full pl-11 pr-4 py-2.5 bg-background border-transparent rounded-full text-sm focus:ring-1 focus:ring-primary" />
                     </div>
                 </div>
 
