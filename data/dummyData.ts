@@ -52,11 +52,14 @@ export const availableWidgetsData: Omit<Widget, 'id' | 'dataSource' | 'imageUrl'
 ];
 
 export const connectionsData: Account[] = [
-  { id: '1', name: 'Snowflake Prod', identifier: 'acme.eu-west-1', role: 'SYSADMIN', status: 'Connected', lastSynced: '5 mins ago', cost: 1250, credits: 500 },
-  { id: '2', name: 'Marketing Dev', identifier: 'acme.us-east-1', role: 'ACCOUNTADMIN', status: 'Connected', lastSynced: '15 mins ago', cost: 345, credits: 138 },
-  { id: '3', name: 'BI Snowflake', identifier: 'acme-bi.eu-central-1', role: 'SYSADMIN', status: 'Syncing', lastSynced: 'Just now', cost: 890, credits: 356 },
-  { id: '4', name: 'Archived Data', identifier: 'legacy.us-west-2', role: 'SECURITYADMIN', status: 'Error', lastSynced: '2 days ago', cost: 50, credits: 20 },
-  { id: '5', name: 'Data Science WH', identifier: 'ds.eu-west-1', role: 'SYSADMIN', status: 'Disconnected', lastSynced: '1 week ago', cost: 2300, credits: 920 },
+  { id: 'acc-1', name: 'Finance Prod', identifier: 'acme.eu-west-1', role: 'SYSADMIN', status: 'Connected', lastSynced: '5 mins ago', cost: 1000, credits: 400 },
+  { id: 'acc-3', name: 'Account C', identifier: 'acme-bi.eu-central-1', role: 'SYSADMIN', status: 'Connected', lastSynced: 'Just now', cost: 775, credits: 310 },
+  { id: 'acc-5', name: 'Account E', identifier: 'ds.eu-west-1', role: 'SYSADMIN', status: 'Connected', lastSynced: '1 week ago', cost: 625, credits: 250 },
+  { id: 'acc-2', name: 'Account B', identifier: 'acme.us-east-1', role: 'ACCOUNTADMIN', status: 'Connected', lastSynced: '15 mins ago', cost: 550, credits: 220 },
+  { id: 'acc-8', name: 'Account H', identifier: 'ds.eu-west-4', role: 'SYSADMIN', status: 'Connected', lastSynced: '1 week ago', cost: 500, credits: 200 },
+  { id: 'acc-4', name: 'Account D', identifier: 'legacy.us-west-2', role: 'SECURITYADMIN', status: 'Connected', lastSynced: '2 days ago', cost: 450, credits: 180 },
+  { id: 'acc-6', name: 'Account F', identifier: 'ds.eu-west-2', role: 'SYSADMIN', status: 'Connected', lastSynced: '1 week ago', cost: 375, credits: 150 },
+  { id: 'acc-7', name: 'Account G', identifier: 'ds.eu-west-3', role: 'SYSADMIN', status: 'Connected', lastSynced: '1 week ago', cost: 125, credits: 50 },
 ];
 
 export const dashboardsData: DashboardItem[] = [
@@ -239,24 +242,24 @@ export const sqlFilesData: SQLFile[] = [
 
 export const overviewMetrics = {
     cost: {
-        current: 4835,
-        forecasted: 9200,
+        current: 55234,
+        forecasted: 105678,
     },
     credits: {
-        current: 1934,
-        forecasted: 3680,
+        current: 22453,
+        forecasted: 42883,
     }
 };
 
 export const resourceSummaryData = [
-    { title: 'Warehouses', value: '12' },
-    { title: 'Databases', value: '34' },
-    { title: 'Active users', value: '87' },
+    { title: 'Warehouses monitored', value: '125' },
+    { title: 'Executed queries (month)', value: '2,847' },
+    { title: 'Storage used (GB)', value: '2,085' },
 ];
 
 export const costBreakdownData = [
-    { name: 'Warehouse', percentage: 85, cost: 4110, credits: 1644, color: '#6932D5' },
-    { name: 'Storage', percentage: 15, cost: 725, credits: 290, color: '#A78BFA' },
+    { name: 'Warehouse', percentage: 55, cost: 30378.7, credits: 12240, color: '#6932D5' },
+    { name: 'Storage', percentage: 45, cost: 25155.3, credits: 10213, color: '#A78BFA' },
 ];
 
 export const accountSpend = {
@@ -297,15 +300,14 @@ export const warehousesData: Warehouse[] = [
 ];
 
 export const usersData: User[] = [
-    { id: 'user-1', name: 'Alice Johnson', email: 'admin@anavsan.com', role: 'Admin', status: 'Active', dateAdded: '2023-01-15', cost: 1200, credits: 480, roleTitle: 'Lead Data Analyst', avatarUrl: '...' },
-    { id: 'user-2', name: 'Bob Williams', email: 'user@anavsan.com', role: 'Analyst', status: 'Active', dateAdded: '2023-02-20', cost: 850, credits: 340 },
-    { id: 'user-3', name: 'Charlie Brown', email: 'charlie.b@example.com', role: 'Viewer', status: 'Active', dateAdded: '2023-03-10', cost: 150, credits: 60 },
-    { id: 'user-4', name: 'David Miller', email: 'david.m@example.com', role: 'Analyst', status: 'Suspended', dateAdded: '2023-04-05', cost: 400, credits: 160 },
-    { id: 'user-5', name: 'Eve Davis', email: 'eve.d@example.com', role: 'Admin', status: 'Invited', dateAdded: '2023-05-22', cost: 0, credits: 0, message: 'Invitation pending' },
-    { id: 'user-6', name: 'Frank White', email: 'frank.w@example.com', role: 'Analyst', status: 'Active', dateAdded: '2023-06-18', cost: 980, credits: 392 },
-    { id: 'user-7', name: 'Grace Hall', email: 'grace.h@example.com', role: 'Viewer', status: 'Active', dateAdded: '2023-07-01', cost: 90, credits: 36 },
-    { id: 'user-8', name: 'Priya Patel', email: 'priya.p@example.com', role: 'Admin', status: 'Active', dateAdded: '2023-01-10', cost: 1500, credits: 600, roleTitle: 'Data Engineer' },
-    { id: 'user-9', name: 'Arjun Singh', email: 'arjun.s@example.com', role: 'Admin', status: 'Active', dateAdded: '2023-01-12', cost: 1100, credits: 440, roleTitle: 'DataOps' },
+    { id: 'user-2', name: 'Bob Williams', email: 'bob.w@anavsan.com', role: 'Analyst', status: 'Active', dateAdded: '2023-02-20', cost: 1125, credits: 450 },
+    { id: 'user-george', name: 'George Mason', email: 'george.m@example.com', role: 'Analyst', status: 'Active', dateAdded: '2023-06-18', cost: 1000, credits: 400 },
+    { id: 'user-hunt', name: 'Ethan Hunt', email: 'ethan.h@example.com', role: 'Analyst', status: 'Active', dateAdded: '2023-03-10', cost: 875, credits: 350 },
+    { id: 'user-fiona', name: 'Fiona Glenanne', email: 'fiona.g@example.com', role: 'Admin', status: 'Active', dateAdded: '2023-05-22', cost: 625, credits: 250 },
+    { id: 'user-diana', name: 'Diana Miller', email: 'diana.m@example.com', role: 'Analyst', status: 'Active', dateAdded: '2023-04-05', cost: 625, credits: 250 },
+    { id: 'user-reporting', name: 'Reporting', email: 'reporting@example.com', role: 'Viewer', status: 'Active', dateAdded: '2023-04-05', cost: 550, credits: 220 },
+    { id: 'user-1', name: 'Alice Johnson', email: 'admin@anavsan.com', role: 'Admin', status: 'Active', dateAdded: '2023-01-15', cost: 500, credits: 200, roleTitle: 'Lead Data Analyst', avatarUrl: '...' },
+    { id: 'user-hannah', name: 'Hannah Abbott', email: 'hannah.a@example.com', role: 'Viewer', status: 'Active', dateAdded: '2023-07-01', cost: 250, credits: 100 },
 ];
 
 export const pullRequestsData: PullRequest[] = [
