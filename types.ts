@@ -300,6 +300,22 @@ export interface DatabaseTable {
     sizeGB: number;
     rows: number;
     monthlyGrowth: number; // percentage
+    fullyQualifiedName: string;
+    owner: string;
+    creationDate: string;
+    lastModified: string;
+    lastAccessed: string;
+    tableType: 'Permanent' | 'Transient' | 'Temporary';
+    clusteringKey: string | null;
+    timeTravelRetentionDays: number;
+    failSafePeriodDays: number;
+}
+
+export interface Schema {
+    id: string;
+    name: string;
+    tableCount: number;
+    tables: DatabaseTable[];
 }
 
 export interface Database {
@@ -310,6 +326,7 @@ export interface Database {
     tableCount: number;
     userCount: number;
     users: { id: string, name: string }[];
+    schemas: Schema[];
 }
 
 export interface StorageByTypeItem {

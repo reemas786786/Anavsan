@@ -1,4 +1,4 @@
-import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget, SimilarQuery, QueryListItem, QueryStatus, QueryType, QuerySeverity, StorageBreakdownItem, TopStorageConsumer, StorageGrowthPoint, UnusedTable, StorageActivityLogItem, StorageByTeamItem, DuplicateDataPattern, StorageOptimizationOpportunity, DataAgeDistributionItem, StorageTierItem, TieringOpportunityItem, CostForecastPoint, TierForecastPoint, AnomalyAlertItem, SavingsProjection, Database, DatabaseTable, StorageByTypeItem, AssignedQuery, PullRequest, Notification, ActivityLog, SQLVersion } from '../types';
+import { Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget, SimilarQuery, QueryListItem, QueryStatus, QueryType, QuerySeverity, StorageBreakdownItem, TopStorageConsumer, StorageGrowthPoint, UnusedTable, StorageActivityLogItem, StorageByTeamItem, DuplicateDataPattern, StorageOptimizationOpportunity, DataAgeDistributionItem, StorageTierItem, TieringOpportunityItem, CostForecastPoint, TierForecastPoint, AnomalyAlertItem, SavingsProjection, Database, DatabaseTable, StorageByTypeItem, AssignedQuery, PullRequest, Notification, ActivityLog, SQLVersion, Schema } from '../types';
 
 export const availableWidgetsData: Omit<Widget, 'id' | 'dataSource' | 'imageUrl'>[] = [
     { 
@@ -500,20 +500,35 @@ export const storageSummaryData = {
     totalSpend: 3983.53,
 };
 
-export const databasesData: Database[] = [
-    { id: 'db-1', name: 'PROD_ANALYTICS', sizeGB: 4500, cost: 11250, tableCount: 120, userCount: 45, users: usersData.slice(0, 5).map(u => ({ id: u.id, name: u.name })) },
-    { id: 'db-2', name: 'RAW_DATA_LAKE', sizeGB: 6200, cost: 14880, tableCount: 45, userCount: 12, users: usersData.slice(2, 4).map(u => ({ id: u.id, name: u.name })) },
-    { id: 'db-3', name: 'STAGING_DB', sizeGB: 1500, cost: 2100, tableCount: 250, userCount: 22, users: usersData.slice(4, 7).map(u => ({ id: u.id, name: u.name })) },
-    { id: 'db-4', name: 'MARKETING_DB', sizeGB: 200, cost: 290, tableCount: 30, userCount: 8, users: usersData.slice(1, 3).map(u => ({ id: u.id, name: u.name })) },
-];
-
-export const databaseTablesData: DatabaseTable[] = Array.from({ length: 20 }, (_, i) => ({
+export const databaseTablesData: DatabaseTable[] = Array.from({ length: 50 }, (_, i) => ({
     id: `tbl-${i + 1}`,
     name: `EVENTS_LOG_PART_${i + 1}`,
     sizeGB: parseFloat((Math.random() * 50 + 5).toFixed(2)),
     rows: Math.floor(Math.random() * 10000000) + 500000,
-    monthlyGrowth: parseFloat((Math.random() * 5 - 1).toFixed(1)), // Can be negative
+    monthlyGrowth: parseFloat((Math.random() * 5 - 1).toFixed(1)),
+    fullyQualifiedName: `DB_NAME.SCHEMA_NAME.EVENTS_LOG_PART_${i + 1}`,
+    owner: 'ANAVSAN_USER',
+    creationDate: new Date(Date.now() - Math.random() * 365 * 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    lastModified: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    lastAccessed: new Date(Date.now() - Math.random() * 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    tableType: 'Permanent',
+    clusteringKey: i % 3 === 0 ? '(EVENT_DATE, USER_ID)' : null,
+    timeTravelRetentionDays: i % 2 === 0 ? 90 : 1,
+    failSafePeriodDays: 7,
 }));
+
+export const schemasData: Schema[] = [
+    { id: 'schema-1', name: 'PUBLIC', tableCount: 20, tables: databaseTablesData.slice(0, 20) },
+    { id: 'schema-2', name: 'RAW_DATA', tableCount: 15, tables: databaseTablesData.slice(20, 35) },
+    { id: 'schema-3', name: 'ANALYTICS', tableCount: 15, tables: databaseTablesData.slice(35, 50) },
+];
+
+export const databasesData: Database[] = [
+    { id: 'db-1', name: 'PROD_ANALYTICS', sizeGB: 4500, cost: 11250, tableCount: 120, userCount: 45, users: usersData.slice(0, 5).map(u => ({ id: u.id, name: u.name })), schemas: schemasData },
+    { id: 'db-2', name: 'RAW_DATA_LAKE', sizeGB: 6200, cost: 14880, tableCount: 45, userCount: 12, users: usersData.slice(2, 4).map(u => ({ id: u.id, name: u.name })), schemas: [schemasData[1]] },
+    { id: 'db-3', name: 'STAGING_DB', sizeGB: 1500, cost: 2100, tableCount: 250, userCount: 22, users: usersData.slice(4, 7).map(u => ({ id: u.id, name: u.name })), schemas: [schemasData[0], schemasData[2]] },
+    { id: 'db-4', name: 'MARKETING_DB', sizeGB: 200, cost: 290, tableCount: 30, userCount: 8, users: usersData.slice(1, 3).map(u => ({ id: u.id, name: u.name })), schemas: [schemasData[0]] },
+];
 
 export const storageByTypeData: StorageByTypeItem[] = [
   { type: 'Active Tables', storageGB: 1847.2, cost: 2771.08, color: '#6932D5' },

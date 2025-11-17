@@ -20,7 +20,7 @@ import ConfirmationModal from './components/ConfirmationModal';
 import Modal from './components/Modal';
 import Toast from './components/Toast';
 import BigScreenView from './components/BigScreenView';
-import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem, BigScreenWidget, QueryListItem, AssignedQuery, AssignmentPriority, AssignmentStatus, PullRequest, Notification, ActivityLog, BreadcrumbItem, Warehouse, SQLVersion, Theme } from './types';
+import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem, BigScreenWidget, QueryListItem, AssignedQuery, AssignmentPriority, AssignmentStatus, PullRequest, Notification, ActivityLog, BreadcrumbItem, Warehouse, SQLVersion, Theme, Database, Schema, DatabaseTable } from './types';
 import { connectionsData, sqlFilesData as initialSqlFiles, usersData, dashboardsData as initialDashboardsData, assignedQueriesData, pullRequestsData, notificationsData as initialNotificationsData, activityLogsData, warehousesData, queryListData } from './data/dummyData';
 import { accountNavItems, IconCheck, IconRefresh } from './constants';
 import SettingsPage from './pages/SettingsPage';
@@ -94,6 +94,9 @@ const App: React.FC = () => {
   
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
+  const [selectedDatabase, setSelectedDatabase] = useState<Database | null>(null);
+  const [selectedSchema, setSelectedSchema] = useState<Schema | null>(null);
+  const [selectedTable, setSelectedTable] = useState<DatabaseTable | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedDashboard, setSelectedDashboard] = useState<DashboardItem | null>(null);
   const [editingDashboard, setEditingDashboard] = useState<DashboardItem | null>(null);
@@ -180,13 +183,60 @@ const App: React.FC = () => {
     setSelectedPullRequest(null);
     setSelectedWarehouse(null);
     setSelectedLibraryItem(null);
+    setSelectedDatabase(null);
+    setSelectedSchema(null);
+    setSelectedTable(null);
   };
   
   useEffect(() => {
     let items: BreadcrumbItem[] = [];
     const overviewItem: BreadcrumbItem = { label: 'Data Cloud Overview', onClick: () => handleSetActivePage('Data Cloud Overview') };
 
-    if (selectedWarehouse && selectedAccount) {
+    const resetDbSelection = () => {
+        setSelectedDatabase(null);
+        setSelectedSchema(null);
+        setSelectedTable(null);
+    };
+
+    const baseAccountCrumbs = (account: Account): BreadcrumbItem[] => [
+        { label: 'Snowflake Accounts', onClick: () => { setSelectedAccount(null); handleSetActivePage('Snowflake Accounts'); resetDbSelection(); }},
+        { label: account.name, onClick: () => {
+            setAccountViewPage('Account overview');
+            setSelectedWarehouse(null);
+            resetDbSelection();
+        } }
+    ];
+
+    if (selectedAccount && selectedTable && selectedSchema && selectedDatabase) {
+         items = [
+            ...baseAccountCrumbs(selectedAccount),
+            { label: 'Databases', onClick: () => {
+                resetDbSelection();
+                setAccountViewPage('Databases');
+            }},
+            { label: selectedDatabase.name, onClick: () => {
+                setSelectedSchema(null);
+                setSelectedTable(null);
+            }},
+            { label: selectedSchema.name, onClick: () => {
+                setSelectedTable(null);
+            }},
+            { label: selectedTable.name }
+        ];
+    } else if (selectedAccount && selectedSchema && selectedDatabase) {
+         items = [
+            ...baseAccountCrumbs(selectedAccount),
+            { label: 'Databases', onClick: () => { resetDbSelection(); setAccountViewPage('Databases'); }},
+            { label: selectedDatabase.name, onClick: () => { setSelectedSchema(null); setSelectedTable(null); }},
+            { label: selectedSchema.name }
+        ];
+    } else if (selectedAccount && selectedDatabase) {
+        items = [
+            ...baseAccountCrumbs(selectedAccount),
+            { label: 'Databases', onClick: () => { resetDbSelection(); setAccountViewPage('Databases'); }},
+            { label: selectedDatabase.name }
+        ];
+    } else if (selectedWarehouse && selectedAccount) {
         items = [
             { label: 'Snowflake Accounts', onClick: () => { 
                 setSelectedAccount(null); 
@@ -204,13 +254,7 @@ const App: React.FC = () => {
             { label: selectedWarehouse.name }
         ];
     } else if (selectedAccount) {
-        items = [
-            { label: 'Snowflake Accounts', onClick: () => { setSelectedAccount(null); handleSetActivePage('Snowflake Accounts'); }},
-            { label: selectedAccount.name, onClick: () => {
-                setAccountViewPage('Account overview');
-                setSelectedWarehouse(null);
-            } }
-        ];
+        items = baseAccountCrumbs(selectedAccount);
     
         const parentNavItem = accountNavItems.find(item => 
             item.name === accountViewPage || item.children.some(child => child.name === accountViewPage)
@@ -285,6 +329,9 @@ const App: React.FC = () => {
     selectedDashboard,
     selectedWarehouse,
     selectedLibraryItem,
+    selectedDatabase,
+    selectedSchema,
+    selectedTable
 ]);
   
   const handleLogin = (email: string) => {
@@ -296,7 +343,7 @@ const App: React.FC = () => {
   const handleLogout = () => {
     setIsAuthenticated(false);
     setCurrentUser(null);
-    setActivePage('Data Cloud Overview');
+    handleSetActivePage('Data Cloud Overview');
     setAuthScreen('login');
   };
 
@@ -557,6 +604,9 @@ const App: React.FC = () => {
             setSelectedQuery(null);
             setSelectedPullRequest(null);
             setSelectedWarehouse(null);
+            setSelectedDatabase(null);
+            setSelectedSchema(null);
+            setSelectedTable(null);
         }} 
         onBackToAccounts={() => {
             setSelectedAccount(null);
@@ -587,6 +637,12 @@ const App: React.FC = () => {
         onInitiateSync={handleInitiateSync}
         autoRunAction={autoRunAction}
         onAutoRunComplete={onAutoRunComplete}
+        selectedDatabase={selectedDatabase}
+        setSelectedDatabase={setSelectedDatabase}
+        selectedSchema={selectedSchema}
+        setSelectedSchema={setSelectedSchema}
+        selectedTable={selectedTable}
+        setSelectedTable={setSelectedTable}
       />;
     }
     if (selectedUser) {

@@ -144,7 +144,7 @@ const StorageSummaryView: React.FC<{ onSelectDatabase: (databaseId: string) => v
     };
 
     return (
-        <div className="space-y-4">
+        <div className="p-4 space-y-4 ml-4 mt-4">
             <div>
                 <h1 className="text-2xl font-bold text-text-primary">Storage Summary</h1>
                 <p className="mt-1 text-text-secondary">An overview of storage usage, costs, and trends for this account.</p>
