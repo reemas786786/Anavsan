@@ -1,5 +1,4 @@
 
-
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Account, SQLFile, BigScreenWidget, QueryListItem, PullRequest, User, QueryListFilters, SlowQueryFilters, BreadcrumbItem, Warehouse, Database, Schema, DatabaseTable } from '../types';
 import AccountOverviewDashboard from './AccountOverviewDashboard';
@@ -574,7 +573,8 @@ const AccountView: React.FC<AccountViewProps> = (props) => {
                             <MobileNav activePage={activePage} onPageChange={onPageChange} accountNavItems={accountNavItems} />
                         </div>
                     )}
-                    <div className={`h-full ${isSpecialView || isListView ? "" : ""}`}>
+                    {/* Use min-h-full to allow scrolling while still filling height for flex children */}
+                    <div className={`min-h-full ${isSpecialView || isListView ? "h-full" : ""}`}>
                         {renderContent()}
                     </div>
                 </div>

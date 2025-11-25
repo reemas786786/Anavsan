@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Database, DatabaseTable, User, Schema } from '../types';
 import { databasesData } from '../data/dummyData';
@@ -97,20 +98,32 @@ const TableListView: React.FC<{ schema: Schema, onSelectTable: (table: DatabaseT
                     <thead className="text-left text-xs text-text-primary bg-table-header-bg">
                         <tr>
                             <th className="py-2 px-3 font-medium">Table Name</th>
+                            <th className="py-2 px-3 font-medium">Table Type</th>
+                            <th className="py-2 px-3 font-medium text-right">Time Travel (GB)</th>
+                            <th className="py-2 px-3 font-medium text-right">Fail Safe (GB)</th>
+                            <th className="py-2 px-3 font-medium text-right">Retention Time (Days)</th>
                             <th className="py-2 px-3 font-medium text-right">Size (GB)</th>
                             <th className="py-2 px-3 font-medium text-right">Rows</th>
-                            <th className="py-2 px-3 font-medium text-right">Monthly Growth (%)</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-border-color">
-                        {schema.tables.map(table => (
-                            <tr key={table.id} className="hover:bg-surface-hover cursor-pointer" onClick={() => onSelectTable(table)}>
-                                <td className="py-2.5 px-3 font-medium text-link whitespace-nowrap">{table.name}</td>
-                                <td className="py-2.5 px-3 text-right font-semibold text-text-primary">{table.sizeGB.toLocaleString()}</td>
-                                <td className="py-2.5 px-3 text-right text-text-secondary">{table.rows.toLocaleString()}</td>
-                                <td className={`py-2.5 px-3 text-right ${table.monthlyGrowth > 0 ? 'text-status-error-dark' : 'text-status-success-dark'}`}>{table.monthlyGrowth}%</td>
-                            </tr>
-                        ))}
+                        {schema.tables.map(table => {
+                            // Mock derived values for visualization as these aren't in the base data
+                            const timeTravelSize = (table.sizeGB * 0.12); // approx 12%
+                            const failSafeSize = (table.sizeGB * 0.05); // approx 5%
+
+                            return (
+                                <tr key={table.id} className="hover:bg-surface-hover cursor-pointer" onClick={() => onSelectTable(table)}>
+                                    <td className="py-2.5 px-3 font-medium text-link whitespace-nowrap">{table.name}</td>
+                                    <td className="py-2.5 px-3 text-text-secondary">{table.tableType}</td>
+                                    <td className="py-2.5 px-3 text-right text-text-secondary">{timeTravelSize.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                    <td className="py-2.5 px-3 text-right text-text-secondary">{failSafeSize.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                    <td className="py-2.5 px-3 text-right text-text-secondary">{table.timeTravelRetentionDays}</td>
+                                    <td className="py-2.5 px-3 text-right font-semibold text-text-primary">{table.sizeGB.toLocaleString()}</td>
+                                    <td className="py-2.5 px-3 text-right text-text-secondary">{table.rows.toLocaleString()}</td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>

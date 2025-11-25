@@ -1,8 +1,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { IconMenu, IconSparkles, IconUser, IconSearch, IconBell, IconClose, IconHelpCircle } from '../constants';
+import { IconMenu, IconSparkles, IconUser, IconBell, IconClose, IconHelpCircle } from '../constants';
 import NotificationDropdown from './NotificationDropdown';
-import { Notification, Page } from '../types';
+import GlobalSearch from './GlobalSearch';
+import { Notification, Page, Account, Warehouse, QueryListItem, User } from '../types';
 
 interface HeaderProps {
     onMenuClick: () => void;
@@ -17,6 +18,16 @@ interface HeaderProps {
     onClearAllNotifications: () => void;
     onNavigate: (page: Page) => void;
     onOpenQuickAsk: () => void;
+    
+    // Search Data Props
+    accounts: Account[];
+    warehouses: Warehouse[];
+    queries: QueryListItem[];
+    users: User[];
+    onSelectAccount: (account: Account) => void;
+    onSelectWarehouse: (warehouse: Warehouse) => void;
+    onSelectQuery: (query: QueryListItem) => void;
+    onSelectUser: (user: User) => void;
 }
 
 const AnavsanLogo: React.FC<{}> = () => (
@@ -52,6 +63,14 @@ const Header: React.FC<HeaderProps> = ({
     onClearAllNotifications,
     onNavigate,
     onOpenQuickAsk,
+    accounts,
+    warehouses,
+    queries,
+    users,
+    onSelectAccount,
+    onSelectWarehouse,
+    onSelectQuery,
+    onSelectUser
 }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -74,8 +93,9 @@ const Header: React.FC<HeaderProps> = ({
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
-    <header className="bg-sidebar-topbar px-4 py-2 flex items-center justify-between flex-shrink-0 h-12 z-40 relative">
-      <div className="flex items-center gap-4">
+    <header className="bg-sidebar-topbar px-4 py-2 flex items-center justify-between flex-shrink-0 h-14 z-40 relative shadow-md">
+      {/* Left Group: Menu & Logo */}
+      <div className="flex items-center gap-4 flex-shrink-0">
         <button 
             onClick={onMenuClick} 
             className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors" 
@@ -90,58 +110,67 @@ const Header: React.FC<HeaderProps> = ({
         </button>
       </div>
       
-      <div className="flex items-center space-x-1">
-        <div className="relative flex-1 max-w-lg">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <IconSearch className="h-6 w-6 text-text-muted" />
+      {/* Right Group: Search & Utility Icons */}
+      <div className="flex items-center justify-end flex-1 gap-4 min-w-0">
+        {/* Global Search with explicit constraints */}
+        <div className="flex-1 max-w-lg min-w-[200px] hidden md:block">
+            <GlobalSearch 
+                accounts={accounts}
+                warehouses={warehouses}
+                queries={queries}
+                users={users}
+                onNavigate={onNavigate}
+                onSelectAccount={onSelectAccount}
+                onSelectWarehouse={onSelectWarehouse}
+                onSelectQuery={onSelectQuery}
+                onSelectUser={onSelectUser}
+            />
+        </div>
+        
+        {/* Utility Icons */}
+        <div className="flex items-center gap-1 flex-shrink-0">
+            <button onClick={onOpenQuickAsk} className="p-2 rounded-full text-primary bg-primary/20 hover:bg-primary/30 transition-colors" title="AI Assistant">
+                <IconSparkles className="h-5 w-5" />
+            </button>
+            <div className="relative" ref={notificationsRef}>
+                <button onClick={() => setIsNotificationsOpen(!isNotificationsOpen)} className="relative p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors" title="Notifications">
+                <IconBell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                    <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-status-error text-white text-[10px] font-bold ring-2 ring-sidebar-topbar">{unreadCount}</span>
+                )}
+                </button>
+                <NotificationDropdown
+                    isOpen={isNotificationsOpen}
+                    onClose={() => setIsNotificationsOpen(false)}
+                    notifications={notifications}
+                    onMarkAllAsRead={onMarkAllNotificationsAsRead}
+                    onViewAll={() => {
+                        onNavigate('Notifications');
+                        setIsNotificationsOpen(false);
+                    }}
+                />
             </div>
-            <input
-              type="text"
-              placeholder="Search..."
-              className="block w-full bg-white/20 border-0 text-white rounded-full py-2 pl-12 pr-3 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-sidebar-topbar"
-            />
-        </div>
-        <button onClick={onOpenQuickAsk} className="p-2 rounded-full text-primary bg-primary/20 hover:bg-primary/30 transition-colors">
-            <IconSparkles className="h-6 w-6" />
-        </button>
-        <div className="relative" ref={notificationsRef}>
-            <button onClick={() => setIsNotificationsOpen(!isNotificationsOpen)} className="relative p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
-              <IconBell className="h-6 w-6" />
-              {unreadCount > 0 && (
-                 <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-status-error text-white text-[10px] font-bold ring-2 ring-sidebar-topbar">{unreadCount}</span>
-              )}
+            <button 
+                className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors"
+                aria-label="Help"
+                title="Help"
+            >
+                <IconHelpCircle className="h-5 w-5" />
             </button>
-            <NotificationDropdown
-                isOpen={isNotificationsOpen}
-                onClose={() => setIsNotificationsOpen(false)}
-                notifications={notifications}
-                onMarkAllAsRead={onMarkAllNotificationsAsRead}
-                onViewAll={() => {
-                    onNavigate('Notifications');
-                    setIsNotificationsOpen(false);
-                }}
-            />
-        </div>
-        <button 
-            className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors"
-            aria-label="Help"
-            title="Help"
-        >
-          <IconHelpCircle className="h-6 w-6" />
-        </button>
 
-        <div className="relative flex items-center pl-2" ref={userMenuRef}>
-            <button onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors" aria-haspopup="true" aria-expanded={isUserMenuOpen} aria-label="User menu">
-                <IconUser className="h-6 w-6" />
-            </button>
-            {isUserMenuOpen && (
-                <div className="origin-top-right absolute right-0 top-full mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-50">
-                    <div className="py-1" role="menu" aria-orientation="vertical">
-                        <button onClick={() => { onOpenProfileSettings(); setIsUserMenuOpen(false); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Profile Settings</button>
-                        <button onClick={() => { onLogout(); setIsUserMenuOpen(false); }} className="w-full text-left block px-4 py-2 text-sm text-status-error hover:bg-status-error/10" role="menuitem">Logout</button>
+            <div className="relative flex items-center ml-1" ref={userMenuRef}>
+                <button onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors" aria-haspopup="true" aria-expanded={isUserMenuOpen} aria-label="User menu">
+                    <IconUser className="h-5 w-5" />
+                </button>
+                {isUserMenuOpen && (
+                    <div className="origin-top-right absolute right-0 top-full mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-50">
+                        <div className="py-1" role="menu" aria-orientation="vertical">
+                            <button onClick={() => { onOpenProfileSettings(); setIsUserMenuOpen(false); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Profile Settings</button>
+                            <button onClick={() => { onLogout(); setIsUserMenuOpen(false); }} className="w-full text-left block px-4 py-2 text-sm text-status-error hover:bg-status-error/10" role="menuitem">Logout</button>
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
       </div>
     </header>

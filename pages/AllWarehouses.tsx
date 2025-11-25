@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Warehouse } from '../types';
 import { IconArrowUp, IconArrowDown, IconSearch } from '../constants';
@@ -111,16 +110,16 @@ const AllWarehouses: React.FC<AllWarehousesProps> = ({ warehouses, onSelectWareh
             </div>
             
             <div className="flex flex-wrap items-center gap-2">
-                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
                     Total: <span className="font-bold text-text-strong">{summaryStats.total}</span>
                 </div>
-                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
                     Running: <span className="font-bold text-status-success-dark">{summaryStats.running}</span>
                 </div>
-                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
                     Suspended: <span className="font-bold text-text-secondary">{summaryStats.suspended}</span>
                 </div>
-                 <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                 <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
                     Idle: <span className="font-bold text-status-info-dark">{summaryStats.idle}</span>
                 </div>
             </div>

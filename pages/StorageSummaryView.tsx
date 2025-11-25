@@ -1,9 +1,10 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, Cell, PieChart, Pie } from 'recharts';
 import { storageSummaryData, storageGrowthData, databasesData, storageByTypeData } from '../data/dummyData';
 import InfoTooltip from '../components/InfoTooltip';
 import { BigScreenWidget } from '../types';
-import { IconDotsVertical } from '../constants';
+import { IconDotsVertical, IconChevronRight } from '../constants';
 import SidePanel from '../components/SidePanel';
 import TableView from '../components/TableView';
 
@@ -245,11 +246,12 @@ const StorageSummaryView: React.FC<{ onSelectDatabase: (databaseId: string) => v
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <button 
+                            <button
                                 onClick={() => onSelectDatabase('__view_all__')}
-                                className="text-sm font-semibold text-link hover:underline whitespace-nowrap"
+                                className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-full transition-colors uppercase tracking-wide"
                             >
                                 View All
+                                <IconChevronRight className="h-4 w-4" />
                             </button>
                              <WidgetActionMenu
                                 widgetId="top-spend-db"

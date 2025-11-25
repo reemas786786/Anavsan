@@ -1,5 +1,4 @@
 
-
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { AssignedQuery, AssignmentStatus, AssignmentPriority, User } from '../types';
 import { IconDotsVertical, IconArrowUp, IconArrowDown, IconSearch, IconAdjustments } from '../constants';
@@ -225,16 +224,16 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onUp
             </div>
             
             <div className="flex flex-wrap items-center gap-2">
-                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
                     Total: <span className="font-bold text-text-strong">{summaryStats.total}</span>
                 </div>
-                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
                     Pending: <span className="font-bold text-gray-800">{summaryStats.pending}</span>
                 </div>
-                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
                     In Progress: <span className="font-bold text-status-paused-dark">{summaryStats.inProgress}</span>
                 </div>
-                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
                     Optimized: <span className="font-bold text-status-success-dark">{summaryStats.optimized}</span>
                 </div>
             </div>

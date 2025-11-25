@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { queryListData as initialData, warehousesData } from '../data/dummyData';
 import { QueryListItem, QuerySeverity, SlowQueryFilters } from '../types';
@@ -113,9 +114,9 @@ const SlowQueriesView: React.FC<SlowQueriesViewProps> = ({
                 <h1 className="text-2xl font-bold text-text-primary">Slow queries</h1>
                 <p className="mt-1 text-text-secondary">Identify and analyze queries that are running longer than expected.</p>
                  <div className="mt-4 flex flex-wrap items-center gap-2">
-                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm'}>Total Queries: <span className="font-bold text-text-strong">{queryStats.total.toLocaleString()}</span></div>
-                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm'}>Success: <span className="font-bold text-status-success-dark">{queryStats.success.toLocaleString()}</span></div>
-                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm'}>Failed: <span className="font-bold text-status-error-dark">{queryStats.failed.toLocaleString()}</span></div>
+                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface'}>Total Queries: <span className="font-bold text-text-strong">{queryStats.total.toLocaleString()}</span></div>
+                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface'}>Success: <span className="font-bold text-status-success-dark">{queryStats.success.toLocaleString()}</span></div>
+                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface'}>Failed: <span className="font-bold text-status-error-dark">{queryStats.failed.toLocaleString()}</span></div>
                 </div>
             </div>
 

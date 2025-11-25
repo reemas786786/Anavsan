@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { queryListData as initialData, warehousesData, usersData as allUsersData } from '../data/dummyData';
 import { QueryListItem, QueryType, QueryListFilters } from '../types';
@@ -257,9 +256,9 @@ export const QueryListView: React.FC<QueryListViewProps> = ({
                 <h1 className="text-2xl font-bold text-text-primary">All Queries</h1>
                 <p className="mt-1 text-text-secondary">View and analyze all queries executed in this account.</p>
                 <div className="mt-4 flex flex-wrap items-center gap-2">
-                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm'}>Total Queries: <span className="font-bold text-text-strong">{queryStats.total.toLocaleString()}</span></div>
-                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm'}>Success: <span className="font-bold text-status-success-dark">{queryStats.success.toLocaleString()}</span></div>
-                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm'}>Failed: <span className="font-bold text-status-error-dark">{queryStats.failed.toLocaleString()}</span></div>
+                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface'}>Total Queries: <span className="font-bold text-text-strong">{queryStats.total.toLocaleString()}</span></div>
+                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface'}>Success: <span className="font-bold text-status-success-dark">{queryStats.success.toLocaleString()}</span></div>
+                    <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface'}>Failed: <span className="font-bold text-status-error-dark">{queryStats.failed.toLocaleString()}</span></div>
                 </div>
             </div>
             

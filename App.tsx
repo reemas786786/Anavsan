@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -111,7 +110,7 @@ const App: React.FC = () => {
   const [selectedPullRequest, setSelectedPullRequest] = useState<PullRequest | null>(null);
   
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [theme, setTheme] = useState<Theme>('system');
+  const [theme, setTheme] = useState<Theme>('light');
   const [displayMode, setDisplayMode] = useState<DisplayMode>('cost');
 
   const [toast, setToast] = useState<ToastType | null>(null);
@@ -518,6 +517,21 @@ const App: React.FC = () => {
     setAutoRunAction(false);
   }, []);
 
+  // --- NEW: Helper function to reset all drill-down states ---
+  const resetDrillDowns = () => {
+      setSelectedUser(null);
+      setIsViewingDashboard(false);
+      setEditingDashboard(null);
+      setSelectedDashboard(null);
+      setSelectedQuery(null);
+      setSelectedPullRequest(null);
+      setSelectedWarehouse(null);
+      setSelectedLibraryItem(null);
+      setSelectedDatabase(null);
+      setSelectedSchema(null);
+      setSelectedTable(null);
+  };
+
   // FIX: Define handlers for query analysis, optimization, and simulation.
   // These can be called from different parts of the app, like the query preview panel,
   // and will handle navigation to the appropriate AccountView page if needed.
@@ -526,8 +540,6 @@ const App: React.FC = () => {
           // If no account is selected (e.g., coming from Assigned Queries page),
           // we need to select one to show the AccountView with the analyzer.
           if (!selectedAccount) {
-              // This is a workaround for inconsistent demo data where warehouse name doesn't map to account name.
-              // We'll default to the first account. A real implementation would have a proper mapping.
               const accountToSelect = accounts[0];
               if (accountToSelect) {
                   setSelectedAccount(accountToSelect);
@@ -538,6 +550,8 @@ const App: React.FC = () => {
           setNavigationSource(source);
           setAutoRunAction(source === 'Query detail' || source === 'Query Preview');
           setAccountViewPage('Query analyzer');
+          // We do NOT clear selectedQuery here if source is "Query detail", but for others we might.
+          // However, Query Analyzer is a separate page in AccountView, so typically we clear the "Detail" view.
           setSelectedQuery(null);
       } else {
           setAnalyzingQuery(null);
@@ -585,6 +599,40 @@ const App: React.FC = () => {
       }
   };
 
+  const handleSelectAccount = (account: Account) => {
+      resetDrillDowns(); // Clear everything else
+      setSelectedAccount(account);
+      setAccountViewPage('Account overview');
+      setActivePage('Snowflake Accounts');
+  };
+
+  const handleSelectWarehouse = (warehouse: Warehouse) => {
+      resetDrillDowns(); // Clear everything else
+      if(!selectedAccount) {
+          setSelectedAccount(accounts[0]);
+      }
+      setSelectedWarehouse(warehouse);
+      setAccountViewPage('Overview'); // Navigate to Warehouse Overview
+      setActivePage('Snowflake Accounts');
+  };
+
+  const handleSelectQuery = (query: QueryListItem) => {
+      resetDrillDowns(); // Clear everything else
+      if(!selectedAccount) {
+          setSelectedAccount(accounts[0]);
+      }
+      setSelectedQuery(query);
+      setAccountViewPage('All queries');
+      setActivePage('Snowflake Accounts');
+  };
+
+  const handleSelectUser = (user: User) => {
+      resetDrillDowns();
+      setSelectedAccount(null); // User view is separate
+      setSelectedUser(user);
+      setActivePage('Data Cloud Overview'); // Or appropriate page
+  };
+
   const renderPage = () => {
     if (selectedLibraryItem) {
         return <QueryLibraryDetailView 
@@ -601,12 +649,7 @@ const App: React.FC = () => {
         onSwitchAccount={(acc) => {
             setSelectedAccount(acc);
             setAccountViewPage('Account overview');
-            setSelectedQuery(null);
-            setSelectedPullRequest(null);
-            setSelectedWarehouse(null);
-            setSelectedDatabase(null);
-            setSelectedSchema(null);
-            setSelectedTable(null);
+            resetDrillDowns(); // Reset drilldowns when switching account context
         }} 
         onBackToAccounts={() => {
             setSelectedAccount(null);
@@ -690,9 +733,9 @@ const App: React.FC = () => {
 
     switch (activePage) {
         case 'Data Cloud Overview':
-            return <Overview onSelectAccount={setSelectedAccount} onSelectUser={setSelectedUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} currentUser={currentUser} />;
+            return <Overview onSelectAccount={handleSelectAccount} onSelectUser={setSelectedUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} currentUser={currentUser} />;
         case 'Snowflake Accounts':
-            return <Connections accounts={accounts} onSelectAccount={setSelectedAccount} onAddAccountClick={() => setSidePanel({ type: 'addAccount' })} onDeleteAccount={(id) => { setConfirmation({ title: 'Remove Account', message: 'Are you sure?', onConfirm: () => {setAccounts(accs => accs.filter(a => a.id !== id)); showToast('Account removed.', 'success'); }, confirmText: 'Remove', confirmVariant: 'danger'}) }} onInitiateSync={handleInitiateSync} />;
+            return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setSidePanel({ type: 'addAccount' })} onDeleteAccount={(id) => { setConfirmation({ title: 'Remove Account', message: 'Are you sure?', onConfirm: () => {setAccounts(accs => accs.filter(a => a.id !== id)); showToast('Account removed.', 'success'); }, confirmText: 'Remove', confirmVariant: 'danger'}) }} onInitiateSync={handleInitiateSync} />;
         case 'Reports':
             return <Reports />;
         case 'AI Agent':
@@ -759,7 +802,7 @@ const App: React.FC = () => {
                 onOpenAssignedQueryPreview={handleOpenAssignedQueryPreview}
             />;
         default:
-            return <Overview onSelectAccount={setSelectedAccount} onSelectUser={setSelectedUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} currentUser={currentUser} />;
+            return <Overview onSelectAccount={handleSelectAccount} onSelectUser={setSelectedUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} currentUser={currentUser} />;
     }
   };
 
@@ -930,10 +973,20 @@ const App: React.FC = () => {
                 onClearAllNotifications={handleClearAllNotifications}
                 onNavigate={(page) => handleSetActivePage(page)}
                 onOpenQuickAsk={() => setIsQuickAskOpen(true)}
+                
+                // Search Data
+                accounts={accounts}
+                warehouses={warehousesData}
+                queries={queryListData}
+                users={users}
+                onSelectAccount={handleSelectAccount}
+                onSelectWarehouse={handleSelectWarehouse}
+                onSelectQuery={handleSelectQuery}
+                onSelectUser={handleSelectUser}
             />
 
             {breadcrumbItems.length > 0 && (
-                <div className="flex-shrink-0 px-4 py-2 border-b border-border-color bg-surface-nested">
+                <div className="flex-shrink-0 px-4 py-2 border-b border-border-color bg-surface">
                     <Breadcrumb items={breadcrumbItems} />
                 </div>
             )}

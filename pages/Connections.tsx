@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, ConnectionStatus } from '../types';
 import { IconDotsVertical, IconSearch, IconView, IconEdit, IconDelete, IconAdd, IconArrowUp, IconArrowDown, IconRefresh } from '../constants';
@@ -119,16 +118,16 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
                     Total Accounts: <span className="font-bold text-text-strong">{summaryStats.total}</span>
                 </div>
-                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
                     Connected: <span className="font-bold text-status-success-dark">{summaryStats.connected}</span>
                 </div>
-                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
                     Syncing: <span className="font-bold text-status-info-dark">{summaryStats.syncing}</span>
                 </div>
-                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
                     Error: <span className="font-bold text-status-error-dark">{summaryStats.error}</span>
                 </div>
             </div>

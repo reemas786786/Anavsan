@@ -1,5 +1,4 @@
 
-
 import React, { useMemo } from 'react';
 import { PullRequest, PullRequestStatus } from '../types';
 import { IconPullRequest, IconCheckCircle, IconSearch } from '../constants';
@@ -58,16 +57,16 @@ const PullRequestsView: React.FC<PullRequestsViewProps> = ({ pullRequests, onSel
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
                     Total: <span className="font-bold text-text-strong">{summaryStats.total}</span>
                 </div>
-                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
                     Open: <span className="font-bold text-status-success-dark">{summaryStats.open}</span>
                 </div>
-                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
                     Merged: <span className="font-bold text-primary">{summaryStats.merged}</span>
                 </div>
-                 <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm">
+                 <div className="px-4 py-2 rounded-full text-sm font-medium bg-surface">
                     Closed: <span className="font-bold text-status-error-dark">{summaryStats.closed}</span>
                 </div>
             </div>

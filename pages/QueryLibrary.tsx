@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { SQLFile, Account, SQLVersion, User } from '../types';
 import { IconSearch, IconArrowUp, IconArrowDown } from '../constants';
@@ -121,13 +122,13 @@ export const QueryLibrary: React.FC<QueryLibraryProps> = ({ sqlFiles, accounts, 
             </div>
 
              <div className="flex items-center gap-2">
-                <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm'}>
+                <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface'}>
                     Total Queries: <span className="font-bold text-text-strong">{totalCount}</span>
                 </div>
-                <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm'}>
+                <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface'}>
                     Analyzed: <span className="font-bold text-status-warning-dark">{analyzedCount}</span>
                 </div>
-                <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface shadow-sm'}>
+                <div className={'px-4 py-2 rounded-full text-sm font-medium bg-surface'}>
                     Optimized: <span className="font-bold text-status-success-dark">{optimizedCount}</span>
                 </div>
             </div>
